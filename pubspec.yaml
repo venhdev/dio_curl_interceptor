@@ -1,5 +1,5 @@
 name: dio_curl_interceptor
-description: "A new Flutter package project."
+description: "A new Flutter package for logging curl with dio interceptor."
 version: 0.0.1
 homepage:
 
@@ -8,6 +8,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  dio: ^5.8.0+1
   flutter:
     sdk: flutter
 
