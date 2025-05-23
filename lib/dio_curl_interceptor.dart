@@ -13,7 +13,8 @@ String? genCurl(RequestOptions options, {bool convertFormData = false}) {
   try {
     return CurlHelpers.generateCurlFromRequestOptions(options);
   } catch (e) {
-    ColoredLogger.info('[CurlInterceptor] Unable to create a CURL representation to ${options.uri.toString()}');
+    ColoredLogger.info(
+        '[CurlInterceptor] Unable to create a CURL representation to ${options.uri.toString()}');
     return null;
   }
 }
@@ -30,7 +31,8 @@ class CurlInterceptor extends Interceptor {
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
     if (curlOptions.requestVisible) {
       final curl = _tryGenerateCurlFromRequest(options);
       _printConsole(curl, ansiCode: curlOptions.onRequest?.ansiCode);
@@ -59,7 +61,8 @@ class CurlInterceptor extends Interceptor {
       }
 
       if (curlOptions.responseTime) {
-        _reportResponseTime(response.requestOptions, emoji: emoji, ansiCode: ansiCode);
+        _reportResponseTime(response.requestOptions,
+            emoji: emoji, ansiCode: ansiCode);
       }
 
       if (curlOptions.onResponse?.responseBody == true) {
@@ -83,7 +86,8 @@ class CurlInterceptor extends Interceptor {
       }
 
       if (curlOptions.responseTime) {
-        _reportResponseTime(err.requestOptions, emoji: emoji, ansiCode: ansiCode);
+        _reportResponseTime(err.requestOptions,
+            emoji: emoji, ansiCode: ansiCode);
       }
 
       if (curlOptions.onError?.responseBody == true && err.response != null) {
@@ -94,23 +98,28 @@ class CurlInterceptor extends Interceptor {
     return handler.next(err);
   }
 
-  void _reportStatusCode(int statusCode, {String uri = '', List<String>? ansiCode}) {
+  void _reportStatusCode(int statusCode,
+      {String uri = '', List<String>? ansiCode}) {
     final String statusCode_ = statusCode.toString();
     final emoji_ = CurlHelpers.getStatusEmoji(statusCode);
     final statusText_ = CurlHelpers.getStatusText(statusCode);
 
-    _printConsole('$emoji_ [$statusCode_] $statusText_ $uri', ansiCode: ansiCode);
+    _printConsole('$emoji_ [$statusCode_] $statusText_ $uri',
+        ansiCode: ansiCode);
   }
 
-  void _reportResponseTime(RequestOptions requestOptions, {String emoji = '', List<String>? ansiCode}) {
+  void _reportResponseTime(RequestOptions requestOptions,
+      {String emoji = '', List<String>? ansiCode}) {
     final stopwatch = _stopwatches.remove(requestOptions);
     stopwatch?.stop();
     final stopwatchTime = stopwatch?.elapsedMilliseconds ?? -1;
 
-    _printConsole('${Emoji.clock}  Time: $stopwatchTime ms', ansiCode: ansiCode);
+    _printConsole('${Emoji.clock}  Time: $stopwatchTime ms',
+        ansiCode: ansiCode);
   }
 
-  void _reportResponseBody(Response response, {required List<String>? ansiCode}) async {
+  void _reportResponseBody(Response response,
+      {required List<String>? ansiCode}) async {
     String data_;
     if (curlOptions.formatter == null) {
       data_ = response.data.toString();
@@ -124,11 +133,13 @@ class CurlInterceptor extends Interceptor {
     RequestOptions requestOptions,
   ) {
     try {
-      final curl = CurlHelpers.generateCurlFromRequestOptions(requestOptions, curlOptions: curlOptions);
+      final curl = CurlHelpers.generateCurlFromRequestOptions(requestOptions,
+          curlOptions: curlOptions);
       return curl;
     } catch (err) {
       final uri = requestOptions.uri.toString();
-      final errMsg = '[ERR][CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
+      final errMsg =
+          '[ERR][CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
       return errMsg;
     }
   }
@@ -143,7 +154,8 @@ class CurlInterceptor extends Interceptor {
     if (printer != null) {
       printer!('$prefix$text_');
     } else {
-      ColoredLogger.custom(text, ansiCode: ansiCode, prefix: prefix); // originalPrint
+      ColoredLogger.custom(text,
+          ansiCode: ansiCode, prefix: prefix); // originalPrint
     }
   }
 }
