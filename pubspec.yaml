@@ -1,15 +1,17 @@
 name: dio_curl_interceptor
-description: "A new Flutter package for logging curl with dio interceptor."
-version: 0.0.1
+description: "A Flutter package for logging curl with dio interceptor."
+version: 0.0.2
 homepage: https://www.memozen.online/
 repository: https://github.com/venhdev/dio_curl_interceptor
 
 environment:
-  sdk: ^3.6.1
+  sdk: ">=2.17.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
   dio: ^5.8.0+1
+  colored_logger: ^0.0.3
+  http_parser: ^4.0.2
   flutter:
     sdk: flutter
 

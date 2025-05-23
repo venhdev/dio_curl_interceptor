@@ -1,76 +1,130 @@
-import 'dart:convert';
-import 'dart:developer';
+export 'src/curl_options.dart';
 
+import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_curl_interceptor/src/curl_helpers.dart';
+import 'package:dio_curl_interceptor/src/curl_options.dart';
+import 'package:dio_curl_interceptor/src/emoji.dart';
+
+String genCurl(RequestOptions options, {bool convertFormData = false}) {
+  return CurlHelpers.generateCurlFromRequestOptions(options);
+}
+
+const String _unknown = 'unknown';
 
 class CurlInterceptor extends Interceptor {
-  CurlInterceptor({this.printOnSuccess, this.convertFormData = false});
-  final bool? printOnSuccess;
-  final bool convertFormData;
+  CurlInterceptor({
+    this.printer,
+    this.curlOptions = const CurlOptions(),
+  });
+
+  final void Function(String curlText)? printer;
+  final CurlOptions curlOptions;
+
+  static const String _startTimeKey = 'startTime';
+  final Map<RequestOptions, Stopwatch> _stopwatches = {};
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    _renderCurlRepresentation(options);
+    if (curlOptions.request) {
+      final curl = tryGenerateCurlFromRequest(options);
+      _printConsole(curl, ansiCode: curlOptions.onRequest?.ansiCode);
+    }
 
-    return handler.next(options); //continue
+    if (curlOptions.responseTime) {
+      // Start stopwatch
+      final stopwatch = Stopwatch()..start();
+      _stopwatches[options] = stopwatch;
+
+      // Store DateTime in extra
+      options.extra[_startTimeKey] = DateTime.now();
+    }
+
+    return handler.next(options);
   }
 
-  // @override
-  // void onError(DioException err, ErrorInterceptorHandler handler) {
-  //   _renderCurlRepresentation(err.requestOptions);
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (curlOptions.response) {
+      String emoji = Emoji.success;
+      final ansiCode = curlOptions.onResponse?.ansiCode;
+      final uri = response.requestOptions.uri.toString();
 
-  //   return handler.next(err); //continue
-  // }
+      if (curlOptions.statusCode) {
+        String statusCode = response.statusCode == null ? _unknown : response.statusCode.toString();
+        _printConsole('${Emoji.success} $statusCode $uri', ansiCode: ansiCode);
+      }
 
-  // @override
-  // void onResponse(Response response, ResponseInterceptorHandler handler) {
-  //   if (printOnSuccess != null && printOnSuccess == true) {
-  //     _renderCurlRepresentation(response.requestOptions);
-  //   }
+      if (curlOptions.responseTime) {
+        _reportResponseTime(response.requestOptions, emoji: emoji, ansiCode: ansiCode);
+      }
 
-  //   return handler.next(response); //continue
-  // }
+      if (curlOptions.onResponse?.responseBody == true) {
+        _printConsole('Response Body: ${response.data}', ansiCode: ansiCode);
+      }
+    }
 
-  String _renderCurlRepresentation(RequestOptions requestOptions) {
-    // add a breakpoint here so all errors can break
+    return handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (curlOptions.error) {
+      String emoji = Emoji.error;
+      final ansiCode = curlOptions.onError?.ansiCode;
+
+      if (curlOptions.statusCode) {
+        String statusCode = err.response?.statusCode == null ? _unknown : err.response!.statusCode.toString();
+        _printConsole('${Emoji.success} $statusCode');
+      }
+
+      if (curlOptions.responseTime) {
+        _reportResponseTime(err.requestOptions, emoji: emoji, ansiCode: ansiCode);
+      }
+
+      if (curlOptions.onError?.responseBody == true) {
+        _printConsole('Response Body: ${err.response?.data}');
+      }
+    }
+
+    return handler.next(err);
+  }
+
+  void _reportResponseTime(RequestOptions requestOptions, {String emoji = '', List<String>? ansiCode}) {
+    final stopwatch = _stopwatches.remove(requestOptions);
+    stopwatch?.stop();
+    final stopwatchTime = stopwatch?.elapsedMilliseconds ?? -1;
+
+    // Get extra date
+    final startTime = requestOptions.extra[_startTimeKey] as DateTime?;
+    final extraTime = startTime != null ? DateTime.now().difference(startTime).inMilliseconds : -1;
+
+    _printConsole('${Emoji.clock}  Stopwatch Time: $stopwatchTime ms', ansiCode: ansiCode);
+    _printConsole('${Emoji.clock}  Extra Header Time: $extraTime ms', ansiCode: ansiCode);
+  }
+
+  String tryGenerateCurlFromRequest(
+    RequestOptions requestOptions,
+  ) {
     try {
-      final msg = _cURLRepresentation(requestOptions);
-      log(msg);
-      return msg;
+      final curl = CurlHelpers.generateCurlFromRequestOptions(requestOptions, curlOptions: curlOptions);
+      return curl;
     } catch (err) {
-      final errMsg = '[ERR][CurlInterceptor] unable to create a CURL representation of the requestOptions to ${requestOptions.uri}';
-      log(errMsg);
+      final uri = requestOptions.uri.toString();
+      final errMsg = '[ERR][CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
       return errMsg;
     }
   }
 
-  String _cURLRepresentation(RequestOptions options) {
-    if (options.data is FormData && convertFormData == false) {
-      return 'FormData cannot be converted to cURL. Set convertFormData to true to convert it to JSON';
+  void _printConsole(String text, {List<String>? ansiCode}) {
+    void originalPrint(String curlText) {
+      ColoredLogger.custom(curlText, ansiCode: ansiCode);
     }
 
-    List<String> components = ['curl -i'];
-    components.add('-X ${options.method}');
-
-    options.headers.forEach((k, v) {
-      if (k != 'Cookie' && k != 'content-length') {
-        components.add('-H "$k: $v"');
-      }
-    });
-
-    if (options.data != null) {
-      // FormData can't be JSON-serialized, so keep only their fields attributes
-      if (options.data is FormData && convertFormData == true) {
-        options.data = Map.fromEntries(options.data.fields);
-      }
-
-      final data = json.encode(options.data).replaceAll('"', '\\"');
-      components.add('-d "$data"');
+    if (printer != null) {
+      printer!(text);
+    } else {
+      originalPrint(text);
     }
-
-    components.add('"${options.uri.toString()}"');
-
-    // return components.join(' \\\n\t');
-    return components.join(' ');
   }
 }
