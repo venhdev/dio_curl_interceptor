@@ -21,7 +21,6 @@ class CurlInterceptor extends Interceptor {
   final void Function(String curlText)? printer;
   final CurlOptions curlOptions;
 
-  static const String _startTimeKey = 'startTime';
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
 
   @override
@@ -35,9 +34,6 @@ class CurlInterceptor extends Interceptor {
       // Start stopwatch
       final stopwatch = Stopwatch()..start();
       _stopwatches[options] = stopwatch;
-
-      // Store DateTime in extra
-      options.extra[_startTimeKey] = DateTime.now();
     }
 
     return handler.next(options);
@@ -95,12 +91,7 @@ class CurlInterceptor extends Interceptor {
     stopwatch?.stop();
     final stopwatchTime = stopwatch?.elapsedMilliseconds ?? -1;
 
-    // Get extra date
-    final startTime = requestOptions.extra[_startTimeKey] as DateTime?;
-    final extraTime = startTime != null ? DateTime.now().difference(startTime).inMilliseconds : -1;
-
     _printConsole('${Emoji.clock}  Stopwatch Time: $stopwatchTime ms', ansiCode: ansiCode);
-    _printConsole('${Emoji.clock}  Extra Header Time: $extraTime ms', ansiCode: ansiCode);
   }
 
   String tryGenerateCurlFromRequest(
