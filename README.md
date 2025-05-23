@@ -91,7 +91,7 @@ final formatted = CurlFormatters.readableMap(map);
 
 When making a GET request with JSON data, The interceptor will log something like:
 
-![Screenshot](screenshots\image.png)
+![Screenshot](screenshots/image.png "log screenshot")
 
 ## Additional information
 
