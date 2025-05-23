@@ -1,4 +1,7 @@
 export 'src/curl_options.dart';
+export 'src/curl_helpers.dart';
+export 'src/curl_formatters.dart';
+export 'package:colored_logger/ansi_code.dart';
 
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
@@ -6,11 +9,14 @@ import 'package:dio_curl_interceptor/src/curl_helpers.dart';
 import 'package:dio_curl_interceptor/src/curl_options.dart';
 import 'package:dio_curl_interceptor/src/emoji.dart';
 
-String genCurl(RequestOptions options, {bool convertFormData = false}) {
-  return CurlHelpers.generateCurlFromRequestOptions(options);
+String? genCurl(RequestOptions options, {bool convertFormData = false}) {
+  try {
+    return CurlHelpers.generateCurlFromRequestOptions(options);
+  } catch (e) {
+    ColoredLogger.info('[CurlInterceptor] Unable to create a CURL representation to ${options.uri.toString()}');
+    return null;
+  }
 }
-
-const String _unknown = 'unknown';
 
 class CurlInterceptor extends Interceptor {
   CurlInterceptor({
@@ -18,15 +24,15 @@ class CurlInterceptor extends Interceptor {
     this.curlOptions = const CurlOptions(),
   });
 
-  final void Function(String curlText)? printer;
+  final void Function(String text)? printer;
   final CurlOptions curlOptions;
 
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    if (curlOptions.request) {
-      final curl = tryGenerateCurlFromRequest(options);
+    if (curlOptions.requestVisible) {
+      final curl = _tryGenerateCurlFromRequest(options);
       _printConsole(curl, ansiCode: curlOptions.onRequest?.ansiCode);
     }
 
@@ -41,14 +47,15 @@ class CurlInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (curlOptions.response) {
+    if (curlOptions.responseVisible) {
       String emoji = Emoji.success;
       final ansiCode = curlOptions.onResponse?.ansiCode;
       final uri = response.requestOptions.uri.toString();
 
       if (curlOptions.statusCode) {
-        String statusCode = response.statusCode == null ? _unknown : response.statusCode.toString();
-        _printConsole('${Emoji.success} $statusCode $uri', ansiCode: ansiCode);
+        // String statusCode = response.statusCode == null ? _unknown : response.statusCode.toString();
+        // _printConsole('${Emoji.success} $statusCode $uri', ansiCode: ansiCode);
+        _reportStatusCode(response.statusCode!, uri: uri, ansiCode: ansiCode);
       }
 
       if (curlOptions.responseTime) {
@@ -56,7 +63,7 @@ class CurlInterceptor extends Interceptor {
       }
 
       if (curlOptions.onResponse?.responseBody == true) {
-        _printConsole('Response Body: ${response.data}', ansiCode: ansiCode);
+        _reportResponseBody(response, ansiCode: ansiCode);
       }
     }
 
@@ -65,25 +72,34 @@ class CurlInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (curlOptions.error) {
+    if (curlOptions.errorVisible) {
       String emoji = Emoji.error;
       final ansiCode = curlOptions.onError?.ansiCode;
+      final uri = err.requestOptions.uri.toString();
 
       if (curlOptions.statusCode) {
-        String statusCode = err.response?.statusCode == null ? _unknown : err.response!.statusCode.toString();
-        _printConsole('${Emoji.success} $statusCode');
+        int statusCode = err.response?.statusCode ?? -1;
+        _reportStatusCode(statusCode, uri: uri, ansiCode: ansiCode);
       }
 
       if (curlOptions.responseTime) {
         _reportResponseTime(err.requestOptions, emoji: emoji, ansiCode: ansiCode);
       }
 
-      if (curlOptions.onError?.responseBody == true) {
-        _printConsole('Response Body: ${err.response?.data}');
+      if (curlOptions.onError?.responseBody == true && err.response != null) {
+        _reportResponseBody(err.response!, ansiCode: ansiCode);
       }
     }
 
     return handler.next(err);
+  }
+
+  void _reportStatusCode(int statusCode, {String uri = '', List<String>? ansiCode}) {
+    final String statusCode_ = statusCode.toString();
+    final emoji_ = CurlHelpers.getStatusEmoji(statusCode);
+    final statusText_ = CurlHelpers.getStatusText(statusCode);
+
+    _printConsole('$emoji_ [$statusCode_] $statusText_ $uri', ansiCode: ansiCode);
   }
 
   void _reportResponseTime(RequestOptions requestOptions, {String emoji = '', List<String>? ansiCode}) {
@@ -91,10 +107,20 @@ class CurlInterceptor extends Interceptor {
     stopwatch?.stop();
     final stopwatchTime = stopwatch?.elapsedMilliseconds ?? -1;
 
-    _printConsole('${Emoji.clock}  Stopwatch Time: $stopwatchTime ms', ansiCode: ansiCode);
+    _printConsole('${Emoji.clock}  Time: $stopwatchTime ms', ansiCode: ansiCode);
   }
 
-  String tryGenerateCurlFromRequest(
+  void _reportResponseBody(Response response, {required List<String>? ansiCode}) async {
+    String data_;
+    if (curlOptions.formatter == null) {
+      data_ = response.data.toString();
+    } else {
+      data_ = curlOptions.formatter!(response.data);
+    }
+    _printConsole('${Emoji.doc} Response body:\n$data_', ansiCode: ansiCode);
+  }
+
+  String _tryGenerateCurlFromRequest(
     RequestOptions requestOptions,
   ) {
     try {
@@ -107,15 +133,17 @@ class CurlInterceptor extends Interceptor {
     }
   }
 
-  void _printConsole(String text, {List<String>? ansiCode}) {
-    void originalPrint(String curlText) {
-      ColoredLogger.custom(curlText, ansiCode: ansiCode);
-    }
+  void _printConsole(
+    String text, {
+    String prefix = '',
+    required List<String>? ansiCode,
+  }) {
+    String text_ = text;
 
     if (printer != null) {
-      printer!(text);
+      printer!('$prefix$text_');
     } else {
-      originalPrint(text);
+      ColoredLogger.custom(text, ansiCode: ansiCode, prefix: prefix); // originalPrint
     }
   }
 }

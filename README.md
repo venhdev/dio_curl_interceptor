@@ -16,7 +16,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^0.0.1
+  dio_curl_interceptor: ^0.0.3
 ```
 
 Then run:
@@ -27,13 +27,15 @@ flutter pub get
 
 ## Usage
 
-1. First, import the package:
+- (1) First, import the package:
 
 ```dart
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 ```
 
-2. Add the interceptor to your Dio instance:
+- (2) Add the interceptor to your Dio instance:
+
+### Simple Usage
 
 ```dart
 final dio = Dio();
@@ -42,33 +44,54 @@ dio.interceptors.add(CurlInterceptor());
 
 ### Configuration Options
 
-You can customize the interceptor behavior with these options:
+You can customize the interceptor behavior with `CurlOptions`:
 
 ```dart
-dio.interceptors.add(
-  CurlInterceptor(
-    printOnSuccess: true, // Only print cURL commands for successful requests
+dio.interceptors.add(CurlInterceptor(
+  curlOptions: CurlOptions(
+    statusCode: true, // Show status codes in logs
+    responseTime: true, // Show response timing
     convertFormData: true, // Convert FormData to JSON in cURL output
+    onRequest: RequestDetails(visible: true),
+    onResponse: ResponseDetails(visible: true, responseBody: true),
+    onError: ErrorDetails(visible: true, responseBody: true),
+    // Format response body with build-in formatters
+    formatter: CurlFormatters.escapeNewlinesString,
   ),
-);
+));
+```
+
+### Built-in Formatters
+
+The package includes `CurlFormatters` with built-in formatting utilities:
+
+- `escapeNewlinesString`: Formats strings by escaping newlines
+
+```dart
+// Example usage
+final formatted = CurlFormatters.escapeNewlinesString("Hello\nWorld");
+// Output: "Hello\nWorld"
+```
+
+- `readableMap`: Converts maps to a readable console format
+
+```dart
+// Example usage
+final map = {
+  'name': 'John',
+  'details': 'Line 1\nLine 2'
+};
+final formatted = CurlFormatters.readableMap(map);
+// Output:
+// name: John
+// details: Line 1\nLine 2
 ```
 
 ### Example Output
 
-When making a POST request with JSON data:
+When making a GET request with JSON data, The interceptor will log something like:
 
-```dart
-final response = await dio.post(
-  'https://api.example.com/data',
-  data: {'name': 'John', 'age': 30},
-);
-```
-
-The interceptor will log something like:
-
-```bash
-curl -i -X POST -H "Content-Type: application/json; charset=utf-8" -d "{\"name\":\"John\",\"age\":30}" "https://api.example.com/data"
-```
+![Screenshot](.\screenshots\image.png)
 
 ## Additional information
 

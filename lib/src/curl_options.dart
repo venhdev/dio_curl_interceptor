@@ -8,6 +8,7 @@ class CurlOptions {
     this.onRequest = const RequestDetails(),
     this.onResponse = const ResponseDetails(),
     this.onError = const ErrorDetails(),
+    this.formatter,
   });
 
   /// Show status code
@@ -19,13 +20,16 @@ class CurlOptions {
   /// Convert FormData to JSON
   final bool convertFormData;
 
+  /// Used to format response body
+  final String Function(dynamic body)? formatter;
+
   final RequestDetails? onRequest;
   final ResponseDetails? onResponse;
   final ErrorDetails? onError;
 
-  bool get request => onRequest?.visible ?? false;
-  bool get response => onResponse?.visible ?? false;
-  bool get error => onError?.visible ?? false;
+  bool get requestVisible => onRequest?.visible ?? false;
+  bool get responseVisible => onResponse?.visible ?? false;
+  bool get errorVisible => onError?.visible ?? false;
 }
 
 /// see [AnsiCode] for more colors and styles
@@ -64,18 +68,3 @@ class ErrorDetails extends CurlDetails {
 
   final bool responseBody;
 }
-
-// - onRequest:
-// 	+ visible ::true
-// 	+ request ::true
-// 	+ color ::yellow
-
-// - onResponse:
-// 	+ visible ::true
-// 	+ response ::true
-// 	+ color ::green
-
-// - onError:
-// 	+ visible ::true
-// 	+ response ::true
-// 	+ color ::red

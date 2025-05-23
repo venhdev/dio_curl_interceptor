@@ -1,8 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'dart:typed_data';
 
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -10,8 +13,54 @@ void main() {
   test('test base dio_curl_interceptor', () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor());
+    final dio2 = Dio();
+    dio2.interceptors.add(CurlInterceptor(
+        curlOptions: CurlOptions(formatter: CurlFormatters.readableMap)));
+    final dio3 = Dio();
+    dio3.interceptors.add(CurlInterceptor(
+        curlOptions:
+            CurlOptions(formatter: CurlFormatters.escapeNewlinesString)));
+
+    print('---------Default---------');
+    await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+    print('---------ReadableMap---------');
+    await dio2.get('https://jsonplaceholder.typicode.com/posts/1');
+    print('---------EscapeNewlinesString---------');
+    await dio3.get('https://jsonplaceholder.typicode.com/posts/1');
+  });
+  test('test custom dio_curl_interceptor', () async {
+    final dio = Dio();
+    dio.interceptors.add(CurlInterceptor(
+      curlOptions: CurlOptions(
+        statusCode: true, // Show status codes in logs
+        responseTime: true, // Show response timing
+        convertFormData: true, // Convert FormData to JSON in cURL output
+        onRequest: RequestDetails(visible: true),
+        onResponse: ResponseDetails(visible: true, responseBody: true),
+        onError: ErrorDetails(visible: true, responseBody: true),
+        // Format response body with build-in formatters
+        formatter: CurlFormatters.readableMap,
+      ),
+    ));
 
     await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+  });
+  test('test custom dio_curl_interceptor photos', () async {
+    final dio = Dio();
+    dio.interceptors.add(CurlInterceptor(
+      curlOptions: CurlOptions(
+        statusCode: true, // Show status codes in logs
+        responseTime: true, // Show response timing
+        convertFormData: true, // Convert FormData to JSON in cURL output
+        onRequest: RequestDetails(visible: true),
+        onResponse: ResponseDetails(visible: true, responseBody: true),
+        onError: ErrorDetails(visible: true, responseBody: true),
+        // Format response body with build-in formatters
+        formatter: CurlFormatters.readableMap,
+      ),
+    ));
+
+    await dio.get('https://jsonplaceholder.typicode.com/xx');
   });
   test('test dio_curl_interceptor without request', () async {
     final dio = Dio();
@@ -29,7 +78,8 @@ void main() {
     }
   });
 
-  test('test dio_curl_interceptor with FormData - convertFormData=true', () async {
+  test('test dio_curl_interceptor with FormData - convertFormData=true',
+      () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
       curlOptions: const CurlOptions(
@@ -55,7 +105,8 @@ void main() {
     }
   });
 
-  test('test dio_curl_interceptor with FormData - convertFormData=false', () async {
+  test('test dio_curl_interceptor with FormData - convertFormData=false',
+      () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
       curlOptions: const CurlOptions(
@@ -81,7 +132,9 @@ void main() {
     }
   });
 
-  test('test dio_curl_interceptor with FormData including file - convertFormData=true', () async {
+  test(
+      'test dio_curl_interceptor with FormData including file - convertFormData=true',
+      () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
       curlOptions: const CurlOptions(
