@@ -1,3 +1,7 @@
+## 0.0.7
+
+- update dependency for support log long text.
+
 ## 0.0.3
 
 - more readable log
