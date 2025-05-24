@@ -1,6 +1,7 @@
 # dio_curl_interceptor
 
 A Flutter package that provides a Dio interceptor for logging HTTP requests as cURL commands. This makes it easier to debug API calls and share them with others.
+![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image.png)
 
 ## Features
 
@@ -91,7 +92,7 @@ final formatted = CurlFormatters.readableMap(map);
 
 When making a GET request with JSON data, The interceptor will log something like:
 
-![Screenshot](https://github.com/venhdev/dio_curl_interceptor/blob/main/screenshots/image.png "log screenshot")
+![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image.png)
 
 ## Additional information
 
