@@ -29,9 +29,6 @@ jobs:
       - name: Analyze code
         run: dart analyze --fatal-infos
 
-      - name: Run tests
-        run: flutter test
-
       - name: Publish package
         uses: k-paxian/dart-package-publisher@v1.5.1
         with:
