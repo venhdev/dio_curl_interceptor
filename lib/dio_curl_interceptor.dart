@@ -50,20 +50,14 @@ class CurlInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     if (curlOptions.responseVisible) {
-      String emoji = Emoji.success;
       final ansiCode = curlOptions.onResponse?.ansiCode;
-      final uri = response.requestOptions.uri.toString();
 
-      if (curlOptions.statusCode) {
-        // String statusCode = response.statusCode == null ? _unknown : response.statusCode.toString();
-        // _printConsole('${Emoji.success} $statusCode $uri', ansiCode: ansiCode);
-        _reportStatusCode(response.statusCode!, uri: uri, ansiCode: ansiCode);
-      }
-
-      if (curlOptions.responseTime) {
-        _reportResponseTime(response.requestOptions,
-            emoji: emoji, ansiCode: ansiCode);
-      }
+      _reportResponse(
+        statusCode: response.statusCode ?? -1,
+        ansiCode: ansiCode,
+        requestOptions: response.requestOptions,
+        curlOptions: curlOptions,
+      );
 
       if (curlOptions.onResponse?.responseBody == true) {
         _reportResponseBody(response, ansiCode: ansiCode);
@@ -76,19 +70,14 @@ class CurlInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (curlOptions.errorVisible) {
-      String emoji = Emoji.error;
       final ansiCode = curlOptions.onError?.ansiCode;
-      final uri = err.requestOptions.uri.toString();
 
-      if (curlOptions.statusCode) {
-        int statusCode = err.response?.statusCode ?? -1;
-        _reportStatusCode(statusCode, uri: uri, ansiCode: ansiCode);
-      }
-
-      if (curlOptions.responseTime) {
-        _reportResponseTime(err.requestOptions,
-            emoji: emoji, ansiCode: ansiCode);
-      }
+      _reportResponse(
+        statusCode: err.response?.statusCode ?? -1,
+        ansiCode: ansiCode,
+        requestOptions: err.requestOptions,
+        curlOptions: curlOptions,
+      );
 
       if (curlOptions.onError?.responseBody == true && err.response != null) {
         _reportResponseBody(err.response!, ansiCode: ansiCode);
@@ -98,35 +87,56 @@ class CurlInterceptor extends Interceptor {
     return handler.next(err);
   }
 
-  void _reportStatusCode(int statusCode,
-      {String uri = '', List<String>? ansiCode}) {
-    final String statusCode_ = statusCode.toString();
-    final emoji_ = CurlHelpers.getStatusEmoji(statusCode);
-    final statusText_ = CurlHelpers.getStatusText(statusCode);
+  void _reportResponse({
+    required int statusCode,
+    List<String>? ansiCode,
+    required RequestOptions requestOptions,
+    required CurlOptions curlOptions,
+  }) {
+    final String emoji = CurlHelpers.getStatusEmoji(statusCode);
+    final String uri = requestOptions.uri.toString();
 
-    _printConsole('$emoji_ [$statusCode_] $statusText_ $uri',
-        ansiCode: ansiCode);
-  }
+    // emoji
+    String message = emoji;
 
-  void _reportResponseTime(RequestOptions requestOptions,
-      {String emoji = '', List<String>? ansiCode}) {
+    // status code
+    if (curlOptions.statusCode) {
+      final String statusCode_ = statusCode.toString();
+      final String statusText = CurlHelpers.getStatusText(statusCode);
+      message += ' [$statusCode_ $statusText]';
+    }
+
+    // stop even if response time is not visible
     final stopwatch = _stopwatches.remove(requestOptions);
     stopwatch?.stop();
-    final stopwatchTime = stopwatch?.elapsedMilliseconds ?? -1;
+    if (curlOptions.responseTime) {
+      final String stopwatchTime =
+          (stopwatch?.elapsedMilliseconds ?? -1).toString();
+      message += ' [${Emoji.clock} ${stopwatchTime}ms]';
+    }
 
-    _printConsole('${Emoji.clock}  Time: $stopwatchTime ms',
-        ansiCode: ansiCode);
+    // uri
+    message += ' $uri';
+
+    _printConsole(message, ansiCode: ansiCode);
   }
 
   void _reportResponseBody(Response response,
-      {required List<String>? ansiCode}) async {
+      {required List<String>? ansiCode}) {
+    String uri = response.requestOptions.uri.toString();
     String data_;
     if (curlOptions.formatter == null) {
       data_ = response.data.toString();
     } else {
       data_ = curlOptions.formatter!(response.data);
     }
-    _printConsole('${Emoji.doc} Response body:\n$data_', ansiCode: ansiCode);
+
+    if (data_.isEmpty) {
+      data_ = 'No data';
+    }
+
+    _printConsole('${Emoji.doc} Response body [$uri]: $data_',
+        ansiCode: ansiCode);
   }
 
   String _tryGenerateCurlFromRequest(

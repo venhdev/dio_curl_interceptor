@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:colored_logger/ansi_code.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/src/curl_options.dart';
 import 'package:dio_curl_interceptor/src/emoji.dart';
@@ -203,6 +204,23 @@ class CurlHelpers {
       return Emoji.alert; // 5xx Server Error
     } else {
       return Emoji.unknown; // Unknown status code
+    }
+  }
+
+  static String getHttpMethodColorAnsi(String method) {
+    switch (method) {
+      case 'GET':
+        return AnsiCode.green;
+      case 'POST':
+        return AnsiCode.yellow;
+      case 'PUT':
+        return AnsiCode.blue;
+      case 'PATCH':
+        return AnsiCode.magenta;
+      case 'DELETE':
+        return AnsiCode.red;
+      default:
+        return AnsiCode.normal;
     }
   }
 }

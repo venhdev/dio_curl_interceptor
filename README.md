@@ -60,6 +60,40 @@ dio.interceptors.add(CurlInterceptor(
     // Format response body with build-in formatters
     formatter: CurlFormatters.escapeNewlinesString,
   ),
+  // Custom printer function to override default logging behavior
+  printer: (String text) {
+    // Your custom logging implementation
+    print('Custom log: $text');
+  },
+));
+```
+
+### Custom Printer Function
+
+The `printer` parameter allows you to override the default logging behavior:
+
+```dart
+dio.interceptors.add(CurlInterceptor(
+  printer: (String text) {
+    // Implement your own logging logic here
+    // For example, log to a file, send to a remote service, or use a custom logger
+    print('API Debug: $text');
+  },
+));
+```
+
+#### Handling Very Long Messages
+
+For very long messages, consider using the `log` function from the `developer` package which handles message chunking automatically:
+
+```dart
+import 'dart:developer' as developer;
+
+dio.interceptors.add(CurlInterceptor(
+  printer: (String text) {
+    // The developer.log function automatically handles very long messages
+    developer.log(text, name: 'CURL');
+  },
 ));
 ```
 
