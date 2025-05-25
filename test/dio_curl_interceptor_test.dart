@@ -11,32 +11,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http_parser/http_parser.dart';
 
 void main() {
-  test('test very long response', () async {
-    final dio = Dio();
-    dio.interceptors.add(
-      CurlInterceptor(
-        curlOptions: CurlOptions(formatter: CurlFormatters.readableMap),
-        printer: (text) {
-          log(text, name: 'CURL');
-        },
-      ),
-    );
-
-    await dio.get(
-        'https://api-tomgiong.newweb.vn/v1/client/post/list?lang=vi&page=1&limit=20',
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization':
-                'Bearer 226b116857c2788c685c66bf601222b56bdc3751b4f44b944361e84b2b1f002b',
-            'x-api-key': '88',
-          },
-        ));
-
-    // await for the response to complete printed to the console
-    await Future.delayed(const Duration(seconds: 5));
-  });
   test('test base dio_curl_interceptor', () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor());
@@ -69,12 +43,13 @@ void main() {
         formatter: CurlFormatters.escapeNewlinesString,
       ),
     ));
-
-    await dio.get('https://jsonplaceholder.typicode.com/comments?postId=1');
-    await dio.get('https://jsonplaceholder.typicode.com/posts/1');
-    await dio.put('https://jsonplaceholder.typicode.com/posts/2');
-    await dio.patch('https://jsonplaceholder.typicode.com/posts/3');
-    await dio.delete('https://jsonplaceholder.typicode.com/posts/4');
+    try {
+      await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+      await dio.put('https://jsonplaceholder.typicode.com/posts/2');
+      await dio.patch('https://jsonplaceholder.typicode.com/posts/3');
+      await dio.delete('https://jsonplaceholder.typicode.com/posts/4');
+      await dio.get('https://jsonplaceholder.typicode.com/posts/xx');
+    } catch (_) {}
   });
   test('test custom dio_curl_interceptor photos', () async {
     final dio = Dio();

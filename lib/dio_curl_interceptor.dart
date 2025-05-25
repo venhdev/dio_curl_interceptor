@@ -3,6 +3,7 @@ export 'src/curl_helpers.dart';
 export 'src/curl_formatters.dart';
 export 'package:colored_logger/ansi_code.dart';
 
+import 'package:colored_logger/ansi_code.dart';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/src/curl_helpers.dart';
@@ -95,6 +96,7 @@ class CurlInterceptor extends Interceptor {
   }) {
     final String emoji = CurlHelpers.getStatusEmoji(statusCode);
     final String uri = requestOptions.uri.toString();
+    final String method = requestOptions.method;
 
     // emoji
     String message = emoji;
@@ -114,6 +116,14 @@ class CurlInterceptor extends Interceptor {
           (stopwatch?.elapsedMilliseconds ?? -1).toString();
       message += ' [${Emoji.clock} ${stopwatchTime}ms]';
     }
+
+    // method
+    final String method_ = colorizeText(
+      method,
+      ansiCode: [CurlHelpers.getHttpMethodColorAnsi(method)],
+      forwardTo: ansiCode ?? const [AnsiCode.normal],
+    );
+    message += ' $method_';
 
     // uri
     message += ' $uri';

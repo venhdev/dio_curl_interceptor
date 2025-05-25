@@ -1,3 +1,7 @@
+## 1.0.0
+
+- enhance log format
+
 ## 0.0.7
 
 - update dependency for support log long text.

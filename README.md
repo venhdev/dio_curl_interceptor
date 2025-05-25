@@ -18,7 +18,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^0.0.7
+  dio_curl_interceptor: ^1.0.0
 ```
 
 Then run:
@@ -70,7 +70,7 @@ dio.interceptors.add(CurlInterceptor(
 
 ### Custom Printer Function
 
-The `printer` parameter allows you to override the default logging behavior:
+The `printer` parameter allows you to override the default logging (from colored_logger) behavior:
 
 ```dart
 dio.interceptors.add(CurlInterceptor(
