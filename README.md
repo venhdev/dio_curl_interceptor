@@ -7,10 +7,9 @@ A Flutter package that provides a Dio interceptor for logging HTTP requests as c
 ## Features
 
 - 🔍 Automatically converts Dio HTTP requests to cURL commands
-- 📝 Logs cURL commands to the console for easy debugging
+- 📝 Logs cURL commands to the console with custom styles and printer
 - ⚙️ Configurable options for logging behavior
 - 🔄 Support for FormData conversion
-- 🎯 Minimal setup required
 
 ## Getting started
 
@@ -18,7 +17,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^1.0.0
+  dio_curl_interceptor: ^1.0.1
 ```
 
 Then run:

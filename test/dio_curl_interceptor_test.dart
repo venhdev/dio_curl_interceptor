@@ -3,7 +3,6 @@
 import 'dart:developer';
 import 'dart:typed_data';
 
-import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 import 'package:flutter/foundation.dart';

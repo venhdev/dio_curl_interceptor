@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:colored_logger/ansi_code.dart';
+import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/src/curl_options.dart';
 import 'package:dio_curl_interceptor/src/emoji.dart';

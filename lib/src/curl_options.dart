@@ -1,4 +1,4 @@
-import 'package:colored_logger/ansi_code.dart';
+import 'package:colored_logger/colored_logger.dart';
 
 class CurlOptions {
   const CurlOptions({
