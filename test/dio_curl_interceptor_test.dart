@@ -45,9 +45,12 @@ void main() {
       ),
     ));
     try {
-      await dio.get('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/1');
-      await dio.put('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/2');
-      await dio.patch('https://66f66fca436827ced9772078.mockapi.io/testing/User/3');
+      await dio
+          .get('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/1');
+      await dio
+          .put('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/2');
+      await dio
+          .patch('https://66f66fca436827ced9772078.mockapi.io/testing/User/3');
       await dio.delete('https://jsonplaceholder.typicode.com/todos/4');
       await dio.get('https://jsonplaceholder.typicode.com/todos/xx');
     } catch (_) {}
