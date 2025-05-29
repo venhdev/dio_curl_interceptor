@@ -1,32 +1,8 @@
-# Using the Dio Curl Interceptor Examples
+# Using the Dio Curl Interceptor
 
-This directory contains examples demonstrating how to use the `dio_curl_interceptor` package in your Dart/Flutter applications.
+This guide demonstrates how to use the `dio_curl_interceptor` package in your Dart/Flutter applications.
 
-## Available Examples
-
-1. **main.dart** - A comprehensive example showing all features of the interceptor with different HTTP methods and options
-2. **simple_example.dart** - A minimal example showing basic usage with default options
-
-## How to Run
-
-To run any of the examples, follow these steps:
-
-```bash
-# Navigate to the example directory
-cd example
-
-# Get dependencies
-dart pub get
-
-# Run the example
-dart run main.dart
-# OR
-dart run simple_example.dart
-```
-
-## Key Implementation Details
-
-### Basic Setup
+## Basic Usage
 
 The simplest way to use the interceptor is:
 
@@ -35,14 +11,7 @@ final dio = Dio();
 dio.interceptors.add(CurlInterceptor());
 ```
 
-### Custom Configuration
-
-Simple add the interceptor to your Dio instance:
-
-```dart
-final dio = Dio();
-dio.interceptors.add(CurlInterceptor());
-```
+## Custom Configuration
 
 You can customize the behavior with `CurlOptions`:
 
@@ -50,9 +19,9 @@ You can customize the behavior with `CurlOptions`:
 dio.interceptors.add(
   CurlInterceptor(
     curlOptions: const CurlOptions(
-      statusCode: true,         // Show status codes in logs
-      responseTime: true,        // Show response timing
-      convertFormData: true,     // Convert FormData to JSON in cURL output
+      status: true,         // Show status codes in logs
+      responseTime: true,   // Show response timing
+      convertFormData: true, // Convert FormData to JSON in cURL output
       onRequest: RequestDetails(visible: true),
       onResponse: ResponseDetails(visible: true, responseBody: true),
       onError: ErrorDetails(visible: true, responseBody: true),
@@ -61,7 +30,146 @@ dio.interceptors.add(
 );
 ```
 
-### What You'll See in the Console
+## Using CurlUtils Directly
+
+Instead of using the full `CurlInterceptor`, you can use the utility methods from `CurlUtils` directly in your own custom interceptor:
+
+```dart
+class MyCustomInterceptor extends Interceptor {
+  final CurlOptions curlOptions;
+  final Map<RequestOptions, Stopwatch> _stopwatches = {};
+  
+  MyCustomInterceptor({this.curlOptions = const CurlOptions()});
+  
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    // Generate and log curl command
+    CurlUtils.logCurl(options, curlOptions: curlOptions);
+    
+    // Add timing header if you want to track response time
+    CurlUtils.addXClientTime(options);
+    
+    if (curlOptions.responseTime) {
+      final stopwatch = Stopwatch()..start();
+      _stopwatches[options] = stopwatch;
+    }
+    
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    Stopwatch? stopwatch;
+    if (curlOptions.responseTime) {
+      stopwatch = _stopwatches.remove(response.requestOptions);
+      stopwatch?.stop();
+    }
+    
+    // Handle and log response
+    CurlUtils.handleOnResponse(
+      response,
+      curlOptions: curlOptions,
+      stopwatch: stopwatch,
+    );
+    
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    Stopwatch? stopwatch;
+    if (curlOptions.responseTime) {
+      stopwatch = _stopwatches.remove(err.requestOptions);
+      stopwatch?.stop();
+    }
+    
+    // Handle and log error
+    CurlUtils.handleOnError(
+      err,
+      curlOptions: curlOptions,
+      stopwatch: stopwatch,
+    );
+    
+    handler.next(err);
+  }
+}
+```
+
+## Using Utility Functions Without an Interceptor
+
+You can also use the utility functions directly in your code without creating an interceptor:
+
+```dart
+// Generate a curl command from request options
+final dio = Dio();
+final response = await dio.get('https://example.com');
+
+// Generate and log a curl command
+CurlUtils.logCurl(response.requestOptions);
+
+// Log response details
+CurlUtils.handleOnResponse(response);
+
+// Log error details
+try {
+  await dio.get('https://invalid-url.com');
+} on DioException catch (e) {
+  CurlUtils.handleOnError(e);
+}
+```
+
+## Available Utility Methods
+
+### CurlUtils.logCurl
+
+Generates and logs a curl command from request options:
+
+```dart
+CurlUtils.logCurl(
+  requestOptions,
+  curlOptions: CurlOptions(
+    convertFormData: true,
+  ),
+);
+```
+
+### CurlUtils.addXClientTime
+
+Adds a timestamp header to track response time:
+
+```dart
+CurlUtils.addXClientTime(requestOptions);
+```
+
+### CurlUtils.handleOnResponse
+
+Handles and logs response information:
+
+```dart
+CurlUtils.handleOnResponse(
+  response,
+  curlOptions: CurlOptions(
+    status: true,
+    responseTime: true,
+  ),
+);
+```
+
+### CurlUtils.handleOnError
+
+Handles and logs error information:
+
+```dart
+CurlUtils.handleOnError(
+  error,
+  curlOptions: CurlOptions(
+    status: true,
+    responseTime: true,
+  ),
+);
+```
+
+## Console Output
 
 When you run the examples, you'll see output like this:
 

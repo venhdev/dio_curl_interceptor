@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_curl_interceptor/src/curl_options.dart';
 import 'package:dio_curl_interceptor/src/emoji.dart';
 
 class CurlHelpers {
@@ -10,12 +9,12 @@ class CurlHelpers {
 
   static String generateCurlFromRequestOptions(
     RequestOptions originRequestOptions, {
-    CurlOptions curlOptions = const CurlOptions(),
+    bool shouldConvertFormData = true,
   }) {
     // make a new instance of options to avoid mutating the original object
     final options = originRequestOptions.copyWith();
 
-    if (options.data is FormData && curlOptions.convertFormData == false) {
+    if (options.data is FormData && shouldConvertFormData == false) {
       final msg =
           '[CurlInterceptor] FormData cannot be converted to cURL. Set CurlOptions.convertFormData to `true` to convert it to JSON for request: ${options.uri.toString()}';
       return msg;
@@ -32,7 +31,7 @@ class CurlHelpers {
 
     if (options.data != null) {
       // FormData can't be JSON-serialized, so keep only their fields attributes
-      if (options.data is FormData && curlOptions.convertFormData == true) {
+      if (options.data is FormData && shouldConvertFormData == true) {
         options.data = Map.fromEntries(options.data.fields);
       }
 

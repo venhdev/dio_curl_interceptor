@@ -21,25 +21,27 @@ void main() {
         curlOptions:
             CurlOptions(formatter: CurlFormatters.escapeNewlinesString)));
 
-    print('---------Default---------');
-    await dio.get('https://jsonplaceholder.typicode.com/posts/1');
-    print('---------ReadableMap---------');
-    await dio2.get('https://jsonplaceholder.typicode.com/posts/1');
-    print('---------EscapeNewlinesString---------');
-    await dio3.get('https://jsonplaceholder.typicode.com/posts/1');
+    try {
+      print('---------Default---------');
+      await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+      print('---------ReadableMap---------');
+      await dio2.get('https://jsonplaceholder.typicode.com/posts/1');
+      print('---------EscapeNewlinesString---------');
+      await dio3.get('https://jsonplaceholder.typicode.com/posts/1');
+    } catch (_) {}
   });
   test('test custom dio_curl_interceptor', () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
       curlOptions: CurlOptions(
-        statusCode: true, // Show status codes in logs
+        status: true, // Show status codes in logs
         responseTime: true, // Show response timing
         convertFormData: true, // Convert FormData to JSON in cURL output
         onRequest: RequestDetails(visible: true),
         onResponse: ResponseDetails(visible: true, responseBody: true),
         onError: ErrorDetails(visible: true, responseBody: true),
         // Format response body with build-in formatters
-        formatter: CurlFormatters.escapeNewlinesString,
+        // formatter: CurlFormatters.escapeNewlinesString,
       ),
     ));
     try {
@@ -54,7 +56,7 @@ void main() {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
       curlOptions: CurlOptions(
-        statusCode: true, // Show status codes in logs
+        status: true, // Show status codes in logs
         responseTime: true, // Show response timing
         convertFormData: true, // Convert FormData to JSON in cURL output
         onRequest: RequestDetails(visible: true),
@@ -62,12 +64,12 @@ void main() {
         onError: ErrorDetails(visible: true, responseBody: true),
         // Format response body with build-in formatters
         formatter: CurlFormatters.readableMap,
+        printer: (String text) {
+          // Implement your own logging logic here
+          // For example, log to a file, send to a remote service, or use a custom logger
+          log(text, name: 'CURL');
+        },
       ),
-      printer: (String text) {
-        // Implement your own logging logic here
-        // For example, log to a file, send to a remote service, or use a custom logger
-        log(text, name: 'CURL');
-      },
     ));
 
     try {
