@@ -153,7 +153,7 @@ class CurlUtils {
     //# show some divider to start
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
-        '----------------------------------------',
+        '-' * 50,
         prefix: prefix,
         ansiCodes: curlOptions.onError?.ansiCodes,
         writer: curlOptions.printer,
@@ -190,7 +190,7 @@ class CurlUtils {
     // //# show some divider to end
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
-        '----------------------------------------',
+        '-' * 50,
         prefix: prefix,
         ansiCodes: curlOptions.onError?.ansiCodes,
         writer: curlOptions.printer,
@@ -225,7 +225,7 @@ class CurlUtils {
     //# show some divider to start
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
-        '----------------------------------------',
+        '-' * 50,
         prefix: prefix,
         ansiCodes: curlOptions.onResponse?.ansiCodes,
         writer: curlOptions.printer,
@@ -265,7 +265,7 @@ class CurlUtils {
     //# show some divider to end
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
-        '----------------------------------------',
+        '-' * 50,
         prefix: prefix,
         ansiCodes: curlOptions.onResponse?.ansiCodes,
         writer: curlOptions.printer,
