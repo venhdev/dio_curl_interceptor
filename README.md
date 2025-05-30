@@ -19,7 +19,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^1.1.2
+  dio_curl_interceptor: any
 ```
 
 Then run:
@@ -136,7 +136,7 @@ If you want to retrieve the curl command from a response, you can use the `genCu
 final curl = genCurl(requestOptions);
 
 // now you can save to file, share, etc...
-```dart
+```
 
 ## License
 
