@@ -15,6 +15,7 @@ class CurlOptions {
     this.behavior = CurlBehavior.simultaneous,
     this.printer,
     this.disabledSuggestions = false,
+    this.colored = true,
   });
 
   factory CurlOptions.escapeNewlinesString() => CurlOptions(
@@ -35,6 +36,9 @@ class CurlOptions {
 
   /// Used to format response body
   final String Function(dynamic body)? formatter;
+
+  /// Show colored output, set to false if you want to disable colored output.
+  final bool colored;
 
   /// The printer function for printing the curl command.
   final void Function(String text)? printer;

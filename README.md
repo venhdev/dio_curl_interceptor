@@ -19,7 +19,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^1.1.1
+  dio_curl_interceptor: ^1.1.2
 ```
 
 Then run:
@@ -53,6 +53,7 @@ dio.interceptors.add(CurlInterceptor(
     status: true, // Show status codes in logs
     responseTime: true, // Show response timing
     convertFormData: true, // Convert FormData to JSON in cURL output
+    colored: true, // Enable/disable colored output in console
     onRequest: RequestDetails(visible: true),
     onResponse: ResponseDetails(visible: true, responseBody: true),
     onError: ErrorDetails(visible: true, responseBody: true),
@@ -75,6 +76,8 @@ If you prefer to use the utility methods in your own custom interceptor, you can
 class YourInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    // Your request handling logic here (additional headers, auth, etc.)
+
     // Generate and log curl command
     CurlUtils.logCurl(options);
 
@@ -125,12 +128,14 @@ try {
 }
 ```
 
-### Option 4: Retrieve the curl command from a response
+### Option 4: Retrieve the curl
 
 If you want to retrieve the curl command from a response, you can use the `genCurl` public function:
 
-````dart
+```dart
 final curl = genCurl(requestOptions);
+
+// now you can save to file, share, etc...
 ```dart
 
 ## License
@@ -142,5 +147,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Feature Requests**: Feel free to suggest new features through GitHub issues
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-````

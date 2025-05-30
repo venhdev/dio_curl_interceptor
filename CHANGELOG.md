@@ -1,8 +1,8 @@
-## 1.1.1
+## 1.1.2
 
 - Introduce new CurlUtils class with standalone utility methods for curl generation and logging
 - Add new CurlBehavior enum for controlling logging timing (chronological/simultaneous)
-- Extend CurlOptions with new configuration parameters (behavior, printer, disabledSuggestions)
+- Extend CurlOptions with new configuration parameters (behavior, printer, disabledSuggestions, colored)
 - Update documentation and examples
 
 ## 1.0.0
