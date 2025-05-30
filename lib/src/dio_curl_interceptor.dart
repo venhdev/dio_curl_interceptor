@@ -1,12 +1,29 @@
 import 'package:dio/dio.dart';
-import 'package:dio_curl_interceptor/src/curl_options.dart';
-import 'package:dio_curl_interceptor/src/curl_utils.dart';
-import 'package:dio_curl_interceptor/src/types.dart';
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 
 export 'curl_formatters.dart';
 export 'curl_helpers.dart';
 export 'curl_options.dart';
 export 'curl_utils.dart';
+
+/// A public method to generate a curl string from a [RequestOptions] object.
+///
+/// This can be used directly in your code to generate a curl command without logging it.
+///
+/// Example:
+/// ```dart
+/// final curl = CurlUtils().genCurl(requestOptions);
+/// print(curl);
+/// ```
+String? genCurl(RequestOptions options, {bool convertFormData = false}) {
+  try {
+    return CurlHelpers.generateCurlFromRequestOptions(options);
+  } catch (e) {
+    ColoredLogger.info(
+        '[CurlInterceptor] Unable to create a CURL representation to ${options.uri.toString()}');
+    return null;
+  }
+}
 
 class CurlInterceptor extends Interceptor {
   CurlInterceptor({
@@ -19,10 +36,7 @@ class CurlInterceptor extends Interceptor {
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    if (curlOptions.requestVisible &&
-        curlOptions.behavior == CurlBehavior.chronological) {
-      CurlUtils.logCurl(options, curlOptions: curlOptions);
-    }
+    CurlUtils.handleOnRequest(options, curlOptions: curlOptions);
 
     if (curlOptions.responseTime) {
       final stopwatch = Stopwatch()..start(); // Start stopwatch for use later

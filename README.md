@@ -19,7 +19,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^1.0.1
+  dio_curl_interceptor: ^1.1.1
 ```
 
 Then run:
@@ -72,61 +72,31 @@ dio.interceptors.add(CurlInterceptor(
 If you prefer to use the utility methods in your own custom interceptor, you can use `CurlUtils` directly:
 
 ```dart
-class MyCustomInterceptor extends Interceptor {
-  final CurlOptions curlOptions;
-  final Map<RequestOptions, Stopwatch> _stopwatches = {};
-  
-  MyCustomInterceptor({this.curlOptions = const CurlOptions()});
-  
+class YourInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Generate and log curl command
-    CurlUtils.logCurl(options, curlOptions: curlOptions);
-    
+    CurlUtils.logCurl(options);
+
     // Add timing header if you want to track response time
     CurlUtils.addXClientTime(options);
-    
-    if (curlOptions.responseTime) {
-      final stopwatch = Stopwatch()..start();
-      _stopwatches[options] = stopwatch;
-    }
-    
+
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    Stopwatch? stopwatch;
-    if (curlOptions.responseTime) {
-      stopwatch = _stopwatches.remove(response.requestOptions);
-      stopwatch?.stop();
-    }
-    
     // Handle and log response
-    CurlUtils.handleOnResponse(
-      response,
-      curlOptions: curlOptions,
-      stopwatch: stopwatch,
-    );
-    
+    CurlUtils.handleOnResponse(response);
+
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    Stopwatch? stopwatch;
-    if (curlOptions.responseTime) {
-      stopwatch = _stopwatches.remove(err.requestOptions);
-      stopwatch?.stop();
-    }
-    
     // Handle and log error
-    CurlUtils.handleOnError(
-      err,
-      curlOptions: curlOptions,
-      stopwatch: stopwatch,
-    );
-    
+    CurlUtils.handleOnError(err);
+
     handler.next(err);
   }
 }
@@ -155,19 +125,13 @@ try {
 }
 ```
 
-## Additional Configuration
+### Option 4: Retrieve the curl command from a response
 
-You can customize the output with options:
+If you want to retrieve the curl command from a response, you can use the `genCurl` public function:
 
+````dart
+final curl = genCurl(requestOptions);
 ```dart
-CurlUtils.logCurl(
-  response.requestOptions,
-  curlOptions: CurlOptions(
-    convertFormData: true,
-    formatter: CurlFormatters.prettyJson,
-  ),
-);
-```
 
 ## License
 
@@ -179,3 +143,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+````

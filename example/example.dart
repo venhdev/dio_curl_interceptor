@@ -30,8 +30,8 @@ void main() async {
     ),
   ));
 
-  // Example 3: Using a custom interceptor with CurlUtils
-  dio.interceptors.add(MyCustomInterceptor());
+  // Example 3: Using CurlUtils in your own interceptor
+  dio.interceptors.add(YourInterceptor());
 
   // Example 4: Using CurlUtils directly without an interceptor
   try {
@@ -47,60 +47,30 @@ void main() async {
 }
 
 // Example of a custom interceptor using CurlUtils
-class MyCustomInterceptor extends Interceptor {
-  final CurlOptions curlOptions;
-  final Map<RequestOptions, Stopwatch> _stopwatches = {};
-
-  MyCustomInterceptor({this.curlOptions = const CurlOptions()});
-
+class YourInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Generate and log curl command
-    CurlUtils.logCurl(options, curlOptions: curlOptions);
+    CurlUtils.logCurl(options);
 
     // Add timing header if you want to track response time
     CurlUtils.addXClientTime(options);
-
-    if (curlOptions.responseTime) {
-      final stopwatch = Stopwatch()..start();
-      _stopwatches[options] = stopwatch;
-    }
 
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    Stopwatch? stopwatch;
-    if (curlOptions.responseTime) {
-      stopwatch = _stopwatches.remove(response.requestOptions);
-      stopwatch?.stop();
-    }
-
     // Handle and log response
-    CurlUtils.handleOnResponse(
-      response,
-      curlOptions: curlOptions,
-      stopwatch: stopwatch,
-    );
+    CurlUtils.handleOnResponse(response);
 
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    Stopwatch? stopwatch;
-    if (curlOptions.responseTime) {
-      stopwatch = _stopwatches.remove(err.requestOptions);
-      stopwatch?.stop();
-    }
-
     // Handle and log error
-    CurlUtils.handleOnError(
-      err,
-      curlOptions: curlOptions,
-      stopwatch: stopwatch,
-    );
+    CurlUtils.handleOnError(err);
 
     handler.next(err);
   }

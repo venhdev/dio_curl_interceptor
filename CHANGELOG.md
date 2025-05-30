@@ -1,4 +1,4 @@
-## 1.1.0
+## 1.1.1
 
 - Introduce new CurlUtils class with standalone utility methods for curl generation and logging
 - Add new CurlBehavior enum for controlling logging timing (chronological/simultaneous)

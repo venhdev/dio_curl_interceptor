@@ -45,28 +45,7 @@ const String _xClientTime = 'X-Client-Time';
 class CurlUtils {
   CurlUtils._();
 
-  /// A public method to generate a curl string from a [RequestOptions] object.
-  ///
-  /// This can be used directly in your code to generate a curl command without logging it.
-  ///
-  /// Example:
-  /// ```dart
-  /// final curl = CurlUtils().genCurl(requestOptions);
-  /// print(curl);
-  /// ```
-  String? genCurl(RequestOptions options, {bool convertFormData = false}) {
-    try {
-      return CurlHelpers.generateCurlFromRequestOptions(options);
-    } catch (e) {
-      ColoredLogger.info(
-          '[CurlInterceptor] Unable to create a CURL representation to ${options.uri.toString()}');
-      return null;
-    }
-  }
-
   /// Adds the X-Client-Time header to the request options for tracking client time.
-  ///
-  /// Use this in your onRequest interceptor method to enable response time tracking.
   ///
   /// Example:
   /// ```dart
@@ -126,9 +105,26 @@ class CurlUtils {
     }
   }
 
-  /// Handles and logs error information from a DioException.
+  /// Generates a curl command from request options.
   ///
-  /// Use this in your onError interceptor method to log error details.
+  /// Parameters:
+  /// - [options]: The Dio request options to convert to curl
+  /// - [curlOptions]: Optional configuration for curl generation
+  /// - [prefix]: Optional prefix for the printed message
+  /// - [stopwatch]: Optional stopwatch for timing the request
+  static void handleOnRequest(
+    RequestOptions options, {
+    CurlOptions curlOptions = const CurlOptions(),
+    String prefix = '',
+    Stopwatch? stopwatch,
+  }) {
+    if (curlOptions.requestVisible &&
+        curlOptions.behavior == CurlBehavior.chronological) {
+      _logCurl(options, curlOptions: curlOptions, prefix: prefix);
+    }
+  }
+
+  /// Handles and logs error information from a DioException.
   ///
   /// Parameters:
   /// - [err]: The DioException to handle
@@ -165,7 +161,7 @@ class CurlUtils {
 
     //# show cURL when behavior is simultaneous
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
-      logCurl(requestOptions, curlOptions: curlOptions, prefix: prefix);
+      _logCurl(requestOptions, curlOptions: curlOptions, prefix: prefix);
     }
     // //# show emoji - status name - response time - method - uri
     if (curlOptions.status) {
@@ -180,7 +176,7 @@ class CurlUtils {
 
     // //# show response body
     if (curlOptions.onError?.responseBody == true) {
-      logResponseBody(
+      _logResponseBody(
         response: err.response ?? Response(requestOptions: requestOptions),
         curlOptions: curlOptions,
         prefix: prefix,
@@ -238,7 +234,7 @@ class CurlUtils {
 
     //# show cURL when behavior is simultaneous
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
-      logCurl(requestOptions, curlOptions: curlOptions, prefix: prefix);
+      _logCurl(requestOptions, curlOptions: curlOptions, prefix: prefix);
     }
 
     //# show emoji - status name - response time - method - uri
@@ -254,7 +250,7 @@ class CurlUtils {
 
     //# show response body
     if (curlOptions.onResponse?.responseBody == true) {
-      logResponseBody(
+      _logResponseBody(
         response: response,
         curlOptions: curlOptions,
         prefix: prefix,
@@ -346,11 +342,12 @@ void _logStatus(
   final String uri = requestOptions.uri.toString();
   message += ' $uri';
 
-  if (curlOptions.printer != null) {
-    curlOptions.printer!('$prefix$message');
-  } else {
-    ColoredLogger.custom(message, ansiCodes: ansiCode, prefix: prefix);
-  }
+  _consolePrint(
+    message,
+    prefix: prefix,
+    ansiCode: ansiCode,
+    printer: curlOptions.printer,
+  );
 }
 
 /// Reports HTTP response body.
@@ -362,7 +359,7 @@ void _logStatus(
 /// - [curlOptions]: Configuration options for formatting
 /// - [prefix]: Optional prefix for the printed message
 /// - [ansiCode]: Optional ANSI color codes for styling
-void logResponseBody({
+void _logResponseBody({
   required Response response,
   CurlOptions curlOptions = const CurlOptions(),
   String prefix = '',
@@ -389,6 +386,51 @@ void logResponseBody({
     ansiCode: ansiCode,
     printer: curlOptions.printer,
   );
+}
+
+/// Generates a curl command from request options and logs it to the console.
+///
+/// This is useful for debugging or logging HTTP requests in your custom interceptor.
+///
+/// Parameters:
+/// - [requestOptions]: The Dio request options to convert to curl
+/// - [curlOptions]: Optional configuration for curl generation
+/// - [prefix]: Optional prefix for the printed message
+///
+/// Example:
+/// ```dart
+/// @override
+/// void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+///   CurlUtils.logCurl(options);
+///   handler.next(options);
+/// }
+/// ```
+void _logCurl(
+  RequestOptions requestOptions, {
+  CurlOptions curlOptions = const CurlOptions(),
+  String prefix = '',
+}) {
+  try {
+    final curl = CurlHelpers.generateCurlFromRequestOptions(
+      requestOptions,
+      shouldConvertFormData: curlOptions.convertFormData,
+    );
+
+    if (curlOptions.requestVisible) {
+      _consolePrint(
+        curl,
+        ansiCode: curlOptions.onRequest?.ansiCodes,
+        prefix: prefix,
+        printer: curlOptions.printer,
+      );
+    }
+  } catch (err) {
+    final uri = requestOptions.uri.toString();
+    final errMsg =
+        '[ERR][CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
+
+    ColoredLogger.error(errMsg, prefix: prefix);
+  }
 }
 
 /// Creates a custom console printer function.
