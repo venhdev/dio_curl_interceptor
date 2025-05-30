@@ -19,7 +19,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: any
+  dio_curl_interceptor: ^1.1.5
 ```
 
 Then run:
