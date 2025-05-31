@@ -1,3 +1,7 @@
+## 1.1.6
+
+- Bug fixes and improvements
+
 ## 1.1.5
 
 - Introduce new CurlUtils class with standalone utility methods for curl generation and logging

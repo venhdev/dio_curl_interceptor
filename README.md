@@ -1,6 +1,8 @@
 # dio_curl_interceptor
 
-A Flutter package that provides a Dio interceptor for logging HTTP requests as cURL commands. This makes it easier to debug API calls and share them with others.
+[![pub package](https://img.shields.io/pub/v/dio_curl_interceptor.svg)](https://pub.dev/packages/dio_curl_interceptor)
+
+A Flutter package with a Dio interceptor that logs HTTP requests as cURL commands — perfect for debugging and sharing. Easily reuse the commands in Postman, Terminal, or any cURL-compatible tool.
 
 ![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image.png)
 
@@ -13,13 +15,15 @@ A Flutter package that provides a Dio interceptor for logging HTTP requests as c
 - 🧰 Standalone utility methods for custom interceptors
 - 🛠️ Direct utility functions without requiring the full interceptor
 
+> This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
+
 ## Getting started
 
 Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^1.1.5
+  dio_curl_interceptor: ^1.1.6
 ```
 
 Then run:

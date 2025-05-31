@@ -1,12 +1,13 @@
 name: dio_curl_interceptor
-description: "A Flutter package for logging curl with dio interceptor with Ansi escape codes makes it easy to debug."
-version: 1.1.5
+description: "A Flutter package for debugging and sharing. Easily reuse the commands in Postman, Terminal, or any cURL-compatible tool."
+version: 1.1.6
 homepage: https://www.memozen.online/
 repository: https://github.com/venhdev/dio_curl_interceptor
 
 topics:
   - curl
   - dio
+  - http
   - logging
   - console
 
