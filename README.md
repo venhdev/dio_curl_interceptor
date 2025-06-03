@@ -8,12 +8,13 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL command
 
 ## Features
 
-- 🔍 Automatically converts Dio HTTP requests to cURL commands
-- 📝 Logs cURL commands to the console with custom styles and printer
-- ⚙️ Configurable options for logging behavior
-- 🔄 Support for FormData conversion
-- 🧰 Standalone utility methods for custom interceptors
-- 🛠️ Direct utility functions without requiring the full interceptor
+- 🔍 Converts Dio HTTP requests to cURL commands, easily shareable for debugging or tools like Postman.
+- 📝 Logs cURL commands with configurable styles and custom printer.
+- 🧰 Provides standalone utility methods for custom interceptors and direct use.
+
+### Upcoming Features
+
+- 💾📊 Cached cURL commands and a dedicated Flutter widget for reviewing logs.
 
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
 
@@ -23,7 +24,7 @@ Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^1.1.6
+  dio_curl_interceptor: ^2.0.0
 ```
 
 Then run:
@@ -57,12 +58,18 @@ dio.interceptors.add(CurlInterceptor(
     status: true, // Show status codes in logs
     responseTime: true, // Show response timing
     convertFormData: true, // Convert FormData to JSON in cURL output
-    colored: true, // Enable/disable colored output in console
     onRequest: RequestDetails(visible: true),
     onResponse: ResponseDetails(visible: true, responseBody: true),
     onError: ErrorDetails(visible: true, responseBody: true),
-    // Format response body with built-in formatters
-    formatter: CurlFormatters.escapeNewlinesString,
+    // Configure pretty printing options
+    prettyConfig: PrettyConfig(
+      blockEnabled: true, // Enable pretty printing
+      disabledSuggestions: false, // Disable specific suggestions
+      colorEnabled: true, // Enable/disable colored output
+      emojiEnabled: true, // Enable/disable emoji output
+      useUnicode: true, // Use Unicode box-drawing characters
+      lineLength: 100, // Set the length of separator lines
+    ),
   ),
   // Custom printer function to override default logging behavior
   printer: (String text) {

@@ -14,12 +14,9 @@ void main() {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor());
     final dio2 = Dio();
-    dio2.interceptors.add(CurlInterceptor(
-        curlOptions: CurlOptions(formatter: CurlFormatters.readableMap)));
+    dio2.interceptors.add(CurlInterceptor(curlOptions: CurlOptions()));
     final dio3 = Dio();
-    dio3.interceptors.add(CurlInterceptor(
-        curlOptions:
-            CurlOptions(formatter: CurlFormatters.escapeNewlinesString)));
+    dio3.interceptors.add(CurlInterceptor(curlOptions: CurlOptions()));
 
     try {
       print('---------Default---------');
@@ -40,8 +37,6 @@ void main() {
         onRequest: RequestDetails(visible: true),
         onResponse: ResponseDetails(visible: true, responseBody: true),
         onError: ErrorDetails(visible: true, responseBody: true),
-        // Format response body with build-in formatters
-        formatter: CurlFormatters.escapeNewlinesString,
       ),
     ));
     try {
@@ -65,8 +60,7 @@ void main() {
         onRequest: RequestDetails(visible: true),
         onResponse: ResponseDetails(visible: true, responseBody: true),
         onError: ErrorDetails(visible: true, responseBody: true),
-        // Format response body with build-in formatters
-        formatter: CurlFormatters.readableMap,
+
         printer: (String text) {
           // Implement your own logging logic here
           // For example, log to a file, send to a remote service, or use a custom logger

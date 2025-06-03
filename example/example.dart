@@ -24,9 +24,27 @@ void main() async {
         visible: true,
         responseBody: true,
       ),
-      formatter: CurlFormatters.escapeNewlinesString,
+
       // Custom printer, default is debugPrint
       printer: (text) => log(text, name: 'CurlInterceptor'),
+    ),
+  ));
+
+  // Example 2.1: Add interceptor with pretty printing enabled
+  dio.interceptors.add(CurlInterceptor(
+    curlOptions: CurlOptions(
+      status: true,
+      responseTime: true,
+      convertFormData: true,
+      onRequest: RequestDetails(visible: true),
+      onResponse: ResponseDetails(visible: true, responseBody: true),
+      onError: ErrorDetails(visible: true, responseBody: true),
+      // Configure pretty printing options
+      prettyConfig: PrettyConfig(
+        blockEnabled: true,
+        useUnicode: true,
+        lineLength: 100,
+      ),
     ),
   ));
 

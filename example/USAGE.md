@@ -30,6 +30,29 @@ dio.interceptors.add(
 );
 ```
 
+## Pretty Printing
+
+You can enable pretty printing for a more visually appealing output:
+
+```dart
+dio.interceptors.add(
+  CurlInterceptor(
+    curlOptions: CurlOptions(
+      status: true,
+      responseTime: true,
+      // Configure pretty printing options
+      prettyConfig: PrettyConfig(
+        blockEnabled: true,       // Enable pretty printing
+        useUnicode: true,    // Use Unicode box-drawing characters
+        lineLength: 100,     // Set the length of separator lines
+      ),
+    ),
+  ),
+);
+```
+
+
+
 ## Using CurlUtils Directly
 
 Instead of using the full `CurlInterceptor`, you can use the utility methods from `CurlUtils` directly in your own custom interceptor:
@@ -166,6 +189,7 @@ CurlUtils.handleOnError(
     status: true,
     responseTime: true,
   ),
+  ),
 );
 ```
 
@@ -173,7 +197,7 @@ CurlUtils.handleOnError(
 
 When you run the examples, you'll see output like this:
 
-```
+```bash
 🟡 curl -i -X GET -H "Accept: application/json" -H "Content-Type: application/json" "https://jsonplaceholder.typicode.com/posts/1"
 ✅ 200 https://jsonplaceholder.typicode.com/posts/1
 ⏱️ Stopwatch Time: 123 ms
@@ -181,6 +205,7 @@ Response Body: {"userId": 1, "id": 1, "title": "...", "body": "..."}
 ```
 
 This shows:
+
 - The cURL command that was generated (yellow)
 - The response status code (green with checkmark)
 - The response time

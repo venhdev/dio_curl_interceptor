@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/src/curl_helpers.dart';
@@ -6,6 +7,8 @@ import 'package:dio_curl_interceptor/src/emoji.dart';
 import 'package:dio_curl_interceptor/src/types.dart';
 
 const String _xClientTime = 'X-Client-Time';
+
+final encoder = JsonEncoder.withIndent('  ');
 
 /// Utility class for Curl operations that can be used independently
 /// from the CurlInterceptor.
@@ -88,7 +91,7 @@ class CurlUtils {
         shouldConvertFormData: curlOptions.convertFormData,
       );
 
-      if (curlOptions.requestVisible) {
+      if (curlOptions.requestVisible && curlOptions.prettyConfig.blockEnabled) {
         ColoredLogger.custom(
           curl,
           ansiCodes: curlOptions.onRequest?.ansiCodes,
@@ -120,7 +123,32 @@ class CurlUtils {
   }) {
     if (curlOptions.requestVisible &&
         curlOptions.behavior == CurlBehavior.chronological) {
-      _logCurl(options, curlOptions: curlOptions, prefix: prefix);
+      if (curlOptions.prettyConfig.blockEnabled) {
+        final curl = CurlHelpers.generateCurlFromRequestOptions(
+          options,
+          shouldConvertFormData: curlOptions.convertFormData,
+        );
+
+        // Extract headers and body for pretty printing
+        final headers = Map<String, dynamic>.from(options.headers);
+        final body = options.data;
+
+        // Use the pretty print function
+        _logPrettyBlock(
+          requestOptions: options,
+          statusCode: null,
+          responseTimeStr: null,
+          curl: curl,
+          headers: headers,
+          body: body,
+          prettyConfig: curlOptions.prettyConfig,
+          printer: curlOptions.printer,
+          ansiCodes: curlOptions.onRequest?.ansiCodes,
+          curlAnsiCodes: curlOptions.onRequest?.ansiCodes,
+        );
+      } else {
+        _logCurl(options, curlOptions: curlOptions, prefix: prefix);
+      }
     }
   }
 
@@ -146,6 +174,61 @@ class CurlUtils {
     String prefix = '',
     Stopwatch? stopwatch,
   }) {
+    // If pretty printing is enabled, use the pretty print function
+    if (curlOptions.prettyConfig.blockEnabled) {
+      final RequestOptions requestOptions = err.requestOptions;
+
+      // Generate curl command
+      final curl = CurlHelpers.generateCurlFromRequestOptions(
+        requestOptions,
+        shouldConvertFormData: curlOptions.convertFormData,
+      );
+
+      // Extract headers and body for pretty printing
+      final headers = Map<String, dynamic>.from(requestOptions.headers);
+      final body = requestOptions.data;
+
+      // Get response data if available
+      final responseData = err.response?.data;
+
+      // Create a title for the HTTP block including error information
+      final statusCode = err.response?.statusCode ?? -1;
+
+      // Calculate response time if available
+      String? responseTimeStr;
+      if (curlOptions.responseTime) {
+        if (stopwatch != null) {
+          responseTimeStr = "${stopwatch.elapsedMilliseconds}ms";
+        } else {
+          final String? xClientTime =
+              err.response?.headers.value(_xClientTime) ??
+                  requestOptions.headers[_xClientTime];
+          if (xClientTime != null) {
+            final int xClientTime_ = int.parse(xClientTime);
+            final int responseTime =
+                DateTime.now().millisecondsSinceEpoch - xClientTime_;
+            responseTimeStr = "${responseTime}ms";
+          }
+        }
+      }
+
+      // Use the pretty print function
+      _logPrettyBlock(
+        requestOptions: requestOptions,
+        statusCode: statusCode,
+        responseTimeStr: responseTimeStr,
+        curl: curl,
+        headers: headers,
+        body: body,
+        response: responseData,
+        prettyConfig: curlOptions.prettyConfig,
+        printer: curlOptions.printer,
+        ansiCodes: curlOptions.onError?.ansiCodes,
+        curlAnsiCodes: curlOptions.onRequest?.ansiCodes,
+      );
+      return;
+    }
+
     //# show some divider to start
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
@@ -218,6 +301,60 @@ class CurlUtils {
     String prefix = '',
     Stopwatch? stopwatch,
   }) {
+    // If pretty printing is enabled, use the pretty print function
+    if (curlOptions.prettyConfig.blockEnabled) {
+      final RequestOptions requestOptions = response.requestOptions;
+
+      // Generate curl command
+      final curl = CurlHelpers.generateCurlFromRequestOptions(
+        requestOptions,
+        shouldConvertFormData: curlOptions.convertFormData,
+      );
+
+      // Extract headers and body for pretty printing
+      final headers = Map<String, dynamic>.from(requestOptions.headers);
+      final body = requestOptions.data;
+
+      // Get response data
+      final responseData = response.data;
+
+      // Create a title for the HTTP block including status code
+      final statusCode = response.statusCode ?? -1;
+
+      // Calculate response time if available
+      String? responseTimeStr;
+      if (curlOptions.responseTime) {
+        if (stopwatch != null) {
+          responseTimeStr = "${stopwatch.elapsedMilliseconds}ms";
+        } else {
+          final String? xClientTime = response.headers.value(_xClientTime) ??
+              requestOptions.headers[_xClientTime];
+          if (xClientTime != null) {
+            final int xClientTime_ = int.parse(xClientTime);
+            final int responseTime =
+                DateTime.now().millisecondsSinceEpoch - xClientTime_;
+            responseTimeStr = "${responseTime}ms";
+          }
+        }
+      }
+
+      // Use the pretty print function
+      _logPrettyBlock(
+        requestOptions: requestOptions,
+        statusCode: statusCode,
+        responseTimeStr: responseTimeStr,
+        curl: curl,
+        headers: headers,
+        body: body,
+        response: responseData,
+        prettyConfig: curlOptions.prettyConfig,
+        printer: curlOptions.printer,
+        ansiCodes: curlOptions.onResponse?.ansiCodes,
+        curlAnsiCodes: curlOptions.onRequest?.ansiCodes,
+      );
+      return;
+    }
+
     //# show some divider to start
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
@@ -294,39 +431,9 @@ void _logStatus(
   final requestOptions = response.requestOptions;
 
   // emoji
-  final String emoji = CurlHelpers.getStatusEmoji(statusCode);
-  message += emoji;
-
-  // status code
-  final String statusCode_ = statusCode.toString();
-  final String statusText = CurlHelpers.getStatusText(statusCode);
-  message += ' [$statusCode_ $statusText]';
-
-  // response time
-  if (curlOptions.responseTime) {
-    if (stopwatch != null) {
-      // measure based on stopwatch
-      final String stopwatchTime = stopwatch.elapsedMilliseconds.toString();
-      message += ' [${Emoji.clock} ${stopwatchTime}ms]';
-    } else {
-      // try measure based on X-Client-Time header
-      final String? xClientTime = response.headers.value(_xClientTime) ??
-          requestOptions.headers[_xClientTime];
-      if (xClientTime != null) {
-        final int xClientTime_ = int.parse(xClientTime);
-        final int responseTime =
-            DateTime.now().millisecondsSinceEpoch - xClientTime_;
-        message += '[${Emoji.clock} ${responseTime}ms]';
-      } else {
-        if (!curlOptions.disabledSuggestions) {
-          // request user to put X-Client-Time header
-          ColoredLogger.info(
-            prefix: '${Emoji.lightBulb * 3} [INFO] ',
-            'To measure response time, please add the X-Client-Time header to the request options via "CurlUtils.addXClientTime(requestOptions)"',
-          );
-        }
-      }
-    }
+  if (curlOptions.prettyConfig.emojiEnabled) {
+    final String emoji = CurlHelpers.getStatusEmoji(statusCode);
+    message += '$emoji ';
   }
 
   // method
@@ -335,8 +442,46 @@ void _logStatus(
     method,
     ansiCodes: [CurlHelpers.getHttpMethodColorAnsi(method)],
     forwardTo: ansiCode ?? const [AnsiCode.normal],
+    colored: curlOptions.prettyConfig.colorEnabled,
   );
   message += ' $method_';
+
+  // status code
+  final String statusCode_ = statusCode.toString();
+  final String statusText = CurlHelpers.getStatusName(statusCode);
+  message += ' [$statusCode_ $statusText]';
+
+  // response time
+  if (curlOptions.responseTime) {
+    final String clock_ =
+        curlOptions.prettyConfig.emojiEnabled ? '${Emoji.clock} ' : '';
+    if (stopwatch != null) {
+      // measure based on stopwatch
+      final String stopwatchTime = stopwatch.elapsedMilliseconds.toString();
+      message += ' [$clock_${stopwatchTime}ms]';
+    } else {
+      // try measure based on X-Client-Time header
+      final String? xClientTime = response.headers.value(_xClientTime) ??
+          requestOptions.headers[_xClientTime];
+      if (xClientTime != null) {
+        final int xClientTime_ = int.parse(xClientTime);
+        final int responseTime =
+            DateTime.now().millisecondsSinceEpoch - xClientTime_;
+        message += '$clock_${responseTime}ms]';
+      } else {
+        if (!curlOptions.prettyConfig.disabledSuggestions) {
+          // request user to put X-Client-Time header
+          final lightBulb = curlOptions.prettyConfig.emojiEnabled
+              ? '${Emoji.lightBulb * 3} '
+              : '';
+          ColoredLogger.info(
+            prefix: '$lightBulb[INFO] ',
+            'To measure response time, please add the X-Client-Time header to the request options via "CurlUtils.addXClientTime(requestOptions)"',
+          );
+        }
+      }
+    }
+  }
 
   // uri
   final String uri = requestOptions.uri.toString();
@@ -347,6 +492,7 @@ void _logStatus(
     prefix: prefix,
     ansiCode: ansiCode,
     printer: curlOptions.printer,
+    colorEnabled: curlOptions.prettyConfig.colorEnabled,
   );
 }
 
@@ -369,22 +515,21 @@ void _logResponseBody({
       ? ''
       : ' [${response.requestOptions.uri.toString()}]';
   String bodyStr_;
-  if (curlOptions.formatter == null) {
-    bodyStr_ = response.data.toString();
-  } else {
-    bodyStr_ = curlOptions.formatter!(response.data);
-  }
+  bodyStr_ = jsonEncode(response.data);
 
   if (bodyStr_.isEmpty) {
     bodyStr_ = 'No data';
   }
 
-  final message = '${Emoji.doc} Response body$uri_: $bodyStr_';
+  final String docEmoji =
+      curlOptions.prettyConfig.emojiEnabled ? '${Emoji.doc} ' : '';
+  final message = '${docEmoji}Response body$uri_: $bodyStr_';
   _consolePrint(
     message,
     prefix: prefix,
     ansiCode: ansiCode,
     printer: curlOptions.printer,
+    colorEnabled: curlOptions.prettyConfig.colorEnabled,
   );
 }
 
@@ -416,12 +561,13 @@ void _logCurl(
       shouldConvertFormData: curlOptions.convertFormData,
     );
 
-    if (curlOptions.requestVisible) {
+    if (curlOptions.requestVisible && curlOptions.prettyConfig.blockEnabled) {
       _consolePrint(
         curl,
         ansiCode: curlOptions.onRequest?.ansiCodes,
         prefix: prefix,
         printer: curlOptions.printer,
+        colorEnabled: curlOptions.prettyConfig.colorEnabled,
       );
     }
   } catch (err) {
@@ -447,10 +593,165 @@ void _consolePrint(
   String prefix = '',
   List<String>? ansiCode,
   void Function(String text)? printer,
+  required bool colorEnabled,
 }) {
   if (printer != null) {
     printer('$prefix$text');
   } else {
-    ColoredLogger.custom(text, ansiCodes: ansiCode, prefix: prefix);
+    ColoredLogger.custom(
+      text,
+      ansiCodes: ansiCode,
+      prefix: prefix,
+      colored: colorEnabled,
+    );
   }
+}
+
+/// Internal function to print an HTTP request/response block with formatted output
+///
+/// This function creates a visually appealing log of HTTP requests and responses
+/// with proper formatting and colors for better readability.
+///
+/// Parameters:
+/// - [title]: The title of the HTTP block (required)
+/// - [curl]: Optional cURL command string
+/// - [headers]: Optional HTTP headers as a Map
+/// - [body]: Optional request body (can be any type that can be converted to JSON)
+/// - [response]: Optional response data (can be any type that can be converted to JSON)
+/// - [useEmoji]: Whether to include emoji icons in the output (default: true)
+/// - [useUnicode]: Whether to use Unicode box-drawing characters (default: false)
+/// - [lineLength]: Length of separator lines (default: 80)
+
+/// - [printer]: Optional custom printer function that overrides the default
+/// - [ansiCodes]: Optional ANSI color codes for styling
+void _logPrettyBlock({
+  required RequestOptions requestOptions,
+  int? statusCode,
+  String? responseTimeStr,
+  String? curl,
+  Map<String, dynamic>? headers,
+  dynamic body,
+  dynamic response,
+  PrettyConfig? prettyConfig,
+  void Function(String text)? printer,
+  List<String>? ansiCodes,
+  List<String>? curlAnsiCodes,
+}) {
+  // Use default PrettyDetails if not provided
+  final config = prettyConfig ?? const PrettyConfig();
+
+  // Define box characters based on useUnicode flag
+  final String topLeft = config.useUnicode ? '╔' : '+';
+  final String topRight = config.useUnicode ? '╗' : '+';
+  final String bottomLeft = config.useUnicode ? '╚' : '+';
+  final String bottomRight = config.useUnicode ? '╝' : '+';
+  final String horizontal = config.useUnicode ? '═' : '=';
+
+  final String leftT = config.useUnicode ? '╠' : '+';
+  final String rightT = config.useUnicode ? '╣' : '+';
+
+  // Define emoji icons based on useEmoji flag
+  final String curlIcon = config.emojiEnabled ? '🔗 ' : '';
+  final String headersIcon = config.emojiEnabled ? '🧾 ' : '';
+  final String bodyIcon = config.emojiEnabled ? '📤 ' : '';
+  final String responseIcon = config.emojiEnabled ? '📥 ' : '';
+
+  // Create separator lines
+  final String line = horizontal * config.lineLength;
+
+  // Create a title for the HTTP block
+  final String method = requestOptions.method;
+  final String uri = requestOptions.uri.toString();
+  String statusSummary = '';
+
+  if (statusCode != null) {
+    final String statusText = CurlHelpers.getStatusName(statusCode);
+    statusSummary += '[$statusCode $statusText] ';
+  }
+
+  if (responseTimeStr != null) {
+    final String clock_ = config.emojiEnabled ? '${Emoji.clock} ' : '';
+    statusSummary += '[$clock_$responseTimeStr] ';
+  }
+
+  statusSummary += '$method $uri';
+
+  // Print title block with custom styling
+  _printLine('\n$topLeft$line$topRight', AnsiColors.primary, printer);
+  _printLine('Result Summary', ansiCodes ?? AnsiColors.debug, printer);
+  _printLine(statusSummary, ansiCodes ?? AnsiColors.debug, printer);
+  _printLine('$leftT$line$rightT', AnsiColors.primary, printer);
+
+  // Print cURL command if provided
+  if (curl != null) {
+    // Print cURL title
+    _printLine(
+      '$curlIcon${_formatLabel("cURL")}',
+      ansiCodes,
+      printer,
+    );
+
+    // Print cURL content with request details color
+    _printLine(
+      curl.replaceAll('\n', '\n'),
+      curlAnsiCodes,
+      printer,
+    );
+
+    _printLine('$leftT$line$rightT', AnsiColors.primary, printer);
+  }
+
+  // Print headers if provided and not empty
+  if (headers != null && headers.isNotEmpty) {
+    _printLine(
+      '$headersIcon${_formatLabel("Headers")}\n${_indentJson(headers)}',
+      ansiCodes ?? AnsiColors.secondary,
+      printer,
+    );
+    _printLine('$leftT$line$rightT', AnsiColors.primary, printer);
+  }
+
+  // Print request body if provided
+  if (body != null) {
+    _printLine(
+      '$bodyIcon${_formatLabel("Body")}\n${_indentJson(body)}',
+      AnsiColors.tertiary,
+      printer,
+    );
+    _printLine('$leftT$line$rightT', AnsiColors.primary, printer);
+  }
+
+  // Print response if provided
+  if (response != null) {
+    _printLine(
+      '$responseIcon${_formatLabel("Response")}\n${_indentJson(response)}',
+      ansiCodes ?? AnsiColors.success,
+      printer,
+    );
+  }
+
+  // Print bottom border
+  _printLine('$bottomLeft$line$bottomRight\n', AnsiColors.primary, printer);
+}
+
+/// Helper function to print a line with the appropriate printer
+void _printLine(String text, List<String>? defaultAnsiCodes,
+    void Function(String text)? printer) {
+  if (printer != null) {
+    printer(text);
+  } else {
+    ColoredLogger.custom(text, ansiCodes: defaultAnsiCodes);
+  }
+}
+
+/// Formats a label with bold styling
+String _formatLabel(String label) {
+  return colorizeText(label, ansiCodes: [AnsiCode.bold]);
+}
+
+/// Indents and formats JSON data for pretty printing
+String _indentJson(dynamic data) {
+  final encoder = JsonEncoder.withIndent('  ');
+  final jsonStr = encoder.convert(data); //! bug
+  return jsonStr;
 }

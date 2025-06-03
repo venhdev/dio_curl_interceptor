@@ -1,5 +1,10 @@
+## 2.0.0
+
+- Enhance readable with pretty printing capabilities.
+
 ## 1.1.6
 
+- Remove `formatter` option from `CurlOptions`.
 - Bug fixes and improvements
 
 ## 1.1.5

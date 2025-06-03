@@ -44,7 +44,7 @@ class CurlHelpers {
     return components.join(' ');
   }
 
-  static String getStatusText(int statusCode) {
+  static String getStatusName(int statusCode) {
     switch (statusCode) {
       // 1xx Informational
       case 100:
