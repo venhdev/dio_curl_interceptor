@@ -64,18 +64,17 @@ dio.interceptors.add(CurlInterceptor(
     // Configure pretty printing options
     prettyConfig: PrettyConfig(
       blockEnabled: true, // Enable pretty printing
-      disabledSuggestions: false, // Disable specific suggestions
       colorEnabled: true, // Enable/disable colored output
       emojiEnabled: true, // Enable/disable emoji output
       useUnicode: true, // Use Unicode box-drawing characters
       lineLength: 100, // Set the length of separator lines
     ),
+    // Custom printer function to override default logging behavior
+    printer: (String text) {
+      // Your custom logging implementation
+      print('Custom log: $text');
+    },
   ),
-  // Custom printer function to override default logging behavior
-  printer: (String text) {
-    // Your custom logging implementation
-    print('Custom log: $text');
-  },
 ));
 ```
 

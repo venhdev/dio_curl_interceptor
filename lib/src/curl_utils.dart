@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/src/curl_helpers.dart';
@@ -70,7 +71,6 @@ class CurlUtils {
   /// Parameters:
   /// - [requestOptions]: The Dio request options to convert to curl
   /// - [curlOptions]: Optional configuration for curl generation
-  /// - [prefix]: Optional prefix for the printed message
   ///
   /// Example:
   /// ```dart
@@ -83,28 +83,32 @@ class CurlUtils {
   static void logCurl(
     RequestOptions requestOptions, {
     CurlOptions curlOptions = const CurlOptions(),
-    String prefix = '',
   }) {
     try {
-      final curl = CurlHelpers.generateCurlFromRequestOptions(
+      String curl = CurlHelpers.generateCurlFromRequestOptions(
         requestOptions,
         shouldConvertFormData: curlOptions.convertFormData,
       );
 
       if (curlOptions.requestVisible && curlOptions.prettyConfig.blockEnabled) {
-        ColoredLogger.custom(
-          curl,
-          ansiCodes: curlOptions.onRequest?.ansiCodes,
-          prefix: prefix,
-          writer: curlOptions.printer,
-        );
+        curl = (curlOptions.prettyConfig.prefix + curl)
+            .style(Ansi.empty)
+            .toString();
+
+        curlOptions.printer(curl);
+        // ColoredLogger.custom(
+        //   curl,
+        //   ansiCodes: curlOptions.onRequest?.ansiCodes,
+        //   prefix: curlOptions.prettyConfig.prefix,
+        //   writer: curlOptions.printer,
+        // );
       }
     } catch (err) {
       final uri = requestOptions.uri.toString();
       final errMsg =
           '[ERR][CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
 
-      ColoredLogger.error(errMsg, prefix: prefix);
+      ColoredLogger.error(errMsg, prefix: curlOptions.prettyConfig.prefix);
     }
   }
 
@@ -113,12 +117,10 @@ class CurlUtils {
   /// Parameters:
   /// - [options]: The Dio request options to convert to curl
   /// - [curlOptions]: Optional configuration for curl generation
-  /// - [prefix]: Optional prefix for the printed message
   /// - [stopwatch]: Optional stopwatch for timing the request
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
-    String prefix = '',
     Stopwatch? stopwatch,
   }) {
     if (curlOptions.requestVisible &&
@@ -147,7 +149,7 @@ class CurlUtils {
           curlAnsiCodes: curlOptions.onRequest?.ansiCodes,
         );
       } else {
-        _logCurl(options, curlOptions: curlOptions, prefix: prefix);
+        _logCurl(options, curlOptions: curlOptions);
       }
     }
   }
@@ -157,7 +159,6 @@ class CurlUtils {
   /// Parameters:
   /// - [err]: The DioException to handle
   /// - [curlOptions]: Optional configuration for formatting
-  /// - [prefix]: Optional prefix for the printed message
   /// - [stopwatch]: Optional stopwatch for timing the request
   ///
   /// Example:
@@ -171,7 +172,6 @@ class CurlUtils {
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),
-    String prefix = '',
     Stopwatch? stopwatch,
   }) {
     // If pretty printing is enabled, use the pretty print function
@@ -229,6 +229,8 @@ class CurlUtils {
       return;
     }
 
+    final prefix = curlOptions.prettyConfig.prefix;
+
     //# show some divider to start
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
@@ -244,29 +246,27 @@ class CurlUtils {
 
     //# show cURL when behavior is simultaneous
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
-      _logCurl(requestOptions, curlOptions: curlOptions, prefix: prefix);
+      _logCurl(requestOptions, curlOptions: curlOptions);
     }
-    // //# show emoji - status name - response time - method - uri
+    //# show emoji - status name - response time - method - uri
     if (curlOptions.status) {
       _logStatus(
         err.response ?? Response(requestOptions: requestOptions),
         curlOptions: curlOptions,
-        prefix: prefix,
         ansiCode: ansiCode,
         stopwatch: stopwatch,
       );
     }
 
-    // //# show response body
+    //# show response body
     if (curlOptions.onError?.responseBody == true) {
       _logResponseBody(
         response: err.response ?? Response(requestOptions: requestOptions),
         curlOptions: curlOptions,
-        prefix: prefix,
         ansiCode: ansiCode,
       );
     }
-    // //# show some divider to end
+    //# show some divider to end
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
         '-' * 50,
@@ -284,7 +284,6 @@ class CurlUtils {
   /// Parameters:
   /// - [response]: The Dio response to handle
   /// - [curlOptions]: Optional configuration for formatting
-  /// - [prefix]: Optional prefix for the printed message
   /// - [stopwatch]: Optional stopwatch for timing the request
   ///
   /// Example:
@@ -298,7 +297,6 @@ class CurlUtils {
   static void handleOnResponse(
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
-    String prefix = '',
     Stopwatch? stopwatch,
   }) {
     // If pretty printing is enabled, use the pretty print function
@@ -359,7 +357,7 @@ class CurlUtils {
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
         '-' * 50,
-        prefix: prefix,
+        prefix: curlOptions.prettyConfig.prefix,
         ansiCodes: curlOptions.onResponse?.ansiCodes,
         writer: curlOptions.printer,
       );
@@ -371,7 +369,7 @@ class CurlUtils {
 
     //# show cURL when behavior is simultaneous
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
-      _logCurl(requestOptions, curlOptions: curlOptions, prefix: prefix);
+      _logCurl(requestOptions, curlOptions: curlOptions);
     }
 
     //# show emoji - status name - response time - method - uri
@@ -379,7 +377,6 @@ class CurlUtils {
       _logStatus(
         response,
         curlOptions: curlOptions,
-        prefix: prefix,
         ansiCode: ansiCode,
         stopwatch: stopwatch,
       );
@@ -390,7 +387,6 @@ class CurlUtils {
       _logResponseBody(
         response: response,
         curlOptions: curlOptions,
-        prefix: prefix,
         ansiCode: ansiCode,
       );
     }
@@ -399,7 +395,6 @@ class CurlUtils {
     if (curlOptions.behavior == CurlBehavior.simultaneous) {
       ColoredLogger.custom(
         '-' * 50,
-        prefix: prefix,
         ansiCodes: curlOptions.onResponse?.ansiCodes,
         writer: curlOptions.printer,
       );
@@ -414,13 +409,11 @@ class CurlUtils {
 /// Parameters:
 /// - [response]: The Dio response object
 /// - [curlOptions]: Configuration options for formatting
-/// - [prefix]: Optional prefix for the printed message
 /// - [ansiCode]: Optional ANSI color codes for styling
 /// - [stopwatch]: Optional stopwatch for timing the request
 void _logStatus(
   Response response, {
   CurlOptions curlOptions = const CurlOptions(),
-  String prefix = '',
   List<String>? ansiCode,
   Stopwatch? stopwatch,
 }) {
@@ -475,7 +468,7 @@ void _logStatus(
               ? '${Emoji.lightBulb * 3} '
               : '';
           ColoredLogger.info(
-            prefix: '$lightBulb[INFO] ',
+            prefix: '${curlOptions.prettyConfig.prefix}$lightBulb[INFO] ',
             'To measure response time, please add the X-Client-Time header to the request options via "CurlUtils.addXClientTime(requestOptions)"',
           );
         }
@@ -489,7 +482,7 @@ void _logStatus(
 
   _consolePrint(
     message,
-    prefix: prefix,
+    prefix: curlOptions.prettyConfig.prefix,
     ansiCode: ansiCode,
     printer: curlOptions.printer,
     colorEnabled: curlOptions.prettyConfig.colorEnabled,
@@ -503,12 +496,10 @@ void _logStatus(
 /// Parameters:
 /// - [response]: The Dio response object
 /// - [curlOptions]: Configuration options for formatting
-/// - [prefix]: Optional prefix for the printed message
 /// - [ansiCode]: Optional ANSI color codes for styling
 void _logResponseBody({
   required Response response,
   CurlOptions curlOptions = const CurlOptions(),
-  String prefix = '',
   List<String>? ansiCode,
 }) {
   String uri_ = (curlOptions.behavior == CurlBehavior.simultaneous)
@@ -526,7 +517,7 @@ void _logResponseBody({
   final message = '${docEmoji}Response body$uri_: $bodyStr_';
   _consolePrint(
     message,
-    prefix: prefix,
+    prefix: curlOptions.prettyConfig.prefix,
     ansiCode: ansiCode,
     printer: curlOptions.printer,
     colorEnabled: curlOptions.prettyConfig.colorEnabled,
@@ -540,7 +531,6 @@ void _logResponseBody({
 /// Parameters:
 /// - [requestOptions]: The Dio request options to convert to curl
 /// - [curlOptions]: Optional configuration for curl generation
-/// - [prefix]: Optional prefix for the printed message
 ///
 /// Example:
 /// ```dart
@@ -553,7 +543,6 @@ void _logResponseBody({
 void _logCurl(
   RequestOptions requestOptions, {
   CurlOptions curlOptions = const CurlOptions(),
-  String prefix = '',
 }) {
   try {
     final curl = CurlHelpers.generateCurlFromRequestOptions(
@@ -565,7 +554,7 @@ void _logCurl(
       _consolePrint(
         curl,
         ansiCode: curlOptions.onRequest?.ansiCodes,
-        prefix: prefix,
+        prefix: curlOptions.prettyConfig.prefix,
         printer: curlOptions.printer,
         colorEnabled: curlOptions.prettyConfig.colorEnabled,
       );
@@ -575,7 +564,7 @@ void _logCurl(
     final errMsg =
         '[ERR][CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
 
-    ColoredLogger.error(errMsg, prefix: prefix);
+    ColoredLogger.error(errMsg, prefix: curlOptions.prettyConfig.prefix);
   }
 }
 
@@ -677,10 +666,10 @@ void _logPrettyBlock({
   statusSummary += '$method $uri';
 
   // Print title block with custom styling
-  _printLine('\n$topLeft$line$topRight', AnsiColors.primary, printer);
-  _printLine('Result Summary', ansiCodes ?? AnsiColors.debug, printer);
-  _printLine(statusSummary, ansiCodes ?? AnsiColors.debug, printer);
-  _printLine('$leftT$line$rightT', AnsiColors.primary, printer);
+  _printLine('\n$topLeft$line$topRight', Ansi.primary, printer);
+  _printLine('Result Summary', ansiCodes ?? Ansi.debug, printer);
+  _printLine(statusSummary, ansiCodes ?? Ansi.debug, printer);
+  _printLine('$leftT$line$rightT', Ansi.primary, printer);
 
   // Print cURL command if provided
   if (curl != null) {

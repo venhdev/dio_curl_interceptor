@@ -206,20 +206,20 @@ class CurlHelpers {
     }
   }
 
-  static String getHttpMethodColorAnsi(String method) {
+  static Ansi getHttpMethodColorAnsi(String method) {
     switch (method) {
       case 'GET':
-        return AnsiCode.green;
+        return Ansi.green;
       case 'POST':
-        return AnsiCode.yellow;
+        return Ansi.yellow;
       case 'PUT':
-        return AnsiCode.blue;
+        return Ansi.blue;
       case 'PATCH':
-        return AnsiCode.magenta;
+        return Ansi.magenta;
       case 'DELETE':
-        return AnsiCode.red;
+        return Ansi.red;
       default:
-        return AnsiCode.normal;
+        return Ansi.reset;
     }
   }
 }

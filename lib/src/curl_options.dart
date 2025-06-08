@@ -1,5 +1,9 @@
+import 'dart:developer';
+
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio_curl_interceptor/src/types.dart';
+
+typedef Printer = void Function(String text);
 
 class CurlOptions {
   const CurlOptions({
@@ -10,11 +14,11 @@ class CurlOptions {
     this.onResponse = const ResponseDetails(),
     this.onError = const ErrorDetails(),
     this.behavior = CurlBehavior.simultaneous,
-    this.printer,
+    this.printer = log,
     this.prettyConfig = const PrettyConfig(),
   });
 
-  /// Show status code, status name, method, uri, response time
+  /// Show the result summary _(include: status code, status name, method, uri, response time)_
   final bool status;
 
   /// Show response time
@@ -27,7 +31,7 @@ class CurlOptions {
   final CurlBehavior? behavior;
 
   /// The printer function for printing the curl command.
-  final void Function(String text)? printer;
+  final Printer printer;
 
   /// Configuration for pretty printing HTTP requests and responses.
   /// Controls the visual appearance of the output when pretty printing is enabled.
@@ -42,14 +46,14 @@ class CurlOptions {
   bool get errorVisible => onError?.visible ?? false;
 }
 
-/// see [AnsiCode] for more colors and styles
+/// see [Ansi] for more colors and styles
 class CurlDetails {
   const CurlDetails({
     this.visible = true,
-    this.ansiCodes = const [AnsiCode.normal],
+    this.ansiCodes = const [],
   });
   final bool visible;
-  final List<String>? ansiCodes;
+  final List<Ansi>? ansiCodes;
 
   factory CurlDetails.none() => const CurlDetails(visible: false);
 }
@@ -57,14 +61,14 @@ class CurlDetails {
 class RequestDetails extends CurlDetails {
   const RequestDetails({
     super.visible,
-    super.ansiCodes = const [AnsiCode.yellow],
+    super.ansiCodes = const [Ansi.yellow],
   });
 }
 
 class ResponseDetails extends CurlDetails {
   const ResponseDetails({
     super.visible,
-    super.ansiCodes = const [AnsiCode.green],
+    super.ansiCodes = const [Ansi.green],
     this.responseBody = true,
   });
 
@@ -74,7 +78,7 @@ class ResponseDetails extends CurlDetails {
 class ErrorDetails extends CurlDetails {
   const ErrorDetails({
     super.visible,
-    super.ansiCodes = const [AnsiCode.red],
+    super.ansiCodes = const [Ansi.red],
     this.responseBody = true,
   });
 
@@ -90,6 +94,7 @@ class PrettyConfig {
     this.disabledSuggestions = false,
     this.colorEnabled = true,
     this.emojiEnabled = true,
+    this.prefix = '',
   });
 
   /// Enable pretty printing of HTTP requests and responses in a box format.
@@ -112,4 +117,7 @@ class PrettyConfig {
 
   /// Length of separator lines in pretty printing.
   final int lineLength;
+
+  /// Optional prefix for the printed message.
+  final String prefix;
 }

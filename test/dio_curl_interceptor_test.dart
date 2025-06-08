@@ -12,7 +12,14 @@ import 'package:http_parser/http_parser.dart';
 void main() {
   test('test base dio_curl_interceptor', () async {
     final dio = Dio();
-    dio.interceptors.add(CurlInterceptor());
+    dio.interceptors.add(CurlInterceptor(
+      curlOptions: CurlOptions(
+        prettyConfig: PrettyConfig(
+          blockEnabled: false,
+          // prefix: 'CurlInterceptor',
+        )
+      )
+    ));
     final dio2 = Dio();
     dio2.interceptors.add(CurlInterceptor(curlOptions: CurlOptions()));
     final dio3 = Dio();
@@ -76,7 +83,7 @@ void main() {
   test('test dio_curl_interceptor without request', () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
-      curlOptions: const CurlOptions(
+      curlOptions: CurlOptions(
         convertFormData: true,
         onRequest: RequestDetails(visible: false),
       ),
