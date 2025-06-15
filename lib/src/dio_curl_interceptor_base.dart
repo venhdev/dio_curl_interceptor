@@ -5,8 +5,6 @@ export 'curl_helpers.dart';
 export 'curl_options.dart';
 export 'curl_utils.dart';
 
-
-
 class CurlInterceptor extends Interceptor {
   CurlInterceptor({
     this.curlOptions = const CurlOptions(),
