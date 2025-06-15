@@ -17,7 +17,8 @@ environment:
 
 dependencies:
   dio: ^5.5.0+1
-  colored_logger: ^2.0.2
+  colored_logger: ^2.1.0
+  codekit: ^0.0.2
   flutter:
     sdk: flutter
 

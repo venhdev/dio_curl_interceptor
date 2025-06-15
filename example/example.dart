@@ -42,7 +42,6 @@ void main() async {
       // Configure pretty printing options
       prettyConfig: PrettyConfig(
         blockEnabled: true,
-        useUnicode: true,
         lineLength: 100,
       ),
     ),

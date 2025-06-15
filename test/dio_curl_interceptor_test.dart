@@ -10,16 +10,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http_parser/http_parser.dart';
 
 void main() {
-  test('test base dio_curl_interceptor', () async {
+  test('test11', () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
       curlOptions: CurlOptions(
-        prettyConfig: PrettyConfig(
-          blockEnabled: false,
-          // prefix: 'CurlInterceptor',
-        )
-      )
+        printer: print,
+      ),
     ));
+
+    try {
+      await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+    } catch (_) {}
+
+    print('test\n123\n\n123123'.bold.bgBlue());
+  });
+  test('test base dio_curl_interceptor', () async {
+    final dio = Dio();
+    dio.interceptors.add(CurlInterceptor(
+        curlOptions: CurlOptions(
+            prettyConfig: PrettyConfig(
+      blockEnabled: false,
+      // prefix: 'CurlInterceptor',
+    ))));
     final dio2 = Dio();
     dio2.interceptors.add(CurlInterceptor(curlOptions: CurlOptions()));
     final dio3 = Dio();
@@ -37,14 +49,7 @@ void main() {
   test('test custom dio_curl_interceptor', () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
-      curlOptions: CurlOptions(
-        status: true, // Show status codes in logs
-        responseTime: true, // Show response timing
-        convertFormData: true, // Convert FormData to JSON in cURL output
-        onRequest: RequestDetails(visible: true),
-        onResponse: ResponseDetails(visible: true, responseBody: true),
-        onError: ErrorDetails(visible: true, responseBody: true),
-      ),
+      curlOptions: CurlOptions.allEnabled(),
     ));
     try {
       await dio
