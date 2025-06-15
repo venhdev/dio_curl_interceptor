@@ -18,13 +18,28 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL command
 
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
 
+## Terminal Compatibility
+
+Below is a compatibility table for different terminals and their support for printing and ANSI colors:
+
+| Terminal/Console | print/debugPrint | log (dart:developer) | ANSI Colors Support |
+|------------------|:------------------------:|:----------------------------:|:-------------------:|
+| VS Code Debug Console |✅|✅|✅|
+| Android Studio Logcat | -- | -- | -- |
+| Android Studio Debug Tab | -- | -- | -- |
+| IntelliJ IDEA Console | -- | -- | -- |
+| Flutter DevTools Console | -- | -- | -- |
+| Terminal/CMD | -- | -- | -- |
+| PowerShell | -- | -- | -- |
+| Xcode Console | -- | -- | -- |
+
 ## Getting started
 
 Add `dio_curl_interceptor` to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dio_curl_interceptor: ^2.0.0
+  dio_curl_interceptor: ^2.1.0
 ```
 
 Then run:
@@ -66,7 +81,6 @@ dio.interceptors.add(CurlInterceptor(
       blockEnabled: true, // Enable pretty printing
       colorEnabled: true, // Enable/disable colored output
       emojiEnabled: true, // Enable/disable emoji output
-      useUnicode: true, // Use Unicode box-drawing characters
       lineLength: 100, // Set the length of separator lines
     ),
     // Custom printer function to override default logging behavior

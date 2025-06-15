@@ -1,8 +1,9 @@
 ## 2.1.0
 
-- Enhance readable with pretty printing capabilities.
-- Change the default `print` to `log` from [dart:developer] package
-- Remove `useUnicode` options
+- Restructure codebase for better maintainability and organization
+- Enhance readability with pretty printing capabilities
+- Change the default printer from `print` to `log` from [dart:developer] package
+- Remove `useUnicode` option as it's now handled automatically
 
 ## 1.1.6
 
