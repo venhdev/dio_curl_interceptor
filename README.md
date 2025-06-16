@@ -4,7 +4,13 @@
 
 A Flutter package providing a Dio interceptor that logs HTTP requests as cURL commands—perfect for debugging, sharing, and reproducing requests. Includes a modern Flutter UI for viewing, filtering, exporting, and managing cached cURL logs.
 
-![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image.png)
+![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png)
+<br>
+<sub>Simultaneous (print the curl immediately after the request is made)</sub>
+
+![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png)
+<br>
+<sub>Chronological (log the curl and response (error) together)</sub>
 
 ## Features
 
@@ -46,10 +52,11 @@ You can customize the interceptor with `CurlOptions` and `CacheOptions`:
 ```dart
 dio.interceptors.add(CurlInterceptor(
   curlOptions: CurlOptions(
-    status: true, // Show status codes in logs
+    status: true, // Show status codes + name in logs
     responseTime: true, // Show response timing
     convertFormData: true, // Convert FormData to JSON in cURL output
     onRequest: RequestDetails(visible: true),
+    behavior: CurlBehavior.chronological,
     onResponse: ResponseDetails(
       visible: true,
       requestHeaders: true, // Show request headers
