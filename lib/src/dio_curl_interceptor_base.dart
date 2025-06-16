@@ -8,7 +8,10 @@ export 'curl_utils.dart';
 class CurlInterceptor extends Interceptor {
   CurlInterceptor({
     this.curlOptions = const CurlOptions(),
+    this.cacheOptions = const CacheOptions(),
   });
+
+  final CacheOptions cacheOptions;
 
   final CurlOptions curlOptions;
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
@@ -42,6 +45,19 @@ class CurlInterceptor extends Interceptor {
       );
     }
 
+    if (cacheOptions.cacheResponse) {
+      final curl_ = genCurl(response.requestOptions);
+      if (curl_ == null || curl_.isEmpty) {
+        return handler.next(response);
+      }
+      CachedCurlStorage.save(CachedCurlEntry(
+        curlCommand: curl_,
+        responseBody: response.data.toString(),
+        statusCode: response.statusCode,
+        timestamp: DateTime.now(),
+      ));
+    }
+
     return handler.next(response);
   }
 
@@ -59,6 +75,19 @@ class CurlInterceptor extends Interceptor {
         curlOptions: curlOptions,
         stopwatch: stopwatch,
       );
+    }
+
+    if (cacheOptions.cacheError) {
+      final curl_ = genCurl(err.requestOptions);
+      if (curl_ == null || curl_.isEmpty) {
+        return handler.next(err);
+      }
+      CachedCurlStorage.save(CachedCurlEntry(
+        curlCommand: curl_,
+        responseBody: err.response?.data.toString(),
+        statusCode: err.response?.statusCode,
+        timestamp: DateTime.now(),
+      ));
     }
 
     return handler.next(err);

@@ -164,6 +164,36 @@ Adds a timestamp header to track response time:
 CurlUtils.addXClientTime(requestOptions);
 ```
 
+## Caching cURL Commands
+
+To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
+
+```dart
+dio.interceptors.add(
+  CurlInterceptor(
+    cacheOptions: const CacheOptions(
+      cacheResponse: true, // Cache successful responses
+      cacheError: true,    // Cache error responses
+    ),
+  ),
+);
+```
+
+### Viewing Cached cURL Logs
+
+To view the cached cURL logs, use the `showCurlViewer` function:
+
+```dart
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:flutter/material.dart';
+
+// In your widget tree or wherever you need to show the viewer
+ElevatedButton(
+  onPressed: () => showCurlViewer(context),
+  child: const Text('View cURL Logs'),
+);
+```
+
 ### CurlUtils.handleOnResponse
 
 Handles and logs response information:

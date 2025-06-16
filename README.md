@@ -16,6 +16,36 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL command
 
 - 💾📊 Cached cURL commands and a dedicated Flutter widget for reviewing logs.
 
+### Cache cURL Commands
+
+To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
+
+```dart
+dio.interceptors.add(
+  CurlInterceptor(
+    cacheOptions: const CacheOptions(
+      cacheResponse: true, // Cache successful responses
+      cacheError: true,    // Cache error responses
+    ),
+  ),
+);
+```
+
+### View Cached cURL Logs
+
+To view the cached cURL logs, use the `showCurlViewer` function:
+
+```dart
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:flutter/material.dart';
+
+// In your widget tree or wherever you need to show the viewer
+ElevatedButton(
+  onPressed: () => showCurlViewer(context),
+  child: const Text('View cURL Logs'),
+);
+```
+
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
 
 ## Terminal Compatibility
