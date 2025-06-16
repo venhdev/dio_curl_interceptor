@@ -20,22 +20,26 @@ void main() {
     });
 
     test('GET request prints curl', () async {
-      final response = await dio.get('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/1');
+      final response = await dio
+          .get('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/1');
       expect(response.statusCode, 200);
     });
 
     test('PUT request prints curl', () async {
-      final response = await dio.put('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/2');
+      final response = await dio
+          .put('https://66f66fca436827ced9772078.mockapi.io/testing/Photos/2');
       expect(response.statusCode, 200);
     });
 
     test('PATCH request prints curl', () async {
-      final response = await dio.patch('https://66f66fca436827ced9772078.mockapi.io/testing/User/3');
+      final response = await dio
+          .patch('https://66f66fca436827ced9772078.mockapi.io/testing/User/3');
       expect(response.statusCode, 200);
     });
 
     test('DELETE request prints curl', () async {
-      final response = await dio.delete('https://jsonplaceholder.typicode.com/todos/4');
+      final response =
+          await dio.delete('https://jsonplaceholder.typicode.com/todos/4');
       expect(response.statusCode, 200);
     });
 

@@ -52,7 +52,8 @@ void main() async {
 
   // Example 4: Using CurlUtils directly without an interceptor
   try {
-    final response = await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+    final response =
+        await dio.get('https://jsonplaceholder.typicode.com/posts/1');
     // Log the curl command and response manually
     CurlUtils.logCurl(response.requestOptions);
     CurlUtils.handleOnResponse(response);
@@ -78,7 +79,8 @@ void main() async {
         requestBody: true, // Show request body
         responseBody: true, // Show response body
         responseHeaders: true, // Show response headers
-        limitResponseBody: null, // Limit response body length (characters), default is null (no limit)
+        limitResponseBody:
+            null, // Limit response body length (characters), default is null (no limit)
         ansi: Ansi.green, // ANSI color for response
       ),
       onError: ErrorDetails(

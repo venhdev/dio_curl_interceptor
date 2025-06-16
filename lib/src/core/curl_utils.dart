@@ -18,7 +18,8 @@ String? genCurl(RequestOptions options, [bool convertFormData = true]) {
       convertFormData: convertFormData,
     );
   } catch (e) {
-    ColoredLogger.info('$kPrefix Unable to create a cURL representation to ${options.uri.toString()}');
+    ColoredLogger.info(
+        '$kPrefix Unable to create a cURL representation to ${options.uri.toString()}');
     return null;
   }
 }
@@ -34,7 +35,8 @@ class CurlUtils {
 
   static void addXClientTime(RequestOptions requestOptions) {
     if (!requestOptions.headers.containsKey(_xClientTime)) {
-      requestOptions.headers[_xClientTime] = DateTime.now().millisecondsSinceEpoch.toString();
+      requestOptions.headers[_xClientTime] =
+          DateTime.now().millisecondsSinceEpoch.toString();
     }
   }
 
@@ -60,7 +62,8 @@ class CurlUtils {
       (printer ?? kPrinter)(curl);
     } catch (err) {
       final uri = requestOptions.uri.toString();
-      final errMsg = '[CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
+      final errMsg =
+          '[CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
 
       ColoredLogger.error(errMsg, prefix: prefix);
     }
@@ -71,7 +74,8 @@ class CurlUtils {
     CurlOptions curlOptions = const CurlOptions(),
     String chronologicalPrefix = '[CurlTime]',
   }) {
-    if (curlOptions.requestVisible && curlOptions.behavior == CurlBehavior.chronological) {
+    if (curlOptions.requestVisible &&
+        curlOptions.behavior == CurlBehavior.chronological) {
       final String? curl = genCurl(options, curlOptions.convertFormData);
       final String tag = _tagCurrentTime();
 
@@ -127,8 +131,9 @@ void _handleOn({
   }
 
   final int statusCode = response?.statusCode ?? -1;
-  final String methodColored =
-      requestOptions.method.style(CurlHelpers.getMethodAnsi(requestOptions.method)).toString(curlOptions.colorEnabled);
+  final String methodColored = requestOptions.method
+      .style(CurlHelpers.getMethodAnsi(requestOptions.method))
+      .toString(curlOptions.colorEnabled);
   final String uri = requestOptions.uri.toString();
 
   final Map<String, dynamic> requestHeaders = requestOptions.headers;
@@ -144,10 +149,12 @@ void _handleOn({
       if (stopwatch != null) {
         responseTimeStr = "${stopwatch.elapsedMilliseconds}ms";
       } else {
-        final String? xClientTime = responseBody?.headers.value(_xClientTime) ?? requestOptions.headers[_xClientTime];
+        final String? xClientTime = responseBody?.headers.value(_xClientTime) ??
+            requestOptions.headers[_xClientTime];
         if (xClientTime != null) {
           final int xClientTime_ = int.parse(xClientTime);
-          final int responseTime = DateTime.now().millisecondsSinceEpoch - xClientTime_;
+          final int responseTime =
+              DateTime.now().millisecondsSinceEpoch - xClientTime_;
           responseTimeStr = "${responseTime}ms";
         }
       }
@@ -157,7 +164,8 @@ void _handleOn({
   }
 
   final EmojiC emj = EmojiC(curlOptions.emojiEnabled);
-  final String statusEmoji = !curlOptions.emojiEnabled ? '' : CurlHelpers.getStatusEmoji(statusCode);
+  final String statusEmoji =
+      !curlOptions.emojiEnabled ? '' : CurlHelpers.getStatusEmoji(statusCode);
   final String statusName = CurlHelpers.getStatusName(statusCode);
   final String summary =
       ' $statusEmoji$errType $methodColored [$statusCode $statusName] [${emj.clock} $responseTimeStr] $uri';
@@ -204,7 +212,8 @@ void _handleOn({
   }
 
   if (curlOptions.requestBodyOf(isError) &&
-      ((requestBody != null && requestBody is! Map) || (requestBody is Map && requestBody.isNotEmpty))) {
+      ((requestBody != null && requestBody is! Map) ||
+          (requestBody is Map && requestBody.isNotEmpty))) {
     ap(
       indentJson(
         requestBody,
@@ -229,7 +238,8 @@ void _handleOn({
   }
 
   if (curlOptions.responseBodyOf(isError) &&
-      ((responseBody != null && responseBody is! Map) || (responseBody is Map && responseBody.isNotEmpty))) {
+      ((responseBody != null && responseBody is! Map) ||
+          (responseBody is Map && responseBody.isNotEmpty))) {
     ap(
       indentJson(
         responseBody,
