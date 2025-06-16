@@ -203,39 +203,43 @@ void _handleOn({
       indentJson(
         requestHeaders,
         indent: curlOptions.prettyConfig.jsonIndent,
+        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
       midTitleTop: '${emj.requestHeaders} Request Headers',
     );
   }
 
-  if (curlOptions.onError?.requestBody == true) {
+  if (curlOptions.requestBodyOf(isError)) {
     ap(
       indentJson(
         requestBody,
         indent: curlOptions.prettyConfig.jsonIndent,
+        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
       midTitleTop: '${emj.requestBody} Request Body',
     );
   }
 
-  if (curlOptions.onError?.responseHeaders == true) {
+  if (curlOptions.responseHeadersOf(isError)) {
     ap(
       indentJson(
         responseHeaders,
         indent: curlOptions.prettyConfig.jsonIndent,
+        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
       midTitleTop: '${emj.responseHeaders} Response Headers',
     );
   }
 
-  if (curlOptions.onError?.responseBody == true) {
+  if (curlOptions.responseBodyOf(isError)) {
     ap(
       indentJson(
         responseBody,
         indent: curlOptions.prettyConfig.jsonIndent,
+        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
       midTitleTop: '${emj.responseBody} Response Body',

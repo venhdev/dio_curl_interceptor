@@ -1,3 +1,7 @@
+## 2.1.1
+
+- Limit response body length with `limitResponseBody` option.
+
 ## 2.1.0
 
 - Restructure codebase for better maintainability and organization
