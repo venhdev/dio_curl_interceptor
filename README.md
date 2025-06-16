@@ -4,14 +4,6 @@
 
 A Flutter package providing a Dio interceptor that logs HTTP requests as cURL commands—perfect for debugging, sharing, and reproducing requests. Includes a modern Flutter UI for viewing, filtering, exporting, and managing cached cURL logs.
 
-![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png)
-<br>
-<sub>Simultaneous (print the curl immediately after the request is made)</sub>
-
-![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png)
-<br>
-<sub>Chronological (log the curl and response (error) together)</sub>
-
 ## Features
 
 - 🔍 Converts Dio HTTP requests to cURL commands for easy debugging and sharing.
@@ -20,6 +12,15 @@ A Flutter package providing a Dio interceptor that logs HTTP requests as cURL co
 - 📝 Utility methods for custom interceptors and direct use.
 
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
+
+![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png)
+<br>
+<sub>Simultaneous (print the curl immediately after the request is made)</sub>
+
+![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png)
+<br>
+<sub>Chronological (log the curl and response (error) together)</sub>
+
 
 ## Terminal Compatibility
 Below is a compatibility table for different terminals and their support for printing and ANSI colors:
@@ -40,11 +41,13 @@ Below is a compatibility table for different terminals and their support for pri
 
 ### Option 1: Using the CurlInterceptor
 
-Simple add the interceptor to your Dio instance:
+Simple add the interceptor to your Dio instance, all done for you:
 
 ```dart
 final dio = Dio();
-dio.interceptors.add(CurlInterceptor());
+dio.interceptors.add(CurlInterceptor()); // Simple usage with default options
+// or
+dio.interceptors.add(CurlInterceptor.allEnabled()); // Enable all options
 ```
 
 You can customize the interceptor with `CurlOptions` and `CacheOptions`:
@@ -55,38 +58,45 @@ dio.interceptors.add(CurlInterceptor(
     status: true, // Show status codes + name in logs
     responseTime: true, // Show response timing
     convertFormData: true, // Convert FormData to JSON in cURL output
-    onRequest: RequestDetails(visible: true),
     behavior: CurlBehavior.chronological,
+    onRequest: RequestDetails(
+      visible: true,
+      ansi: Ansi.yellow, // ANSI color for request
+    ),
     onResponse: ResponseDetails(
       visible: true,
       requestHeaders: true, // Show request headers
-      requestBody: true,    // Show request body
-      responseBody: true,   // Show response body
+      requestBody: true, // Show request body
+      responseBody: true, // Show response body
       responseHeaders: true, // Show response headers
       limitResponseBody: null, // Limit response body length (characters), default is null (no limit)
+      ansi: Ansi.green, // ANSI color for response
     ),
     onError: ErrorDetails(
       visible: true,
-      requestHeaders: true, 
-      requestBody: true,    
+      requestHeaders: true,
+      requestBody: true,
       responseBody: true,
       responseHeaders: true,
       limitResponseBody: null,
+      ansi: Ansi.red, // ANSI color for errors
     ),
     // Configure pretty printing options
     prettyConfig: PrettyConfig(
       blockEnabled: true, // Enable pretty printing
-      colorEnabled: true, // Enable/disable colored output
-      emojiEnabled: true, // Enable/disable emoji output
+      colorEnabled: true, // Force enable/disable colored
+      emojiEnabled: true, // Enable/disable emoji
       lineLength: 100, // Set the length of separator lines
     ),
     // Custom printer function to override default logging behavior
     printer: (String text) {
+      // do whatever you want with the text
+      // ...
       // Your custom logging implementation
-      print('Custom log: $text');
+      print('Custom log: $text'); // remember to print the text
     },
   ),
-));
+))
 ```
 
 ### Option 2: Using CurlUtils directly in your own interceptor

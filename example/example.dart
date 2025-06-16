@@ -52,8 +52,7 @@ void main() async {
 
   // Example 4: Using CurlUtils directly without an interceptor
   try {
-    final response =
-        await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+    final response = await dio.get('https://jsonplaceholder.typicode.com/posts/1');
     // Log the curl command and response manually
     CurlUtils.logCurl(response.requestOptions);
     CurlUtils.handleOnResponse(response);
@@ -61,6 +60,52 @@ void main() async {
     // Log error details manually
     CurlUtils.handleOnError(e);
   }
+
+  // Example readme
+  dio.interceptors.add(CurlInterceptor(
+    curlOptions: CurlOptions(
+      status: true, // Show status codes + name in logs
+      responseTime: true, // Show response timing
+      convertFormData: true, // Convert FormData to JSON in cURL output
+      behavior: CurlBehavior.chronological,
+      onRequest: RequestDetails(
+        visible: true,
+        ansi: Ansi.yellow, // ANSI color for request
+      ),
+      onResponse: ResponseDetails(
+        visible: true,
+        requestHeaders: true, // Show request headers
+        requestBody: true, // Show request body
+        responseBody: true, // Show response body
+        responseHeaders: true, // Show response headers
+        limitResponseBody: null, // Limit response body length (characters), default is null (no limit)
+        ansi: Ansi.green, // ANSI color for response
+      ),
+      onError: ErrorDetails(
+        visible: true,
+        requestHeaders: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeaders: true,
+        limitResponseBody: null,
+        ansi: Ansi.red, // ANSI color for errors
+      ),
+      // Configure pretty printing options
+      prettyConfig: PrettyConfig(
+        blockEnabled: true, // Enable pretty printing
+        colorEnabled: true, // Force enable/disable colored
+        emojiEnabled: true, // Enable/disable emoji
+        lineLength: 100, // Set the length of separator lines
+      ),
+      // Custom printer function to override default logging behavior
+      printer: (String text) {
+        // do whatever you want with the text
+        // ...
+        // Your custom logging implementation
+        print('Custom log: $text'); // remember to print the text
+      },
+    ),
+  ));
 }
 
 // Example of a custom interceptor using CurlUtils
