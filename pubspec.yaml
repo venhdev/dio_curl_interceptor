@@ -1,7 +1,7 @@
 name: dio_curl_interceptor
-description: "A Flutter package for debugging and sharing. Easily reuse the commands in Postman, Terminal, or any cURL-compatible tool."
-version: 2.2.1
-homepage: https://www.memozen.online/
+description: A Flutter package providing a Dio interceptor that logs HTTP requests as cURL commands—perfect for debugging, sharing, and reproducing requests. Includes a modern Flutter UI for viewing, filtering, exporting, and managing cached cURL logs
+version: 3.0.0
+homepage: https://github.com/venhdev/dio_curl_interceptor
 repository: https://github.com/venhdev/dio_curl_interceptor
 
 topics:
