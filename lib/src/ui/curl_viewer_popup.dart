@@ -129,42 +129,85 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
-                TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Search by status, cURL, or response...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: _onSearchChanged,
-                ),
-                const SizedBox(height: 8),
+                // First line: search bar + status dropdown at end
                 Row(
                   children: [
-                    DropdownButton<int?>(
-                      value: _statusGroup,
-                      hint: const Text('Filter by Status'),
-                      items: const [
-                        DropdownMenuItem(value: null, child: Text('All')),
-                        DropdownMenuItem(value: 2, child: Text('2xx')),
-                        DropdownMenuItem(value: 4, child: Text('4xx')),
-                        DropdownMenuItem(value: 5, child: Text('5xx')),
-                      ],
-                      onChanged: _onStatusChanged,
+                    Expanded(
+                      child: IntrinsicHeight(
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'Search by status, cURL, or response...',
+                            prefixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(),
+                            // isDense: true,
+                            // contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14), // Made consistent
+                          ),
+                          onChanged: _onSearchChanged,
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: _pickDateRange,
-                      icon: const Icon(Icons.date_range),
-                      label: const Text('Date Range'),
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 100),
+                      child: DropdownMenu<int?>(
+                        initialSelection: _statusGroup,
+                        onSelected: _onStatusChanged,
+                        inputDecorationTheme: const InputDecorationTheme(
+                          isCollapsed: true,
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                          border: OutlineInputBorder(),
+                        ),
+                        dropdownMenuEntries: const [
+                          DropdownMenuEntry(value: null, label: 'All'),
+                          DropdownMenuEntry(value: 2, label: '2xx'),
+                          DropdownMenuEntry(value: 4, label: '4xx'),
+                          DropdownMenuEntry(value: 5, label: '5xx'),
+                        ],
+                        hintText: 'Status',
+                      ),
                     ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.download),
-                      tooltip: 'Export filtered logs',
-                      onPressed: _exportLogs,
-                    )
                   ],
-                )
+                ),
+
+                const SizedBox(height: 8),
+                // Second line: summary count + date range + save file
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      // Summary count
+                      Builder(
+                        builder: (context) {
+                          int done = entries.where((e) => (e.statusCode ?? 0) >= 200 && (e.statusCode ?? 0) < 300).length;
+                          int fail = entries.where((e) => (e.statusCode ?? 0) >= 400).length;
+                          return Text('✅ $done  -  ❌ $fail', style: const TextStyle(fontWeight: FontWeight.w500));
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      // Date range
+                      _startDate == null && _endDate == null
+                          ? IconButton(
+                              icon: const Icon(Icons.date_range),
+                              tooltip: 'Pick date range',
+                              onPressed: _pickDateRange,
+                            )
+                          : TextButton.icon(
+                              onPressed: _pickDateRange,
+                              icon: const Icon(Icons.date_range),
+                              label: Text(
+                                '${_startDate != null ? DateFormat('yyyy-MM-dd').format(_startDate!) : ''} ~ ${_endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : ''}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                      IconButton(
+                        icon: const Icon(Icons.download),
+                        tooltip: 'Export filtered logs',
+                        onPressed: _exportLogs,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -182,21 +225,21 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                       itemCount: entries.length,
                       itemBuilder: (context, index) {
                         final entry = entries[index];
-                        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss')
-                            .format(entry.timestamp.toLocal());
+                        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.timestamp.toLocal());
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           elevation: 0, // Remove shadow
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           child: ExpansionTile(
                             tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                            collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            childrenPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             // Remove default shadow from ExpansionTile
                             title: Text(
-                              '[${formattedTime}] [${entry.statusCode ?? 'N/A'}]',
+                              '[$formattedTime] [${entry.statusCode ?? 'N/A'}]',
                               style: TextStyle(
-                                color: (entry.statusCode ?? 200) >= 400
-                                    ? Colors.red
-                                    : Colors.green,
+                                color: (entry.statusCode ?? 200) >= 400 ? Colors.red : Colors.green,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -216,11 +259,6 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                                     tooltip: 'Copy cURL',
                                     onPressed: () async {
                                       await Clipboard.setData(ClipboardData(text: entry.curlCommand));
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('cURL copied to clipboard!')),
-                                        );
-                                      }
                                     },
                                   ),
                                 ],
@@ -254,9 +292,11 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                                   ),
                                   onPressed: isLoading ? null : () => _loadEntries(),
                                   icon: isLoading
-                                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                    : const Icon(Icons.more_horiz, size: 18),
-                                  label: Text('Load (${totalCount - loadedCount} more)', style: const TextStyle(fontSize: 13)),
+                                      ? const SizedBox(
+                                          width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                      : const Icon(Icons.more_horiz, size: 18),
+                                  label: Text('Load (${totalCount - loadedCount} more)',
+                                      style: const TextStyle(fontSize: 13)),
                                 ),
                               const SizedBox(width: 12),
                               TextButton.icon(
@@ -267,8 +307,11 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                                       title: const Text('Clear Logs'),
                                       content: const Text('Are you sure you want to clear all cached logs?'),
                                       actions: [
-                                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                                        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clear')),
+                                        TextButton(
+                                            onPressed: () => Navigator.pop(context, false),
+                                            child: const Text('Cancel')),
+                                        TextButton(
+                                            onPressed: () => Navigator.pop(context, true), child: const Text('Clear')),
                                       ],
                                     ),
                                   );
