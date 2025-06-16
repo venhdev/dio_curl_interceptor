@@ -4,6 +4,12 @@ class CacheOptions {
     this.cacheError = false,
   });
 
+  // allEnabled factory constructor
+  factory CacheOptions.allEnabled() => const CacheOptions(
+        cacheResponse: true,
+        cacheError: true,
+      );
+
   final bool cacheResponse;
   final bool cacheError;
 }

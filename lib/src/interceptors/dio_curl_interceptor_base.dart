@@ -11,8 +11,12 @@ class CurlInterceptor extends Interceptor {
     this.cacheOptions = const CacheOptions(),
   });
 
-  final CacheOptions cacheOptions;
+  factory CurlInterceptor.allEnabled() => CurlInterceptor(
+        curlOptions: CurlOptions.allEnabled(),
+        cacheOptions: CacheOptions.allEnabled(),
+      );
 
+  final CacheOptions cacheOptions;
   final CurlOptions curlOptions;
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
 

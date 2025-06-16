@@ -46,6 +46,4 @@ void main() {
       writer('Rainbow Text Example'.rainbow().toString());
     });
   });
-
-  
 }
