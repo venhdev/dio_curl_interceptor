@@ -72,4 +72,86 @@ class CachedCurlStorage {
       await box.clear();
     }
   }
+
+  /// Loads entries with optional filtering and pagination.
+  /// [search]: search string for curlCommand, responseBody, or statusCode
+  /// [startDate], [endDate]: filter by timestamp
+  /// [statusGroup]: 2 for 2xx, 4 for 4xx, 5 for 5xx
+  /// [offset]: skip this many entries
+  /// [limit]: max number of entries to return
+  static List<CachedCurlEntry> loadFiltered({
+    String search = '',
+    DateTime? startDate,
+    DateTime? endDate,
+    int? statusGroup,
+    int offset = 0,
+    int limit = 50,
+  }) {
+    if (!_isInitialized()) {
+      return [];
+    }
+    final box = Hive.box<CachedCurlEntry>(_boxName);
+    Iterable<CachedCurlEntry> entries = box.values;
+    // Reverse for most recent first
+    entries = entries.toList().reversed;
+    if (search.isNotEmpty) {
+      final lower = search.toLowerCase();
+      entries = entries.where((entry) =>
+        entry.curlCommand.toLowerCase().contains(lower) ||
+        (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+        entry.statusCode.toString().contains(lower)
+      );
+    }
+    if (startDate != null) {
+      entries = entries.where((entry) => entry.timestamp.isAfter(startDate.subtract(const Duration(seconds: 1))));
+    }
+    if (endDate != null) {
+      entries = entries.where((entry) => entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+    }
+    if (statusGroup != null) {
+      entries = entries.where((entry) =>
+        (statusGroup == 2 && (entry.statusCode ?? 0) >= 200 && (entry.statusCode ?? 0) < 300) ||
+        (statusGroup == 4 && (entry.statusCode ?? 0) >= 400 && (entry.statusCode ?? 0) < 500) ||
+        (statusGroup == 5 && (entry.statusCode ?? 0) >= 500)
+      );
+    }
+    final filtered = entries.skip(offset).take(limit).toList();
+    return filtered;
+  }
+
+  /// Returns the count of entries matching the filters.
+  static int countFiltered({
+    String search = '',
+    DateTime? startDate,
+    DateTime? endDate,
+    int? statusGroup,
+  }) {
+    if (!_isInitialized()) {
+      return 0;
+    }
+    final box = Hive.box<CachedCurlEntry>(_boxName);
+    Iterable<CachedCurlEntry> entries = box.values;
+    if (search.isNotEmpty) {
+      final lower = search.toLowerCase();
+      entries = entries.where((entry) =>
+        entry.curlCommand.toLowerCase().contains(lower) ||
+        (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+        entry.statusCode.toString().contains(lower)
+      );
+    }
+    if (startDate != null) {
+      entries = entries.where((entry) => entry.timestamp.isAfter(startDate.subtract(const Duration(seconds: 1))));
+    }
+    if (endDate != null) {
+      entries = entries.where((entry) => entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+    }
+    if (statusGroup != null) {
+      entries = entries.where((entry) =>
+        (statusGroup == 2 && (entry.statusCode ?? 0) >= 200 && (entry.statusCode ?? 0) < 300) ||
+        (statusGroup == 4 && (entry.statusCode ?? 0) >= 400 && (entry.statusCode ?? 0) < 500) ||
+        (statusGroup == 5 && (entry.statusCode ?? 0) >= 500)
+      );
+    }
+    return entries.length;
+  }
 }

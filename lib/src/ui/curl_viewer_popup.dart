@@ -1,30 +1,30 @@
 import 'dart:convert';
-import 'dart:typed_data' show Uint8List;
-
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 import '../data/curl_response_cache.dart';
 
 void showCurlViewer(BuildContext context) async {
-  final entries = CachedCurlStorage.loadAll();
   showDialog(
     context: context,
-    builder: (_) => CurlViewerPopup(entries: entries),
+    builder: (_) => const CurlViewerPopup(),
   );
 }
 
 class CurlViewerPopup extends StatefulWidget {
-  final List<CachedCurlEntry> entries;
-
-  const CurlViewerPopup({super.key, required this.entries});
+  const CurlViewerPopup({super.key});
 
   @override
   State<CurlViewerPopup> createState() => _CurlViewerPopupState();
 }
 
 class _CurlViewerPopupState extends State<CurlViewerPopup> {
-  late List<CachedCurlEntry> filteredEntries;
+  static const int pageSize = 50;
+  List<CachedCurlEntry> entries = [];
+  int totalCount = 0;
+  int loadedCount = 0;
+  bool isLoading = false;
   String _searchQuery = '';
   DateTime? _startDate;
   DateTime? _endDate;
@@ -33,38 +33,46 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   @override
   void initState() {
     super.initState();
-    filteredEntries = widget.entries;
+    _loadEntries(reset: true);
   }
 
-  void _filter() {
+  Future<void> _loadEntries({bool reset = false}) async {
+    if (isLoading) return;
+    setState(() => isLoading = true);
+    if (reset) {
+      entries = [];
+      loadedCount = 0;
+    }
+    final newEntries = CachedCurlStorage.loadFiltered(
+      search: _searchQuery,
+      startDate: _startDate,
+      endDate: _endDate,
+      statusGroup: _statusGroup,
+      offset: loadedCount,
+      limit: pageSize,
+    );
+    final count = CachedCurlStorage.countFiltered(
+      search: _searchQuery,
+      startDate: _startDate,
+      endDate: _endDate,
+      statusGroup: _statusGroup,
+    );
     setState(() {
-      filteredEntries = widget.entries.where((entry) {
-        final matchText = entry.curlCommand
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) ||
-            (entry.responseBody ?? '')
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) ||
-            entry.statusCode.toString().contains(_searchQuery);
-
-        final matchStart = _startDate == null ||
-            entry.timestamp
-                .isAfter(_startDate!.subtract(const Duration(seconds: 1)));
-        final matchEnd = _endDate == null ||
-            entry.timestamp.isBefore(_endDate!.add(const Duration(days: 1)));
-
-        final matchStatus = _statusGroup == null ||
-            ((_statusGroup == 2 &&
-                    (entry.statusCode ?? 0) >= 200 &&
-                    (entry.statusCode ?? 0) < 300) ||
-                (_statusGroup == 4 &&
-                    (entry.statusCode ?? 0) >= 400 &&
-                    (entry.statusCode ?? 0) < 500) ||
-                (_statusGroup == 5 && (entry.statusCode ?? 0) >= 500));
-
-        return matchText && matchStart && matchEnd && matchStatus;
-      }).toList();
+      entries.addAll(newEntries);
+      loadedCount = entries.length;
+      totalCount = count;
+      isLoading = false;
     });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchQuery = value;
+    _loadEntries(reset: true);
+  }
+
+  void _onStatusChanged(int? val) {
+    _statusGroup = val;
+    _loadEntries(reset: true);
   }
 
   Future<void> _pickDateRange() async {
@@ -74,16 +82,14 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      setState(() {
-        _startDate = picked.start;
-        _endDate = picked.end;
-      });
-      _filter();
+      _startDate = picked.start;
+      _endDate = picked.end;
+      _loadEntries(reset: true);
     }
   }
 
   Future<void> _exportLogs() async {
-    final jsonStr = jsonEncode(filteredEntries
+    final jsonStr = jsonEncode(entries
         .map((e) => {
               'curl': e.curlCommand,
               'statusCode': e.statusCode,
@@ -91,17 +97,14 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
               'timestamp': e.timestamp.toIso8601String(),
             })
         .toList());
-
     final fileName = 'curl_logs_${DateTime.now().millisecondsSinceEpoch}.json';
     final bytes = Uint8List.fromList(utf8.encode(jsonStr));
-
     final path = await FileSaver.instance.saveFile(
       name: fileName,
       bytes: bytes,
       ext: 'json',
       mimeType: MimeType.json,
     );
-
     print('Exported cURL logs to $path');
   }
 
@@ -132,10 +135,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                     prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(),
                   ),
-                  onChanged: (value) {
-                    _searchQuery = value;
-                    _filter();
-                  },
+                  onChanged: _onSearchChanged,
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -149,10 +149,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                         DropdownMenuItem(value: 4, child: Text('4xx')),
                         DropdownMenuItem(value: 5, child: Text('5xx')),
                       ],
-                      onChanged: (val) {
-                        setState(() => _statusGroup = val);
-                        _filter();
-                      },
+                      onChanged: _onStatusChanged,
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
@@ -171,60 +168,71 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
               ],
             ),
           ),
-          if (filteredEntries.isEmpty)
+          if (entries.isEmpty && !isLoading)
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text('No logs match your filters.'),
             )
           else
             Expanded(
-              child: ListView.builder(
-                itemCount: filteredEntries.length,
-                itemBuilder: (context, index) {
-                  final entry = filteredEntries[index];
-                  final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss')
-                      .format(entry.timestamp.toLocal());
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: ExpansionTile(
-                      title: Text(
-                        '[${formattedTime}] [${entry.statusCode ?? 'N/A'}]',
-                        style: TextStyle(
-                          color: (entry.statusCode ?? 200) >= 400
-                              ? Colors.red
-                              : Colors.green,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      subtitle: Text(
-                        entry.curlCommand,
-                        style: const TextStyle(fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: entries.length,
+                      itemBuilder: (context, index) {
+                        final entry = entries[index];
+                        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss')
+                            .format(entry.timestamp.toLocal());
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: ExpansionTile(
+                            title: Text(
+                              '[${formattedTime}] [${entry.statusCode ?? 'N/A'}]',
+                              style: TextStyle(
+                                color: (entry.statusCode ?? 200) >= 400
+                                    ? Colors.red
+                                    : Colors.green,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Text(
+                              entry.curlCommand,
+                              style: const TextStyle(fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             children: [
-                              const Text('cURL:',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              SelectableText(entry.curlCommand),
-                              const SizedBox(height: 8),
-                              const Text('Response:',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              SelectableText(entry.responseBody ?? '<no body>'),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('cURL:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    SelectableText(entry.curlCommand),
+                                    const SizedBox(height: 8),
+                                    const Text('Response:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    SelectableText(entry.responseBody ?? '<no body>'),
+                                  ],
+                                ),
+                              )
                             ],
                           ),
-                        )
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                  if (loadedCount < totalCount)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : () => _loadEntries(),
+                        child: isLoading
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            : Text('Load More (${totalCount - loadedCount} more)'),
+                      ),
+                    ),
+                ],
               ),
             ),
           Padding(
@@ -238,15 +246,10 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                       context: context,
                       builder: (_) => AlertDialog(
                         title: const Text('Clear Logs'),
-                        content: const Text(
-                            'Are you sure you want to clear all cached logs?'),
+                        content: const Text('Are you sure you want to clear all cached logs?'),
                         actions: [
-                          TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel')),
-                          TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Clear')),
+                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clear')),
                         ],
                       ),
                     );
