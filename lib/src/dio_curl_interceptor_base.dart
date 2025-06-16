@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 
 export 'curl_helpers.dart';
-export 'curl_options.dart';
+export 'options/curl_options.dart';
 export 'curl_utils.dart';
 
 class CurlInterceptor extends Interceptor {

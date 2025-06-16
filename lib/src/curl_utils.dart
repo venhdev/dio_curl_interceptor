@@ -3,7 +3,7 @@ import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/src/constants.dart';
 import 'package:dio_curl_interceptor/src/curl_helpers.dart';
-import 'package:dio_curl_interceptor/src/curl_options.dart';
+import 'package:dio_curl_interceptor/src/options/curl_options.dart';
 import 'package:dio_curl_interceptor/src/emoji.dart';
 import 'package:dio_curl_interceptor/src/extensions.dart';
 import 'package:dio_curl_interceptor/src/types.dart';
