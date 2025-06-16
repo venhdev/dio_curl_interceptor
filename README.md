@@ -11,57 +11,7 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL command
 - 🔍 Converts Dio HTTP requests to cURL commands, easily shareable for debugging or tools like Postman.
 - 📝 Logs cURL commands with configurable styles and custom printer.
 - 🧰 Provides standalone utility methods for custom interceptors and direct use.
-
-### Upcoming Features
-
 - 💾📊 Cached cURL commands and a dedicated Flutter widget for reviewing logs.
-
-### Cache cURL Commands
-
-To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
-
-```dart
-dio.interceptors.add(
-  CurlInterceptor(
-    cacheOptions: const CacheOptions(
-      cacheResponse: true, // Cache successful responses
-      cacheError: true,    // Cache error responses
-    ),
-  ),
-);
-```
-
-### View Cached cURL Logs
-
-To view the cached cURL logs, use the `showCurlViewer` function:
-
-```dart
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-import 'package:flutter/material.dart';
-
-// In your widget tree or wherever you need to show the viewer
-ElevatedButton(
-  onPressed: () => showCurlViewer(context),
-  child: const Text('View cURL Logs'),
-);
-```
-
-> This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
-
-## Terminal Compatibility
-
-Below is a compatibility table for different terminals and their support for printing and ANSI colors:
-
-| Terminal/Console | print/debugPrint | log (dart:developer) | ANSI Colors Support |
-|------------------|:------------------------:|:----------------------------:|:-------------------:|
-| VS Code Debug Console |✅|✅|✅|
-| Android Studio Logcat | -- | -- | -- |
-| Android Studio Debug Tab | -- | -- | -- |
-| IntelliJ IDEA Console | -- | -- | -- |
-| Flutter DevTools Console | -- | -- | -- |
-| Terminal/CMD | -- | -- | -- |
-| PowerShell | -- | -- | -- |
-| Xcode Console | -- | -- | -- |
 
 ## Getting started
 
@@ -78,7 +28,73 @@ Then run:
 flutter pub get
 ```
 
+
+
+> This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
+
+## Terminal Compatibility
+
+Below is a compatibility table for different terminals and their support for printing and ANSI colors:
+
+| Terminal/Console         | print/debugPrint | log (dart:developer) | ANSI Colors Support |
+| ------------------------ | :--------------: | :------------------: | :-----------------: |
+| VS Code Debug Console    |        ✅        |          ✅          |         ✅          |
+| Android Studio Logcat    |        --        |          --          |         --          |
+| Android Studio Debug Tab |        --        |          --          |         --          |
+| IntelliJ IDEA Console    |        --        |          --          |         --          |
+| Flutter DevTools Console |        --        |          --          |         --          |
+| Terminal/CMD             |        --        |          --          |         --          |
+| PowerShell               |        --        |          --          |         --          |
+| Xcode Console            |        --        |          --          |         --          |
+
 ## Usage
+
+### cURL Cache
+
+#### CacheOptions
+
+To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
+
+```dart
+dio.interceptors.add(
+  CurlInterceptor(
+    cacheOptions: const CacheOptions(
+      cacheResponse: true, // Cache successful responses
+      cacheError: true,    // Cache error responses
+    ),
+  ),
+);
+```
+
+#### Initialize Cached cURL Storage
+
+Before using the caching features, you must initialize the `CachedCurlStorage` in your `main()` function. This ensures that Hive (the underlying storage mechanism) is properly set up.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CachedCurlStorage.init(); // Initialize the cURL cache storage
+  runApp(const MyApp());
+}
+```
+
+#### View Cached cURL Logs
+
+To view the cached cURL logs, use the `showCurlViewer` function:
+
+```dart
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:flutter/material.dart';
+
+// In your widget tree or wherever you need to show the viewer
+ElevatedButton(
+  onPressed: () => showCurlViewer(context),
+  child: const Text('View cURL Logs'),
+);
+```
 
 ### Import the package
 

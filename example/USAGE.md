@@ -2,6 +2,57 @@
 
 This guide demonstrates how to use the `dio_curl_interceptor` package in your Dart/Flutter applications.
 
+## Features
+
+- 🔍 Converts Dio HTTP requests to cURL commands, easily shareable for debugging or tools like Postman.
+- 📝 Logs cURL commands with configurable styles and custom printer.
+- 🧰 Provides standalone utility methods for custom interceptors and direct use.
+
+#### Cache cURL Commands
+
+To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
+
+```dart
+dio.interceptors.add(
+  CurlInterceptor(
+    cacheOptions: const CacheOptions(
+      cacheResponse: true, // Cache successful responses
+      cacheError: true,    // Cache error responses
+    ),
+  ),
+);
+```
+
+#### Initialize Cached cURL Storage
+
+Before using the caching features, you must initialize the `CachedCurlStorage` in your `main()` function. This ensures that Hive (the underlying storage mechanism) is properly set up.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CachedCurlStorage.init(); // Initialize the cURL cache storage
+  runApp(const MyApp());
+}
+```
+
+#### View Cached cURL Logs
+
+To view the cached cURL logs, use the `showCurlViewer` function:
+
+```dart
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:flutter/material.dart';
+
+// In your widget tree or wherever you need to show the viewer
+ElevatedButton(
+  onPressed: () => showCurlViewer(context),
+  child: const Text('View cURL Logs'),
+);
+```
+
 ## Basic Usage
 
 The simplest way to use the interceptor is:
@@ -51,8 +102,6 @@ dio.interceptors.add(
 );
 ```
 
-
-
 ## Using CurlUtils Directly
 
 Instead of using the full `CurlInterceptor`, you can use the utility methods from `CurlUtils` directly in your own custom interceptor:
@@ -61,22 +110,22 @@ Instead of using the full `CurlInterceptor`, you can use the utility methods fro
 class MyCustomInterceptor extends Interceptor {
   final CurlOptions curlOptions;
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
-  
+
   MyCustomInterceptor({this.curlOptions = const CurlOptions()});
-  
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Generate and log curl command
     CurlUtils.logCurl(options, curlOptions: curlOptions);
-    
+
     // Add timing header if you want to track response time
     CurlUtils.addXClientTime(options);
-    
+
     if (curlOptions.responseTime) {
       final stopwatch = Stopwatch()..start();
       _stopwatches[options] = stopwatch;
     }
-    
+
     handler.next(options);
   }
 
@@ -87,14 +136,14 @@ class MyCustomInterceptor extends Interceptor {
       stopwatch = _stopwatches.remove(response.requestOptions);
       stopwatch?.stop();
     }
-    
+
     // Handle and log response
     CurlUtils.handleOnResponse(
       response,
       curlOptions: curlOptions,
       stopwatch: stopwatch,
     );
-    
+
     handler.next(response);
   }
 
@@ -105,14 +154,14 @@ class MyCustomInterceptor extends Interceptor {
       stopwatch = _stopwatches.remove(err.requestOptions);
       stopwatch?.stop();
     }
-    
+
     // Handle and log error
     CurlUtils.handleOnError(
       err,
       curlOptions: curlOptions,
       stopwatch: stopwatch,
     );
-    
+
     handler.next(err);
   }
 }
@@ -162,36 +211,6 @@ Adds a timestamp header to track response time:
 
 ```dart
 CurlUtils.addXClientTime(requestOptions);
-```
-
-## Caching cURL Commands
-
-To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
-
-```dart
-dio.interceptors.add(
-  CurlInterceptor(
-    cacheOptions: const CacheOptions(
-      cacheResponse: true, // Cache successful responses
-      cacheError: true,    // Cache error responses
-    ),
-  ),
-);
-```
-
-### Viewing Cached cURL Logs
-
-To view the cached cURL logs, use the `showCurlViewer` function:
-
-```dart
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-import 'package:flutter/material.dart';
-
-// In your widget tree or wherever you need to show the viewer
-ElevatedButton(
-  onPressed: () => showCurlViewer(context),
-  child: const Text('View cURL Logs'),
-);
 ```
 
 ### CurlUtils.handleOnResponse
