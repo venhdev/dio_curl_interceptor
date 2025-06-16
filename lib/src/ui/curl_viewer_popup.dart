@@ -155,7 +155,8 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                         inputDecorationTheme: const InputDecorationTheme(
                           isCollapsed: true,
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 14),
                           border: OutlineInputBorder(),
                         ),
                         dropdownMenuEntries: const [
@@ -179,9 +180,17 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                       // Summary count
                       Builder(
                         builder: (context) {
-                          int done = entries.where((e) => (e.statusCode ?? 0) >= 200 && (e.statusCode ?? 0) < 300).length;
-                          int fail = entries.where((e) => (e.statusCode ?? 0) >= 400).length;
-                          return Text('✅ $done  -  ❌ $fail', style: const TextStyle(fontWeight: FontWeight.w500));
+                          int done = entries
+                              .where((e) =>
+                                  (e.statusCode ?? 0) >= 200 &&
+                                  (e.statusCode ?? 0) < 300)
+                              .length;
+                          int fail = entries
+                              .where((e) => (e.statusCode ?? 0) >= 400)
+                              .length;
+                          return Text('✅ $done  -  ❌ $fail',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500));
                         },
                       ),
                       const SizedBox(width: 16),
@@ -225,21 +234,30 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                       itemCount: entries.length,
                       itemBuilder: (context, index) {
                         final entry = entries[index];
-                        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.timestamp.toLocal());
+                        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss')
+                            .format(entry.timestamp.toLocal());
                         return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           elevation: 0, // Remove shadow
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
                           child: ExpansionTile(
-                            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
-                            collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            childrenPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            tilePadding:
+                                const EdgeInsets.symmetric(horizontal: 12),
+                            collapsedShape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            childrenPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                             // Remove default shadow from ExpansionTile
                             title: Text(
                               '[$formattedTime] [${entry.statusCode ?? 'N/A'}]',
                               style: TextStyle(
-                                color: (entry.statusCode ?? 200) >= 400 ? Colors.red : Colors.green,
+                                color: (entry.statusCode ?? 200) >= 400
+                                    ? Colors.red
+                                    : Colors.green,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -252,20 +270,25 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                             children: [
                               Row(
                                 children: [
-                                  const Text('cURL:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  const Text('cURL:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
                                   const SizedBox(width: 8),
                                   IconButton(
                                     icon: const Icon(Icons.copy, size: 18),
                                     tooltip: 'Copy cURL',
                                     onPressed: () async {
-                                      await Clipboard.setData(ClipboardData(text: entry.curlCommand));
+                                      await Clipboard.setData(ClipboardData(
+                                          text: entry.curlCommand));
                                     },
                                   ),
                                 ],
                               ),
                               SelectableText(entry.curlCommand),
                               const SizedBox(height: 8),
-                              const Text('Response:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text('Response:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                               SelectableText(entry.responseBody ?? '<no body>'),
                             ],
                           ),
@@ -286,16 +309,23 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                               if (loadedCount < totalCount)
                                 TextButton.icon(
                                   style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
                                     minimumSize: Size(0, 0),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                  onPressed: isLoading ? null : () => _loadEntries(),
+                                  onPressed:
+                                      isLoading ? null : () => _loadEntries(),
                                   icon: isLoading
                                       ? const SizedBox(
-                                          width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2))
                                       : const Icon(Icons.more_horiz, size: 18),
-                                  label: Text('Load (${totalCount - loadedCount} more)',
+                                  label: Text(
+                                      'Load (${totalCount - loadedCount} more)',
                                       style: const TextStyle(fontSize: 13)),
                                 ),
                               const SizedBox(width: 12),
@@ -305,13 +335,17 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                                     context: context,
                                     builder: (_) => AlertDialog(
                                       title: const Text('Clear Logs'),
-                                      content: const Text('Are you sure you want to clear all cached logs?'),
+                                      content: const Text(
+                                          'Are you sure you want to clear all cached logs?'),
                                       actions: [
                                         TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
                                             child: const Text('Cancel')),
                                         TextButton(
-                                            onPressed: () => Navigator.pop(context, true), child: const Text('Clear')),
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text('Clear')),
                                       ],
                                     ),
                                   );

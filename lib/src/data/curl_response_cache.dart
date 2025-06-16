@@ -97,23 +97,27 @@ class CachedCurlStorage {
     if (search.isNotEmpty) {
       final lower = search.toLowerCase();
       entries = entries.where((entry) =>
-        entry.curlCommand.toLowerCase().contains(lower) ||
-        (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-        entry.statusCode.toString().contains(lower)
-      );
+          entry.curlCommand.toLowerCase().contains(lower) ||
+          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+          entry.statusCode.toString().contains(lower));
     }
     if (startDate != null) {
-      entries = entries.where((entry) => entry.timestamp.isAfter(startDate.subtract(const Duration(seconds: 1))));
+      entries = entries.where((entry) => entry.timestamp
+          .isAfter(startDate.subtract(const Duration(seconds: 1))));
     }
     if (endDate != null) {
-      entries = entries.where((entry) => entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+      entries = entries.where((entry) =>
+          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
     }
     if (statusGroup != null) {
       entries = entries.where((entry) =>
-        (statusGroup == 2 && (entry.statusCode ?? 0) >= 200 && (entry.statusCode ?? 0) < 300) ||
-        (statusGroup == 4 && (entry.statusCode ?? 0) >= 400 && (entry.statusCode ?? 0) < 500) ||
-        (statusGroup == 5 && (entry.statusCode ?? 0) >= 500)
-      );
+          (statusGroup == 2 &&
+              (entry.statusCode ?? 0) >= 200 &&
+              (entry.statusCode ?? 0) < 300) ||
+          (statusGroup == 4 &&
+              (entry.statusCode ?? 0) >= 400 &&
+              (entry.statusCode ?? 0) < 500) ||
+          (statusGroup == 5 && (entry.statusCode ?? 0) >= 500));
     }
     final filtered = entries.skip(offset).take(limit).toList();
     return filtered;
@@ -134,23 +138,27 @@ class CachedCurlStorage {
     if (search.isNotEmpty) {
       final lower = search.toLowerCase();
       entries = entries.where((entry) =>
-        entry.curlCommand.toLowerCase().contains(lower) ||
-        (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-        entry.statusCode.toString().contains(lower)
-      );
+          entry.curlCommand.toLowerCase().contains(lower) ||
+          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+          entry.statusCode.toString().contains(lower));
     }
     if (startDate != null) {
-      entries = entries.where((entry) => entry.timestamp.isAfter(startDate.subtract(const Duration(seconds: 1))));
+      entries = entries.where((entry) => entry.timestamp
+          .isAfter(startDate.subtract(const Duration(seconds: 1))));
     }
     if (endDate != null) {
-      entries = entries.where((entry) => entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+      entries = entries.where((entry) =>
+          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
     }
     if (statusGroup != null) {
       entries = entries.where((entry) =>
-        (statusGroup == 2 && (entry.statusCode ?? 0) >= 200 && (entry.statusCode ?? 0) < 300) ||
-        (statusGroup == 4 && (entry.statusCode ?? 0) >= 400 && (entry.statusCode ?? 0) < 500) ||
-        (statusGroup == 5 && (entry.statusCode ?? 0) >= 500)
-      );
+          (statusGroup == 2 &&
+              (entry.statusCode ?? 0) >= 200 &&
+              (entry.statusCode ?? 0) < 300) ||
+          (statusGroup == 4 &&
+              (entry.statusCode ?? 0) >= 400 &&
+              (entry.statusCode ?? 0) < 500) ||
+          (statusGroup == 5 && (entry.statusCode ?? 0) >= 500));
     }
     return entries.length;
   }

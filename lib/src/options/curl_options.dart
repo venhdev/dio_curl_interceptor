@@ -134,9 +134,8 @@ class CurlOptions {
   bool responseHeadersOf(bool isError) =>
       (isError ? onError?.responseHeaders : onResponse?.responseHeaders) ??
       false;
-  int limitResponseBodyOf(bool isError) =>
-      (isError ? onError?.limitResponseBody : onResponse?.limitResponseBody) ??
-      200;
+  int? limitResponseBodyOf(bool isError) =>
+      isError ? onError?.limitResponseBody : onResponse?.limitResponseBody;
 }
 
 /// see [Ansi] for more colors and styles

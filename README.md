@@ -2,43 +2,26 @@
 
 [![pub package](https://img.shields.io/pub/v/dio_curl_interceptor.svg)](https://pub.dev/packages/dio_curl_interceptor)
 
-A Flutter package with a Dio interceptor that logs HTTP requests as cURL commands — perfect for debugging and sharing. Easily reuse the commands in Postman, Terminal, or any cURL-compatible tool.
+A Flutter package providing a Dio interceptor that logs HTTP requests as cURL commands—perfect for debugging, sharing, and reproducing requests. Includes a modern Flutter UI for viewing, filtering, exporting, and managing cached cURL logs.
 
 ![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image.png)
 
 ## Features
 
-- 🔍 Converts Dio HTTP requests to cURL commands, easily shareable for debugging or tools like Postman.
-- 📝 Logs cURL commands with configurable styles and custom printer.
-- 🧰 Provides standalone utility methods for custom interceptors and direct use.
-- 💾📊 Cached cURL commands and a dedicated Flutter widget for reviewing logs.
-
-## Getting started
-
-Add `dio_curl_interceptor` to your `pubspec.yaml` file:
-
-```yaml
-dependencies:
-  dio_curl_interceptor: ^2.1.0
-```
-
-Then run:
-
-```bash
-flutter pub get
-```
-
-
+- 🔍 Converts Dio HTTP requests to cURL commands for easy debugging and sharing.
+- 💾 Caches cURL commands and responses with filtering, search, and export options.
+- 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, export, clear, copy, etc).
+- 📝 Utility methods for custom interceptors and direct use.
 
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
 
 ## Terminal Compatibility
-
 Below is a compatibility table for different terminals and their support for printing and ANSI colors:
+> `--` currently being tested
 
 | Terminal/Console         | print/debugPrint | log (dart:developer) | ANSI Colors Support |
 | ------------------------ | :--------------: | :------------------: | :-----------------: |
-| VS Code Debug Console    |        ✅        |          ✅          |         ✅          |
+| VS Code Debug Console    |        ✅         |          ✅           |          ✅          |
 | Android Studio Logcat    |        --        |          --          |         --          |
 | Android Studio Debug Tab |        --        |          --          |         --          |
 | IntelliJ IDEA Console    |        --        |          --          |         --          |
@@ -49,69 +32,16 @@ Below is a compatibility table for different terminals and their support for pri
 
 ## Usage
 
-### cURL Cache
-
-#### CacheOptions
-
-To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
-
-```dart
-dio.interceptors.add(
-  CurlInterceptor(
-    cacheOptions: const CacheOptions(
-      cacheResponse: true, // Cache successful responses
-      cacheError: true,    // Cache error responses
-    ),
-  ),
-);
-```
-
-#### Initialize Cached cURL Storage
-
-Before using the caching features, you must initialize the `CachedCurlStorage` in your `main()` function. This ensures that Hive (the underlying storage mechanism) is properly set up.
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await CachedCurlStorage.init(); // Initialize the cURL cache storage
-  runApp(const MyApp());
-}
-```
-
-#### View Cached cURL Logs
-
-To view the cached cURL logs, use the `showCurlViewer` function:
-
-```dart
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-import 'package:flutter/material.dart';
-
-// In your widget tree or wherever you need to show the viewer
-ElevatedButton(
-  onPressed: () => showCurlViewer(context),
-  child: const Text('View cURL Logs'),
-);
-```
-
-### Import the package
-
-```dart
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-```
-
 ### Option 1: Using the CurlInterceptor
 
-Add the interceptor to your Dio instance:
+Simple add the interceptor to your Dio instance:
 
 ```dart
 final dio = Dio();
 dio.interceptors.add(CurlInterceptor());
 ```
 
-You can customize the interceptor behavior with `CurlOptions`:
+You can customize the interceptor with `CurlOptions` and `CacheOptions`:
 
 ```dart
 dio.interceptors.add(CurlInterceptor(
@@ -120,8 +50,22 @@ dio.interceptors.add(CurlInterceptor(
     responseTime: true, // Show response timing
     convertFormData: true, // Convert FormData to JSON in cURL output
     onRequest: RequestDetails(visible: true),
-    onResponse: ResponseDetails(visible: true, responseBody: true),
-    onError: ErrorDetails(visible: true, responseBody: true),
+    onResponse: ResponseDetails(
+      visible: true,
+      requestHeaders: true, // Show request headers
+      requestBody: true,    // Show request body
+      responseBody: true,   // Show response body
+      responseHeaders: true, // Show response headers
+      limitResponseBody: null, // Limit response body length (characters), default is null (no limit)
+    ),
+    onError: ErrorDetails(
+      visible: true,
+      requestHeaders: true, 
+      requestBody: true,    
+      responseBody: true,
+      responseHeaders: true,
+      limitResponseBody: null,
+    ),
     // Configure pretty printing options
     prettyConfig: PrettyConfig(
       blockEnabled: true, // Enable pretty printing
@@ -146,30 +90,24 @@ If you prefer to use the utility methods in your own custom interceptor, you can
 class YourInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Your request handling logic here (additional headers, auth, etc.)
+    // ... your request handling logic (like adding headers, modifying options, etc.)
 
-    // Generate and log curl command
-    CurlUtils.logCurl(options);
-
-    // Add timing header if you want to track response time
+    // for measure request time, it will add `X-Client-Time` header, then consume on response (error)
     CurlUtils.addXClientTime(options);
 
+    CurlUtils.handleOnRequest(options);
     handler.next(options);
   }
-
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // Handle and log response
+    // ... your response handling logic
     CurlUtils.handleOnResponse(response);
-
     handler.next(response);
   }
-
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Handle and log error
+    // ... your error handling logic
     CurlUtils.handleOnError(err);
-
     handler.next(err);
   }
 }
@@ -205,7 +143,38 @@ If you want to retrieve the curl command from a response, you can use the `genCu
 ```dart
 final curl = genCurl(requestOptions);
 
-// now you can save to file, share, etc...
+// now you can log, share, etc...
+```
+
+## Dio Cache Storage
+
+### Public Flutter Widget: cURL Log Viewer
+
+Show pre-built popup cURL log viewer widget with `showCurlViewer(context)`:
+
+```dart
+ElevatedButton(
+  onPressed: () => showCurlViewer(context),
+  child: const Text('View cURL Logs'),
+);
+```
+
+The log viewer supports:
+- Search and filter by status code, date range, or text
+- Export filtered logs to JSON
+- Copy cURL command
+- Clear all logs
+
+### Cache Storage Initialization
+
+Before using caching or the log viewer, initialize storage in your `main()`:
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CachedCurlStorage.init();
+  runApp(const MyApp());
+}
 ```
 
 ## License
