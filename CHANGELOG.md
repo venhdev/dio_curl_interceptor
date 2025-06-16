@@ -1,5 +1,6 @@
-## 2.1.1
+## 2.2.0
 
+- Introduce cURL cache feature.
 - Limit response body length with `limitResponseBody` option.
 
 ## 2.1.0
