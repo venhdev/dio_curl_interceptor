@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '../data/curl_response_cache.dart';
 
 void showCurlViewer(BuildContext context) async {
@@ -186,7 +186,11 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                             .format(entry.timestamp.toLocal());
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          elevation: 0, // Remove shadow
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           child: ExpansionTile(
+                            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                            // Remove default shadow from ExpansionTile
                             title: Text(
                               '[${formattedTime}] [${entry.statusCode ?? 'N/A'}]',
                               style: TextStyle(
@@ -203,71 +207,92 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('cURL:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    SelectableText(entry.curlCommand),
-                                    const SizedBox(height: 8),
-                                    const Text('Response:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    SelectableText(entry.responseBody ?? '<no body>'),
-                                  ],
-                                ),
-                              )
+                              Row(
+                                children: [
+                                  const Text('cURL:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.copy, size: 18),
+                                    tooltip: 'Copy cURL',
+                                    onPressed: () async {
+                                      await Clipboard.setData(ClipboardData(text: entry.curlCommand));
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('cURL copied to clipboard!')),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                              SelectableText(entry.curlCommand),
+                              const SizedBox(height: 8),
+                              const Text('Response:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              SelectableText(entry.responseBody ?? '<no body>'),
                             ],
                           ),
                         );
                       },
                     ),
                   ),
-                  if (loadedCount < totalCount)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : () => _loadEntries(),
-                        child: isLoading
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                            : Text('Load More (${totalCount - loadedCount} more)'),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          reverse: true, // Align to right
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (loadedCount < totalCount)
+                                TextButton.icon(
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    minimumSize: Size(0, 0),
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  onPressed: isLoading ? null : () => _loadEntries(),
+                                  icon: isLoading
+                                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                    : const Icon(Icons.more_horiz, size: 18),
+                                  label: Text('Load (${totalCount - loadedCount} more)', style: const TextStyle(fontSize: 13)),
+                                ),
+                              const SizedBox(width: 12),
+                              TextButton.icon(
+                                onPressed: () async {
+                                  final confirmed = await showDialog(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: const Text('Clear Logs'),
+                                      content: const Text('Are you sure you want to clear all cached logs?'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                                        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clear')),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed == true) {
+                                    await CachedCurlStorage.clear();
+                                    _loadEntries(reset: true);
+                                  }
+                                },
+                                icon: const Icon(Icons.delete, size: 18),
+                                label: const Text('Clear All'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Close'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
+                  ),
                 ],
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  onPressed: () async {
-                    final confirmed = await showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Clear Logs'),
-                        content: const Text('Are you sure you want to clear all cached logs?'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clear')),
-                        ],
-                      ),
-                    );
-                    if (confirmed == true) {
-                      await CachedCurlStorage.clear();
-                      if (context.mounted) Navigator.pop(context);
-                    }
-                  },
-                  icon: const Icon(Icons.delete_forever),
-                  label: const Text('Clear All'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
-          )
         ],
       ),
     );
