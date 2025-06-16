@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 
-export 'curl_helpers.dart';
-export 'options/curl_options.dart';
-export 'curl_utils.dart';
+import '../cache/curl_response_cache.dart';
+import '../core/curl_utils.dart';
+import '../options/cache_options.dart';
+import '../options/curl_options.dart';
 
 class CurlInterceptor extends Interceptor {
   CurlInterceptor({

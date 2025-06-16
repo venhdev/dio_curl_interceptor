@@ -1,11 +1,10 @@
 import 'dart:convert';
-
 import 'dart:math';
 
 import 'package:dio/dio.dart';
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-import 'package:dio_curl_interceptor/src/emoji.dart';
 
+import '../../dio_curl_interceptor.dart';
+import '../utils/emoji.dart';
 import 'constants.dart';
 
 class CurlHelpers {
@@ -288,8 +287,7 @@ class Pretty {
       return fillChar * lineLength;
     }
 
-    int availableSpaceForContentAndFill =
-        lineLength - sIndent.length - eIndent.length;
+    int availableSpaceForContentAndFill = lineLength - sIndent.length - eIndent.length;
 
     String effectiveTitle = '';
 
@@ -299,8 +297,7 @@ class Pretty {
 
       if (maxTitleContentLength > 0) {
         // Truncate the original title content if it's too long
-        String truncatedTitleContent =
-            title.substring(0, min(title.length, maxTitleContentLength));
+        String truncatedTitleContent = title.substring(0, min(title.length, maxTitleContentLength));
         effectiveTitle = ' $truncatedTitleContent ';
       }
       // If maxTitleContentLength <= 0, effectiveTitle remains empty, which is correct.
@@ -324,11 +321,7 @@ class Pretty {
     int leftFill = fillLength ~/ 2;
     int rightFill = fillLength - leftFill;
 
-    final line = sIndent +
-        (fillChar * leftFill) +
-        effectiveTitle +
-        (fillChar * rightFill) +
-        eIndent;
+    final line = sIndent + (fillChar * leftFill) + effectiveTitle + (fillChar * rightFill) + eIndent;
     return line;
   }
 }

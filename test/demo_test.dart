@@ -4,7 +4,7 @@ import 'package:colored_logger/colored_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  var writer = log;
+  var writer = print;
   group('Colored Logger Demonstrations', () {
     // final writer = print;
     test('Basic Log Levels', () {
@@ -46,4 +46,6 @@ void main() {
       writer('Rainbow Text Example'.rainbow().toString());
     });
   });
+
+  
 }

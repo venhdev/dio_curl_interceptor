@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dio_curl_interceptor/src/curl_helpers.dart';
+import 'package:dio_curl_interceptor/src/core/curl_helpers.dart';
 import 'package:dio_curl_interceptor/src/options/curl_options.dart';
 
 void main() {

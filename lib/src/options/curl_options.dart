@@ -2,8 +2,8 @@ import 'dart:developer';
 
 import 'package:colored_logger/colored_logger.dart';
 
-import '../constants.dart';
-import '../types.dart';
+import '../core/constants.dart';
+import '../core/types.dart';
 
 class CurlOptions {
   const CurlOptions({
