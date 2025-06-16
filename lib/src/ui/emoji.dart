@@ -3,76 +3,50 @@ class EmojiC extends Emoji {
 
   final bool enabled;
 
+  // status codes
   String get info => enabled ? Emoji.info : '';
-
   String get success => enabled ? Emoji.success : '';
-
   String get redirect => enabled ? Emoji.redirect : '';
-
   String get error => enabled ? Emoji.error : '';
-
   String get alert => enabled ? Emoji.alert : '';
-
   String get warning => enabled ? Emoji.warning : '';
-
   String get question => enabled ? Emoji.question : '';
-
   String get loading => enabled ? Emoji.loading : '';
-
   String get clock => enabled ? Emoji.clock : '';
-
   String get doc => enabled ? Emoji.doc : '';
-
   String get teapot => enabled ? Emoji.teapot : '';
-
   String get unknown => enabled ? Emoji.unknown : '';
 
+  // request methods
   String get get => enabled ? Emoji.get : '';
-
   String get post => enabled ? Emoji.post : '';
-
   String get put => enabled ? Emoji.put : '';
-
   String get patch => enabled ? Emoji.patch : '';
-
   String get delete => enabled ? Emoji.delete : '';
 
-  String get curl => enabled ? Emoji.link : '';
+  // request/response headers & body
   String get requestHeaders => enabled ? Emoji.requestHeaders : '';
   String get requestBody => enabled ? Emoji.requestBody : '';
   String get responseHeaders => enabled ? Emoji.responseHeaders : '';
   String get responseBody => enabled ? Emoji.responseBody : '';
 
+  // misc
+  String get curl => enabled ? Emoji.link : '';
   String get package => enabled ? Emoji.package : '';
-
   String get link => enabled ? Emoji.link : '';
-
   String get document => enabled ? Emoji.document : '';
-
   String get image => enabled ? Emoji.image : '';
-
   String get audio => enabled ? Emoji.audio : '';
-
   String get video => enabled ? Emoji.video : '';
-
   String get folder => enabled ? Emoji.folder : '';
-
   String get database => enabled ? Emoji.database : '';
-
   String get cloud => enabled ? Emoji.cloud : '';
-
   String get star => enabled ? Emoji.star : '';
-
   String get gear => enabled ? Emoji.gear : '';
-
   String get pin => enabled ? Emoji.pin : '';
-
   String get lightBulb => enabled ? Emoji.lightBulb : '';
-
   String get lock => enabled ? Emoji.lock : '';
-
   String get key => enabled ? Emoji.key : '';
-
   String get tag => enabled ? Emoji.tag : '';
 }
 

@@ -3,7 +3,7 @@ import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 
 import '../options/curl_options.dart';
-import '../utils/emoji.dart';
+import '../ui/emoji.dart';
 import 'constants.dart';
 import 'curl_helpers.dart';
 import 'extensions.dart';

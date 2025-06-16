@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 
 import '../../dio_curl_interceptor.dart';
-import '../utils/emoji.dart';
+import '../ui/emoji.dart';
 import 'constants.dart';
 
 class CurlHelpers {
