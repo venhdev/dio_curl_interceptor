@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../cache/curl_response_cache.dart';
+import '../data/curl_response_cache.dart';
 import '../core/curl_utils.dart';
 import '../options/cache_options.dart';
 import '../options/curl_options.dart';

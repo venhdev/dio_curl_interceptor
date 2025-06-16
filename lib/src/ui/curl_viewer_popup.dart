@@ -4,7 +4,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../cache/curl_response_cache.dart';
+import '../data/curl_response_cache.dart';
 
 void showCurlViewer(BuildContext context) async {
   final entries = CachedCurlStorage.loadAll();
