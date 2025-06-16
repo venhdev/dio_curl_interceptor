@@ -95,12 +95,14 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
     final fileName = 'curl_logs_${DateTime.now().millisecondsSinceEpoch}.json';
     final bytes = Uint8List.fromList(utf8.encode(jsonStr));
 
-    await FileSaver.instance.saveFile(
+    final path = await FileSaver.instance.saveFile(
       name: fileName,
       bytes: bytes,
       ext: 'json',
       mimeType: MimeType.json,
     );
+
+    print('Exported cURL logs to $path');
   }
 
   @override
@@ -116,6 +118,9 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
             automaticallyImplyLeading: false,
             backgroundColor: Colors.black87,
             foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -191,6 +196,12 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                               : Colors.green,
                           fontWeight: FontWeight.w500,
                         ),
+                      ),
+                      subtitle: Text(
+                        entry.curlCommand,
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       children: [
                         Padding(
