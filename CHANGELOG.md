@@ -1,3 +1,9 @@
+## 3.0.2
+
+- Add public utility functions in `CurlUtils` for direct caching: `cacheResponse` and `cacheError`
+- Refactor interceptor to use these utility functions
+- Improve code maintainability and reusability
+
 ## 3.0.0
 
 - Introduce cURL cache feature.

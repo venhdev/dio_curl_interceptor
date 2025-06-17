@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../data/curl_response_cache.dart';
 import '../core/curl_utils.dart';
 import '../options/cache_options.dart';
 import '../options/curl_options.dart';
@@ -50,16 +49,7 @@ class CurlInterceptor extends Interceptor {
     }
 
     if (cacheOptions.cacheResponse) {
-      final curl_ = genCurl(response.requestOptions);
-      if (curl_ == null || curl_.isEmpty) {
-        return handler.next(response);
-      }
-      CachedCurlStorage.save(CachedCurlEntry(
-        curlCommand: curl_,
-        responseBody: response.data.toString(),
-        statusCode: response.statusCode,
-        timestamp: DateTime.now(),
-      ));
+      CurlUtils.cacheResponse(response);
     }
 
     return handler.next(response);
@@ -82,16 +72,7 @@ class CurlInterceptor extends Interceptor {
     }
 
     if (cacheOptions.cacheError) {
-      final curl_ = genCurl(err.requestOptions);
-      if (curl_ == null || curl_.isEmpty) {
-        return handler.next(err);
-      }
-      CachedCurlStorage.save(CachedCurlEntry(
-        curlCommand: curl_,
-        responseBody: err.response?.data.toString(),
-        statusCode: err.response?.statusCode,
-        timestamp: DateTime.now(),
-      ));
+      CurlUtils.cacheError(err);
     }
 
     return handler.next(err);

@@ -2,6 +2,8 @@ import 'package:codekit/codekit.dart';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 
+import '../data/curl_response_cache.dart';
+
 import '../options/curl_options.dart';
 import '../ui/emoji.dart';
 import 'constants.dart';
@@ -32,6 +34,36 @@ String _tagCurrentTime() {
 
 class CurlUtils {
   CurlUtils._();
+
+  /// Caches a successful response with its curl command
+  /// This can be used directly in custom interceptors
+  static void cacheResponse(Response response) {
+    final curl_ = genCurl(response.requestOptions);
+    if (curl_ == null || curl_.isEmpty) {
+      return;
+    }
+    CachedCurlStorage.save(CachedCurlEntry(
+      curlCommand: curl_,
+      responseBody: response.data.toString(),
+      statusCode: response.statusCode,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  /// Caches an error response with its curl command
+  /// This can be used directly in custom interceptors
+  static void cacheError(DioException err) {
+    final curl_ = genCurl(err.requestOptions);
+    if (curl_ == null || curl_.isEmpty) {
+      return;
+    }
+    CachedCurlStorage.save(CachedCurlEntry(
+      curlCommand: curl_,
+      responseBody: err.response?.data.toString(),
+      statusCode: err.response?.statusCode,
+      timestamp: DateTime.now(),
+    ));
+  }
 
   static void addXClientTime(RequestOptions requestOptions) {
     if (!requestOptions.headers.containsKey(_xClientTime)) {

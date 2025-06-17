@@ -145,11 +145,17 @@ CurlUtils.logCurl(response.requestOptions);
 // Log response details
 CurlUtils.handleOnResponse(response);
 
+// Cache a successful response
+CurlUtils.cacheResponse(response);
+
 // Log error details
 try {
   await dio.get('https://invalid-url.com');
 } on DioException catch (e) {
   CurlUtils.handleOnError(e);
+  
+  // Cache an error response
+  CurlUtils.cacheError(e);
 }
 ```
 
