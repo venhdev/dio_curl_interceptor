@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/dio_curl_interceptor.svg)](https://pub.dev/packages/dio_curl_interceptor)
 
-A Flutter package providing a Dio interceptor that logs HTTP requests as cURL commands—perfect for debugging, sharing, and reproducing requests. Includes a modern Flutter UI for viewing, filtering, exporting, and managing cached cURL logs.
+A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal for debugging. Includes a modern UI to view, filter, export logs, and integrate with custom interceptors.
 
 ## Features
 
