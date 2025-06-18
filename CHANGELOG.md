@@ -1,3 +1,7 @@
+## 3.0.3
+
+- Add `onExport` callback to `showCurlViewer` to allow custom handling of exported file paths.
+
 ## 3.0.2
 
 - Add public utility functions in `CurlUtils` for direct caching: `cacheResponse` and `cacheError`

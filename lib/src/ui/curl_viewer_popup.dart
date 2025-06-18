@@ -5,15 +5,20 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import '../data/curl_response_cache.dart';
 
-void showCurlViewer(BuildContext context) async {
+void showCurlViewer(
+  BuildContext context, {
+  void Function(String path)? onExport,
+}) async {
   showDialog(
     context: context,
-    builder: (_) => const CurlViewerPopup(),
+    builder: (_) => CurlViewerPopup(onExport: onExport),
   );
 }
 
 class CurlViewerPopup extends StatefulWidget {
-  const CurlViewerPopup({super.key});
+  const CurlViewerPopup({super.key, this.onExport});
+
+  final void Function(String path)? onExport;
 
   @override
   State<CurlViewerPopup> createState() => _CurlViewerPopupState();
@@ -89,23 +94,33 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   }
 
   Future<void> _exportLogs() async {
-    final jsonStr = jsonEncode(entries
-        .map((e) => {
-              'curl': e.curlCommand,
-              'statusCode': e.statusCode,
-              'responseBody': e.responseBody,
-              'timestamp': e.timestamp.toIso8601String(),
-            })
-        .toList());
-    final fileName = 'curl_logs_${DateTime.now().millisecondsSinceEpoch}.json';
-    final bytes = Uint8List.fromList(utf8.encode(jsonStr));
-    final path = await FileSaver.instance.saveFile(
-      name: fileName,
-      bytes: bytes,
-      ext: 'json',
-      mimeType: MimeType.json,
-    );
-    print('Exported cURL logs to $path');
+    String? path_;
+    try {
+      final jsonStr = jsonEncode(entries
+          .map((e) => {
+                'curl': e.curlCommand,
+                'statusCode': e.statusCode,
+                'responseBody': e.responseBody,
+                'timestamp': e.timestamp.toIso8601String(),
+              })
+          .toList());
+      final fileName =
+          'curl_logs_${DateTime.now().millisecondsSinceEpoch}.json';
+      final bytes = Uint8List.fromList(utf8.encode(jsonStr));
+      path_ = await FileSaver.instance.saveFile(
+        name: fileName,
+        bytes: bytes,
+        ext: 'json',
+        mimeType: MimeType.json,
+      );
+      print('Exported cURL logs to $path_');
+    } catch (e) {
+      print('Error exporting logs: $e');
+    }
+
+    if (path_ != null) {
+      widget.onExport?.call(path_);
+    }
   }
 
   @override
