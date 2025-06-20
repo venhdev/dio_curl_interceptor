@@ -9,20 +9,21 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🔍 Converts Dio HTTP requests to cURL commands for easy debugging and sharing.
 - 💾 Caches cURL commands and responses with filtering, search, and export options.
 - 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, export, clear, copy, etc).
+- 🔔 Discord webhook integration for remote logging and team collaboration.
 - 📝 Utility methods for custom interceptors and direct use.
 
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
 
 ![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png)
 <br>
-<sub>Simultaneous (print the curl immediately after the request is made)</sub>
+<sub>Simultaneous (log the curl and response (error) together)</sub>
 
 ![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png)
 <br>
-<sub>Chronological (log the curl and response (error) together)</sub>
-
+<sub>Chronological (print the curl immediately after the request is made)</sub>
 
 ## Terminal Compatibility
+
 Below is a compatibility table for different terminals and their support for printing and ANSI colors:
 > `--` currently being tested
 
@@ -130,7 +131,46 @@ class YourInterceptor extends Interceptor {
 }
 ```
 
-### Option 3: Using utility functions directly
+### Option 3: Using Discord webhook integration
+
+You can use the Discord webhook integration to send cURL logs to Discord channels for remote logging and team collaboration:
+
+```dart
+// Using the factory constructor with webhook support
+dio.interceptors.add(CurlInterceptor.withWebhook(
+  // List of Discord webhook URLs
+  ['https://discord.com/api/webhooks/your-webhook-url'],
+  // Optional: Filter which URIs should trigger webhook notifications
+  uriFilters: ['api.example.com', '/users/'],
+  // Optional: Configure which response status types should be sent
+  inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+  // Optional: Configure curl options
+  curlOptions: CurlOptions(
+    status: true,
+    responseTime: true,
+  ),
+));
+
+// Manual webhook sending
+final inspector = Inspector(
+  hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+);
+
+// Send a simple message
+await inspector.send(DiscordWebhookMessage.simple('Hello from Dio cURL Interceptor!'));
+
+// Send a curl log
+await inspector.sendCurlLog(
+  curl: 'curl -X GET "https://example.com/api"',
+  method: 'GET',
+  uri: 'https://example.com/api',
+  statusCode: 200,
+  responseBody: '{"success": true}',
+  responseTime: '150ms',
+);
+```
+
+### Option 4: Using utility functions directly
 
 If you don't want to add a full interceptor, you can use the utility functions directly in your code:
 
@@ -159,7 +199,7 @@ try {
 }
 ```
 
-### Option 4: Retrieve the curl
+### Option 5: Retrieve the curl
 
 If you want to retrieve the curl command from a response, you can use the `genCurl` public function:
 
@@ -183,6 +223,7 @@ ElevatedButton(
 ```
 
 The log viewer supports:
+
 - Search and filter by status code, date range, or text
 - Export filtered logs to JSON
 - Copy cURL command

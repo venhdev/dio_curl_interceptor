@@ -7,3 +7,13 @@ enum CurlBehavior {
   /// Prints the curl and response (or error) at the same time. Suitable for viewing the curl and response (error) together.
   simultaneous,
 }
+
+// 2xx, 4xx, 5xx
+enum ResponseStatus {
+  informational,
+  success,
+  redirect,
+  clientError,
+  serverError,
+  unknown,
+}

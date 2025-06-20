@@ -1,3 +1,8 @@
+## 3.0.4
+
+- Ability to share log cache as json file.
+- Added Discord webhook integration for remote logging
+
 ## 3.0.3
 
 - Add `onExport` callback to `showCurlViewer` to allow custom handling of exported file paths.

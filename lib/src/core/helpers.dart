@@ -7,8 +7,8 @@ import '../../dio_curl_interceptor.dart';
 import '../ui/emoji.dart';
 import 'constants.dart';
 
-class CurlHelpers {
-  const CurlHelpers._();
+class Helpers {
+  const Helpers._();
 
   static String generateCurlFromRequestOptions(
     RequestOptions originRequestOptions, {

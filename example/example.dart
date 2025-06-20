@@ -61,6 +61,37 @@ void main() async {
     // Log error details manually
     CurlUtils.handleOnError(e);
   }
+  
+  // Example 5: Using Discord webhook integration
+  dio.interceptors.add(CurlInterceptor.withWebhook(
+    // List of Discord webhook URLs
+    ['https://discord.com/api/webhooks/your-webhook-url'],
+    // Optional: Filter which URIs should trigger webhook notifications
+    uriFilters: ['api.example.com', '/users/'],
+    // Optional: Configure curl options
+    curlOptions: CurlOptions(
+      status: true,
+      responseTime: true,
+    ),
+  ));
+  
+  // Example 6: Manual webhook sending
+  final inspector = Inspector(
+    hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+  );
+  
+  // Send a simple message
+  await inspector.send(DiscordWebhookMessage.simple('Hello from Dio cURL Interceptor!'));
+  
+  // Send a curl log
+  await inspector.sendCurlLog(
+    curl: 'curl -X GET "https://example.com/api"',
+    method: 'GET',
+    uri: 'https://example.com/api',
+    statusCode: 200,
+    responseBody: '{"success": true}',
+    responseTime: '150ms',
+  );
 
   // Example readme
   dio.interceptors.add(CurlInterceptor(

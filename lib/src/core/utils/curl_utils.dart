@@ -2,20 +2,22 @@ import 'package:codekit/codekit.dart';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 
-import '../data/curl_response_cache.dart';
+import '../inspector.dart';
 
-import '../options/curl_options.dart';
-import '../ui/emoji.dart';
-import 'constants.dart';
-import 'curl_helpers.dart';
-import 'extensions.dart';
-import 'types.dart';
+import '../../data/curl_response_cache.dart';
+import '../../options/curl_options.dart';
+import '../../options/inspector_options.dart';
+import '../../ui/emoji.dart';
+import '../constants.dart';
+import '../extensions.dart';
+import '../helpers.dart';
+import '../types.dart';
 
 const String _xClientTime = 'X-Client-Time';
 
 String? genCurl(RequestOptions options, [bool convertFormData = true]) {
   try {
-    return CurlHelpers.generateCurlFromRequestOptions(
+    return Helpers.generateCurlFromRequestOptions(
       options,
       convertFormData: convertFormData,
     );
@@ -81,7 +83,7 @@ class CurlUtils {
   }) {
     try {
       String curl = prefix +
-          CurlHelpers.generateCurlFromRequestOptions(
+          Helpers.generateCurlFromRequestOptions(
             requestOptions,
             convertFormData: shouldConvertFormData,
           );
@@ -104,6 +106,7 @@ class CurlUtils {
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
+    InspectorOptions inspectorOptions = const InspectorOptions(),
     String chronologicalPrefix = '[CurlTime]',
   }) {
     if (curlOptions.requestVisible &&
@@ -120,6 +123,7 @@ class CurlUtils {
   static void handleOnResponse(
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
+    InspectorOptions inspectorOptions = const InspectorOptions(),
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -127,6 +131,7 @@ class CurlUtils {
         response: response,
         err: null,
         curlOptions: curlOptions,
+        inspectorOptions: inspectorOptions,
         stopwatch: stopwatch,
         printer: curlOptions.printOnResponse,
       );
@@ -134,6 +139,7 @@ class CurlUtils {
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),
+    InspectorOptions inspectorOptions = const InspectorOptions(),
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -141,6 +147,7 @@ class CurlUtils {
         response: err.response,
         err: err,
         curlOptions: curlOptions,
+        inspectorOptions: inspectorOptions,
         stopwatch: stopwatch,
         printer: curlOptions.printOnError,
       );
@@ -153,6 +160,7 @@ void _handleOn({
   CurlOptions curlOptions = const CurlOptions(),
   Stopwatch? stopwatch,
   required Printer printer,
+  InspectorOptions inspectorOptions = const InspectorOptions(),
 }) {
   final bool isError = err != null;
   final String? curl = genCurl(requestOptions, curlOptions.convertFormData);
@@ -164,7 +172,7 @@ void _handleOn({
 
   final int statusCode = response?.statusCode ?? -1;
   final String methodColored = requestOptions.method
-      .style(CurlHelpers.getMethodAnsi(requestOptions.method))
+      .style(Helpers.getMethodAnsi(requestOptions.method))
       .toString(curlOptions.colorEnabled);
   final String uri = requestOptions.uri.toString();
 
@@ -191,14 +199,29 @@ void _handleOn({
         }
       }
     }
+    
+    // Send to Discord webhook if configured and the request matches the filter criteria
+    if (inspectorOptions.webhookUrls.isNotEmpty && 
+        inspectorOptions.isMatch(uri, statusCode) && 
+        curl != null) {
+      _sendToDiscordWebhook(
+        inspectorOptions: inspectorOptions,
+        curl: curl,
+        method: requestOptions.method,
+        uri: uri,
+        statusCode: statusCode,
+        responseBody: responseBody?.toString(),
+        responseTime: responseTimeStr,
+      );
+    }
   } catch (e) {
     responseTimeStr = '';
   }
 
   final EmojiC emj = EmojiC(curlOptions.emojiEnabled);
   final String statusEmoji =
-      !curlOptions.emojiEnabled ? '' : CurlHelpers.getStatusEmoji(statusCode);
-  final String statusName = CurlHelpers.getStatusName(statusCode);
+      !curlOptions.emojiEnabled ? '' : Helpers.getStatusEmoji(statusCode);
+  final String statusName = Helpers.getStatusName(statusCode);
   final String summary =
       ' $statusEmoji$errType $methodColored [$statusCode $statusName] [${emj.clock} $responseTimeStr] $uri';
 
@@ -285,4 +308,33 @@ void _handleOn({
   ap_(pretty.lineEnd());
 
   printer(result);
+}
+
+/// Sends a cURL log to Discord webhooks.
+Future<void> _sendToDiscordWebhook({
+  required InspectorOptions inspectorOptions,
+  required String curl,
+  required String method,
+  required String uri,
+  required int statusCode,
+  String? responseBody,
+  String? responseTime,
+}) async {
+  try {
+    // Create an Inspector instance with the webhook URLs
+    final inspector = Inspector(hookUrls: inspectorOptions.webhookUrls);
+    
+    // Send the cURL log to the webhooks
+    await inspector.sendCurlLog(
+      curl: curl,
+      method: method,
+      uri: uri,
+      statusCode: statusCode,
+      responseBody: responseBody,
+      responseTime: responseTime,
+    );
+  } catch (e) {
+    // Silently handle errors to prevent disrupting the main application
+    print('Error sending to Discord webhook: $e');
+  }
 }

@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:file_saver/file_saver.dart';
+
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -8,17 +10,19 @@ import '../data/curl_response_cache.dart';
 void showCurlViewer(
   BuildContext context, {
   void Function(String path)? onExport,
+  bool isShare = true,
 }) async {
   showDialog(
     context: context,
-    builder: (_) => CurlViewerPopup(onExport: onExport),
+    builder: (_) => CurlViewerPopup(onExport: onExport, isShare: isShare),
   );
 }
 
 class CurlViewerPopup extends StatefulWidget {
-  const CurlViewerPopup({super.key, this.onExport});
+  const CurlViewerPopup({super.key, this.onExport, this.isShare = true});
 
   final void Function(String path)? onExport;
+  final bool isShare;
 
   @override
   State<CurlViewerPopup> createState() => _CurlViewerPopupState();
@@ -118,8 +122,11 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
       print('Error exporting logs: $e');
     }
 
-    if (path_ != null) {
+    if (path_ != null && mounted) {
       widget.onExport?.call(path_);
+      if (widget.isShare) {
+        await SharePlus.instance.share(ShareParams(files: [XFile(path_)]));
+      }
     }
   }
 
