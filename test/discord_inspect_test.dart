@@ -14,7 +14,8 @@ void main() {
 
     setUp(() {
       mockDio = MockDio();
-      inspector = Inspector(hookUrls: ['http://mock-webhook-url.com'], dio: mockDio);
+      inspector =
+          Inspector(hookUrls: ['http://mock-webhook-url.com'], dio: mockDio);
     });
 
     test('send method sends a simple message', () async {
@@ -22,7 +23,8 @@ void main() {
         any,
         data: anyNamed('data'),
         options: anyNamed('options'),
-      )).thenAnswer((_) async => Response(requestOptions: RequestOptions(path: ''), statusCode: 200));
+      )).thenAnswer((_) async =>
+          Response(requestOptions: RequestOptions(path: ''), statusCode: 200));
 
       // Use the inspector instance initialized in setUp
       // final testInspector = Inspector(hookUrls: ['http://mock-webhook-url.com'], dio: mockDio);
@@ -82,7 +84,8 @@ void main() {
         any,
         data: anyNamed('data'),
         options: anyNamed('options'),
-      )).thenAnswer((_) async => Response(requestOptions: RequestOptions(path: ''), statusCode: 200));
+      )).thenAnswer((_) async =>
+          Response(requestOptions: RequestOptions(path: ''), statusCode: 200));
 
       // final testInspector = Inspector(hookUrls: ['http://mock-webhook-url.com']);
       // testInspector.setDio(mockDio); // Assuming a setter for testing purposes
@@ -156,7 +159,10 @@ void main() {
       final options = DiscordInspectorOptions(
         webhookUrls: ['url'],
         uriFilters: ['/data'],
-        inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+        inspectionStatus: [
+          ResponseStatus.clientError,
+          ResponseStatus.serverError
+        ],
       );
       expect(options.isMatch('http://api.com/data', 400), isTrue);
       expect(options.isMatch('http://api.com/data', 500), isTrue);

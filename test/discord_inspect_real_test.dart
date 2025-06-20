@@ -14,7 +14,8 @@ void main() {
     });
 
     test('Send a simple message to Discord', () async {
-      final message = DiscordWebhookMessage.simple('Hello from Dio cURL Interceptor!');
+      final message =
+          DiscordWebhookMessage.simple('Hello from Dio cURL Interceptor!');
       await inspector.send(message);
       print('Simple message sent.');
     });
