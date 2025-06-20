@@ -54,5 +54,19 @@ void main() {
       );
       print('Server error cURL log embed sent.');
     });
+
+    test('Send a bug report to Discord', () async {
+      try {
+        throw StateError('This is a simulated error for bug report.');
+      } catch (e, s) {
+        await inspector.sendBugReport(
+          error: e,
+          stackTrace: s,
+          message: 'An example bug report from the real test file.',
+          userInfo: {'userId': '123', 'appVersion': '1.0.0'},
+        );
+        print('Bug report sent.');
+      }
+    });
   });
 }

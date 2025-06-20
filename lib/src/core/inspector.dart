@@ -351,4 +351,59 @@ class Inspector {
 
     return send(message);
   }
+
+  /// Sends a bug report or exception details to Discord webhooks.
+  ///
+  /// This method creates a Discord embed with details about an error or exception,
+  /// including the error message, stack trace, and optional user information.
+  ///
+  /// [error]: The error object or message.
+  /// [stackTrace]: The stack trace associated with the error.
+  /// [message]: An optional descriptive message for the report.
+  /// [userInfo]: Optional additional information about the user or context.
+  Future<List<Response>> sendBugReport({
+    required dynamic error,
+    required StackTrace stackTrace,
+    String? message,
+    Map<String, dynamic>? userInfo,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    final List<DiscordEmbedField> fields = [
+      DiscordEmbedField(
+        name: 'Error',
+        value: '```\n${error.toString()}\n```',
+        inline: false,
+      ),
+      DiscordEmbedField(
+        name: 'Stack Trace',
+        value: '```\n${stackTrace.toString()}\n```',
+        inline: false,
+      ),
+    ];
+
+    if (userInfo != null && userInfo.isNotEmpty) {
+      fields.add(DiscordEmbedField(
+        name: 'User Info',
+        value: '```json\n${jsonEncode(userInfo)}\n```',
+        inline: false,
+      ));
+    }
+
+    final embed = DiscordEmbed(
+      title: 'Bug Report / Exception',
+      description: message ?? 'An unhandled exception occurred.',
+      color: 15548997, // Red color for errors
+      fields: fields,
+      timestamp: DateTime.now().toIso8601String(),
+    );
+
+    final discordMessage = DiscordWebhookMessage(
+      username: username ?? 'Bug Reporter',
+      avatarUrl: avatarUrl,
+      embeds: [embed],
+    );
+
+    return send(discordMessage);
+  }
 }
