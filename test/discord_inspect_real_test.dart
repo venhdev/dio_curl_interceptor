@@ -10,7 +10,7 @@ void main() {
 
     setUp(() {
       dio = Dio();
-      inspector = Inspector(hookUrls: ['https://discordapp.com/api/webhooks/1385613737926328370/ONQAhrPeiuthV2rvsgizA-hbH1jwlKzjXvjy8Ti8Xnk2jwWaVIZPQQv106Atp_8PoIjX'], dio: dio);
+      inspector = Inspector(hookUrls: ['--'], dio: dio);
     });
 
     test('Send a simple message to Discord', () async {

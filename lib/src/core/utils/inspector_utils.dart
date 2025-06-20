@@ -5,5 +5,5 @@ class InspectorUtils {
     this.inspectorOptions,
   });
 
-  final InspectorOptions? inspectorOptions;
+  final DiscordInspectorOptions? inspectorOptions;
 }

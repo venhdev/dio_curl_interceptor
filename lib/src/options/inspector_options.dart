@@ -1,25 +1,17 @@
 import '../core/types.dart';
 
+const _defaultInspectionStatus = <ResponseStatus>[
+  ResponseStatus.clientError,
+  ResponseStatus.serverError,
+];
+
 /// Options for configuring Discord webhook integration for cURL logging.
-class InspectorOptions {
-  const InspectorOptions({
+class DiscordInspectorOptions {
+  const DiscordInspectorOptions({
     this.webhookUrls = const <String>[],
     this.uriFilters = const [],
-    this.inspectionStatus = const <ResponseStatus>[
-      ResponseStatus.clientError,
-      ResponseStatus.serverError,
-    ],
+    this.inspectionStatus = _defaultInspectionStatus,
   });
-
-  /// Factory constructor to create InspectorOptions with webhook enabled.
-  factory InspectorOptions.withWebhooks(
-    List<String> webhookUrls, {
-    List<String> uriFilters = const [],
-  }) =>
-      InspectorOptions(
-        webhookUrls: webhookUrls,
-        uriFilters: uriFilters,
-      );
 
   void addWebhookUrl(String webhookUrl) {
     webhookUrls.add(webhookUrl);

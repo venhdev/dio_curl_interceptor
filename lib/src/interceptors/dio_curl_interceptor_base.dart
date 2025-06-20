@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../core/types.dart';
 import '../core/utils/curl_utils.dart';
 import '../options/cache_options.dart';
 import '../options/curl_options.dart';
@@ -9,40 +10,49 @@ class CurlInterceptor extends Interceptor {
   CurlInterceptor({
     this.curlOptions = const CurlOptions(),
     this.cacheOptions = const CacheOptions(),
-    this.inspectorOptions = const InspectorOptions(),
+    this.inspectorOptions,
   });
 
-  factory CurlInterceptor.allEnabled() => CurlInterceptor(
+  factory CurlInterceptor.allEnabled([
+    DiscordInspectorOptions? inspectorOptions,
+  ]) =>
+      CurlInterceptor(
         curlOptions: CurlOptions.allEnabled(),
         cacheOptions: CacheOptions.allEnabled(),
+        inspectorOptions: inspectorOptions,
       );
-      
+
   /// Factory constructor to create a CurlInterceptor with webhook enabled
-  factory CurlInterceptor.withWebhook(
+  factory CurlInterceptor.discord(
     List<String> webhookUrls, {
     List<String> uriFilters = const [],
+    List<ResponseStatus> inspectionStatus = const <ResponseStatus>[
+      ResponseStatus.clientError,
+      ResponseStatus.serverError,
+    ],
     CurlOptions curlOptions = const CurlOptions(),
     CacheOptions cacheOptions = const CacheOptions(),
   }) =>
       CurlInterceptor(
         curlOptions: curlOptions,
         cacheOptions: cacheOptions,
-        inspectorOptions: InspectorOptions.withWebhooks(
-          webhookUrls,
+        inspectorOptions: DiscordInspectorOptions(
+          webhookUrls: webhookUrls,
           uriFilters: uriFilters,
+          inspectionStatus: inspectionStatus,
         ),
       );
 
   final CacheOptions cacheOptions;
   final CurlOptions curlOptions;
-  final InspectorOptions inspectorOptions;
+  final DiscordInspectorOptions? inspectorOptions;
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
 
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     CurlUtils.handleOnRequest(
-      options, 
+      options,
       curlOptions: curlOptions,
       inspectorOptions: inspectorOptions,
     );

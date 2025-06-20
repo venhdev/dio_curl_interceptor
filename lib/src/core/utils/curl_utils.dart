@@ -106,7 +106,7 @@ class CurlUtils {
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
-    InspectorOptions inspectorOptions = const InspectorOptions(),
+    DiscordInspectorOptions? inspectorOptions,
     String chronologicalPrefix = '[CurlTime]',
   }) {
     if (curlOptions.requestVisible &&
@@ -123,7 +123,7 @@ class CurlUtils {
   static void handleOnResponse(
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
-    InspectorOptions inspectorOptions = const InspectorOptions(),
+    DiscordInspectorOptions? inspectorOptions,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -139,7 +139,7 @@ class CurlUtils {
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),
-    InspectorOptions inspectorOptions = const InspectorOptions(),
+    DiscordInspectorOptions? inspectorOptions,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -160,7 +160,7 @@ void _handleOn({
   CurlOptions curlOptions = const CurlOptions(),
   Stopwatch? stopwatch,
   required Printer printer,
-  InspectorOptions inspectorOptions = const InspectorOptions(),
+  DiscordInspectorOptions? inspectorOptions,
 }) {
   final bool isError = err != null;
   final String? curl = genCurl(requestOptions, curlOptions.convertFormData);
@@ -199,10 +199,10 @@ void _handleOn({
         }
       }
     }
-    
+
     // Send to Discord webhook if configured and the request matches the filter criteria
-    if (inspectorOptions.webhookUrls.isNotEmpty && 
-        inspectorOptions.isMatch(uri, statusCode) && 
+    if (inspectorOptions != null &&
+        inspectorOptions.isMatch(uri, statusCode) &&
         curl != null) {
       _sendToDiscordWebhook(
         inspectorOptions: inspectorOptions,
@@ -312,7 +312,7 @@ void _handleOn({
 
 /// Sends a cURL log to Discord webhooks.
 Future<void> _sendToDiscordWebhook({
-  required InspectorOptions inspectorOptions,
+  required DiscordInspectorOptions inspectorOptions,
   required String curl,
   required String method,
   required String uri,
@@ -323,7 +323,7 @@ Future<void> _sendToDiscordWebhook({
   try {
     // Create an Inspector instance with the webhook URLs
     final inspector = Inspector(hookUrls: inspectorOptions.webhookUrls);
-    
+
     // Send the cURL log to the webhooks
     await inspector.sendCurlLog(
       curl: curl,
