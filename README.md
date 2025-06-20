@@ -9,7 +9,7 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🔍 Converts Dio HTTP requests to cURL commands for easy debugging and sharing.
 - 💾 Caches cURL commands and responses with filtering, search, and export options.
 - 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, export, clear, copy, etc).
-- 🔔 Discord webhook integration for remote logging and team collaboration.
+- 🔔 Discord webhook integration for remote logging and team collaboration, including bug and exception reporting.
 - 📝 Utility methods for custom interceptors and direct use.
 
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
@@ -167,6 +167,15 @@ await inspector.sendCurlLog(
   statusCode: 200,
   responseBody: '{"success": true}',
   responseTime: '150ms',
+);
+
+// Send a bug report
+await Inspector.sendBugReport(
+  hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+  error: 'Example Error',
+  stackTrace: StackTrace.current,
+  message: 'An example bug report.',
+  userInfo: {'userId': 'testUser', 'appVersion': '1.0.0'},
 );
 ```
 

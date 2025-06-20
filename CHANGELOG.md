@@ -1,7 +1,7 @@
-## 3.0.4
+## 3.1.0
 
 - Ability to share log cache as json file.
-- Added Discord webhook integration for remote logging
+- Added Discord webhook integration for remote logging, sending bug and exception reports to Discord.
 
 ## 3.0.3
 
