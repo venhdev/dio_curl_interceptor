@@ -1,19 +1,13 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:codekit/codekit.dart';
-import 'dart:developer';
 import 'package:dio/dio.dart';
 
 import '../core/constants.dart';
+import '../core/helpers.dart';
 import '../core/types.dart';
 import '../data/discord_webhook_model.dart';
-
-const Map<String, String> _replacementsEmbedField = {'```': ''};
-
-const _defaultInspectionStatus = <ResponseStatus>[
-  ResponseStatus.clientError,
-  ResponseStatus.serverError,
-];
 
 /// Options for configuring Discord webhook integration for cURL logging.
 ///
@@ -32,7 +26,7 @@ class DiscordInspector {
     this.webhookUrls = const <String>[],
     this.includeUrls = const [],
     this.excludeUrls = const [],
-    this.inspectionStatus = _defaultInspectionStatus,
+    this.inspectionStatus = defaultInspectionStatus,
   });
 
   /// Adds a single webhook URL to the [webhookUrls] list.
@@ -113,31 +107,16 @@ class DiscordInspector {
 ///
 /// This class provides methods to send various types of information,
 /// including cURL commands, bug reports, and simple messages, to Discord channels.
-class Inspector {
-  /// Creates an [Inspector] instance.
+class DiscordWebhookSender {
+  /// Creates an [DiscordWebhookSender] instance.
   ///
   /// [hookUrls] A list of Discord webhook URLs where messages will be sent.
   /// [dio] An optional Dio instance to use for making HTTP requests to webhooks.
   ///   If not provided, a new Dio instance will be created.
-  Inspector({
+  DiscordWebhookSender({
     required this.hookUrls,
     Dio? dio,
   }) : _innerDio = dio ?? Dio();
-
-  /// Wraps the given [text] with Markdown backticks, optionally specifying a [language] for syntax highlighting.
-  ///
-  /// This is a private helper method used to format code snippets or other text
-  /// for display in Discord embeds.
-  ///
-  /// [text] The text content to be wrapped.
-  /// [language] An optional language identifier for Markdown syntax highlighting.
-  /// Returns the wrapped string.
-  static String _wrapWithBackticks(String text, [String? language]) {
-    if (language != null && language.isNotEmpty) {
-      return '```$language\n$text\n```';
-    }
-    return '```\n$text\n```';
-  }
 
   /// The Discord webhook URLs to send cURL logs to.
   final List<String> hookUrls;
@@ -179,73 +158,6 @@ class Inspector {
     return responses;
   }
 
-  /// Creates a Discord embed for a cURL request.
-  /// Creates a [DiscordEmbed] object for a cURL request.
-  ///
-  /// This static method constructs a rich embed message suitable for Discord,
-  /// containing details about a cURL request, its response, and timing.
-  /// The embed's color changes based on the HTTP status code.
-  ///
-  /// [curl] The cURL command string.
-  /// [method] The HTTP method (e.g., 'GET', 'POST').
-  /// [uri] The URI of the request.
-  /// [statusCode] The HTTP status code of the response.
-  /// [responseBody] (optional) The body of the response.
-  /// [responseTime] (optional) The time taken for the response.
-  ///
-  /// Returns a [DiscordEmbed] object.
-  static DiscordEmbed createCurlEmbed({
-    required String curl,
-    required String method,
-    required String uri,
-    required int statusCode,
-    String? responseBody,
-    String? responseTime,
-  }) {
-    // Determine color based on status code
-    int color;
-    if (statusCode >= 200 && statusCode < 300) {
-      color = 5763719; // Green for success
-    } else if (statusCode >= 400 && statusCode < 500) {
-      color = 16525609; // Yellow for client errors
-    } else if (statusCode >= 500) {
-      color = 15548997; // Red for server errors
-    } else {
-      color = 5814783; // Blue for other status codes
-    }
-
-    final List<DiscordEmbedField> fields = [
-      DiscordEmbedField(
-        name: 'cURL Command',
-        value: _wrapWithBackticks(
-            stringify(curl,
-                maxLen: 1000, replacements: _replacementsEmbedField),
-            'bash'),
-      ),
-    ];
-
-    if (responseBody != null && responseBody.isNotEmpty) {
-      fields.add(DiscordEmbedField(
-        name: 'Response Body',
-        value: _wrapWithBackticks(
-            stringify(responseBody,
-                maxLen: 1000, replacements: _replacementsEmbedField),
-            'json'),
-      ));
-    }
-
-    return DiscordEmbed(
-      title: '$method $uri',
-      description: 'Status Code: $statusCode',
-      color: color,
-      fields: fields,
-      footer: DiscordEmbedFooter(
-        text: 'Response Time: ${responseTime ?? kNA}',
-      ),
-      timestamp: DateTime.now().toIso8601String(),
-    );
-  }
-
   /// Sends a cURL log to all configured Discord webhooks.
   /// Sends a cURL log as a Discord embed to all configured webhooks.
   ///
@@ -273,7 +185,7 @@ class Inspector {
     String? username,
     String? avatarUrl,
   }) async {
-    final embed = createCurlEmbed(
+    final embed = DiscordEmbed.createCurlEmbed(
       curl: curl,
       method: method,
       uri: uri,
@@ -311,8 +223,8 @@ class Inspector {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'Error',
-        value: _wrapWithBackticks(stringify(error,
-            maxLen: 1000, replacements: _replacementsEmbedField)),
+        value: Helpers.wrapWithBackticks(stringify(error,
+            maxLen: 1000, replacements: replacementsEmbedField)),
         inline: false,
       ),
     ];
@@ -320,8 +232,8 @@ class Inspector {
     if (stackTrace != null) {
       fields.add(DiscordEmbedField(
         name: 'Stack Trace',
-        value: _wrapWithBackticks(stringify(stackTrace,
-            maxLen: 1000, replacements: _replacementsEmbedField)),
+        value: Helpers.wrapWithBackticks(stringify(stackTrace,
+            maxLen: 1000, replacements: replacementsEmbedField)),
         inline: false,
       ));
     }
@@ -329,10 +241,10 @@ class Inspector {
     if (extraInfo != null) {
       fields.add(DiscordEmbedField(
         name: 'Extra Info',
-        value: _wrapWithBackticks(
+        value: Helpers.wrapWithBackticks(
             stringify(extraInfo,
                 maxLen: 1000,
-                replacements: _replacementsEmbedField,
+                replacements: replacementsEmbedField,
                 jsonIndent: '  '),
             'json'),
         inline: false,

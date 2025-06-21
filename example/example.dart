@@ -77,7 +77,7 @@ void main() async {
   ));
 
   // Example 6: Manual webhook sending
-  final inspector = Inspector(
+  final inspector = DiscordWebhookSender(
     hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
   );
 

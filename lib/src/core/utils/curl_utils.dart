@@ -432,7 +432,7 @@ Future<void> _sendToDiscordWebhook({
 }) async {
   try {
     // Create an Inspector instance with the webhook URLs
-    final inspector = Inspector(hookUrls: discordInspector.webhookUrls);
+    final inspector = DiscordWebhookSender(hookUrls: discordInspector.webhookUrls);
 
     // Send the cURL log to the webhooks
     await inspector.sendCurlLog(

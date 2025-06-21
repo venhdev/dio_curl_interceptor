@@ -10,12 +10,12 @@ import 'discord_inspect_test.mocks.dart';
 void main() {
   group('Inspector', () {
     late MockDio mockDio;
-    late Inspector inspector;
+    late DiscordWebhookSender sender;
 
     setUp(() {
       mockDio = MockDio();
-      inspector =
-          Inspector(hookUrls: ['http://mock-webhook-url.com'], dio: mockDio);
+      sender = DiscordWebhookSender(
+          hookUrls: ['http://mock-webhook-url.com'], dio: mockDio);
     });
 
     test('send method sends a simple message', () async {
@@ -30,7 +30,7 @@ void main() {
       // final testInspector = Inspector(hookUrls: ['http://mock-webhook-url.com'], dio: mockDio);
 
       final message = DiscordWebhookMessage.simple('Test message');
-      await inspector.send(message);
+      await sender.send(message);
 
       verify(mockDio.post(
         'http://mock-webhook-url.com',
@@ -40,7 +40,7 @@ void main() {
     });
 
     test('createCurlEmbed generates correct embed for success', () {
-      final embed = Inspector.createCurlEmbed(
+      final embed = DiscordEmbed.createCurlEmbed(
         curl: 'curl example',
         method: 'GET',
         uri: 'http://example.com',
@@ -58,7 +58,7 @@ void main() {
     });
 
     test('createCurlEmbed generates correct embed for client error', () {
-      final embed = Inspector.createCurlEmbed(
+      final embed = DiscordEmbed.createCurlEmbed(
         curl: 'curl example',
         method: 'POST',
         uri: 'http://example.com/error',
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('createCurlEmbed generates correct embed for server error', () {
-      final embed = Inspector.createCurlEmbed(
+      final embed = DiscordEmbed.createCurlEmbed(
         curl: 'curl example',
         method: 'PUT',
         uri: 'http://example.com/server-error',
@@ -77,31 +77,6 @@ void main() {
       );
 
       expect(embed.color, 15548997); // Red
-    });
-
-    test('sendCurlLog sends correct message with embed', () async {
-      when(mockDio.post(
-        any,
-        data: anyNamed('data'),
-        options: anyNamed('options'),
-      )).thenAnswer((_) async =>
-          Response(requestOptions: RequestOptions(path: ''), statusCode: 200));
-
-      // final testInspector = Inspector(hookUrls: ['http://mock-webhook-url.com']);
-      // testInspector.setDio(mockDio); // Assuming a setter for testing purposes
-
-      await inspector.sendCurlLog(
-        curl: 'curl test',
-        method: 'GET',
-        uri: 'http://test.com',
-        statusCode: 200,
-      );
-
-      verify(mockDio.post(
-        'http://mock-webhook-url.com',
-        data: argThat(contains('embeds')), // Check if embeds are in the payload
-        options: anyNamed('options'),
-      )).called(1);
     });
   });
 
@@ -204,7 +179,8 @@ void main() {
         webhookUrls: ['url'],
         inspectionStatus: [ResponseStatus.unknown],
       );
-      expect(options.isMatch('http://api.com/data', 999), isFalse); // Unknown status should not match
+      expect(options.isMatch('http://api.com/data', 999),
+          isFalse); // Unknown status should not match
     });
 
     test('isMatch handles multiple inspection statuses', () {

@@ -1,3 +1,8 @@
+import 'package:codekit/codekit.dart';
+
+import '../core/constants.dart';
+import '../core/helpers.dart';
+
 /// A class to represent a Discord webhook message.
 /// This class follows the Discord Webhook API structure.
 class DiscordWebhookMessage {
@@ -69,6 +74,70 @@ class DiscordEmbed {
     this.footer,
     this.timestamp,
   });
+
+  /// Creates a Discord embed for a cURL request.
+  /// Creates a [DiscordEmbed] object for a cURL request.
+  ///
+  /// This static method constructs a rich embed message suitable for Discord,
+  /// containing details about a cURL request, its response, and timing.
+  /// The embed's color changes based on the HTTP status code.
+  ///
+  /// [curl] The cURL command string.
+  /// [method] The HTTP method (e.g., 'GET', 'POST').
+  /// [uri] The URI of the request.
+  /// [statusCode] The HTTP status code of the response.
+  /// [responseBody] (optional) The body of the response.
+  /// [responseTime] (optional) The time taken for the response.
+  factory DiscordEmbed.createCurlEmbed({
+    required String curl,
+    required String method,
+    required String uri,
+    required int statusCode,
+    String? responseBody,
+    String? responseTime,
+  }) {
+    // Determine color based on status code
+    int color;
+    if (statusCode >= 200 && statusCode < 300) {
+      color = 5763719; // Green for success
+    } else if (statusCode >= 400 && statusCode < 500) {
+      color = 16525609; // Yellow for client errors
+    } else if (statusCode >= 500) {
+      color = 15548997; // Red for server errors
+    } else {
+      color = 5814783; // Blue for other status codes
+    }
+
+    final List<DiscordEmbedField> fields = [
+      DiscordEmbedField(
+        name: 'cURL Command',
+        value: Helpers.wrapWithBackticks(
+            stringify(curl, maxLen: 1000, replacements: replacementsEmbedField),
+            'bash'),
+      ),
+    ];
+
+    if (responseBody != null && responseBody.isNotEmpty) {
+      fields.add(DiscordEmbedField(
+        name: 'Response Body',
+        value: Helpers.wrapWithBackticks(
+            stringify(responseBody,
+                maxLen: 1000, replacements: replacementsEmbedField),
+            'json'),
+      ));
+    }
+
+    return DiscordEmbed(
+      title: '$method $uri',
+      description: 'Status Code: $statusCode',
+      color: color,
+      fields: fields,
+      footer: DiscordEmbedFooter(
+        text: 'Response Time: ${responseTime ?? kNA}',
+      ),
+      timestamp: DateTime.now().toIso8601String(),
+    );
+  }
 
   /// Title of embed.
   final String? title;
