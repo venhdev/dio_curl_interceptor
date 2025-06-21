@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:codekit/codekit.dart';
 import 'package:dio/dio.dart';
 
 /// A class to represent a Discord webhook message.
@@ -299,7 +300,7 @@ class Inspector {
       DiscordEmbedField(
         name: 'cURL Command',
         value:
-            '```bash\n${curl.length > 1000 ? curl.substring(0, 997) + '...' : curl}\n```',
+            '```bash\n${curl.length > 1000 ? '${curl.substring(0, 997)}...' : curl}\n```',
       ),
     ];
 
@@ -307,7 +308,7 @@ class Inspector {
       fields.add(DiscordEmbedField(
         name: 'Response Body',
         value:
-            '```json\n${responseBody.length > 1000 ? responseBody.substring(0, 997) + '...' : responseBody}\n```',
+            '```json\n${responseBody.length > 1000 ? '${responseBody.substring(0, 997)}...' : responseBody}\n```',
       ));
     }
 
@@ -363,7 +364,7 @@ class Inspector {
   /// [userInfo]: Optional additional information about the user or context.
   Future<List<Response>> sendBugReport({
     required dynamic error,
-    required StackTrace stackTrace,
+    StackTrace? stackTrace,
     String? message,
     Map<String, dynamic>? userInfo,
     String? username,
@@ -372,15 +373,21 @@ class Inspector {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'Error',
-        value: '```\n${error.toString()}\n```',
-        inline: false,
-      ),
-      DiscordEmbedField(
-        name: 'Stack Trace',
-        value: '```\n${stackTrace.toString()}\n```',
+        value: '```\n${stringify(error).substring(0, 1000)}\n```',
         inline: false,
       ),
     ];
+
+    if (stackTrace != null) {
+      // TODO Convert stack trace to a string and limit its length to avoid exceeding Discord's limits
+      String stackTraceStr = (stackTrace.toString());
+
+      fields.add(DiscordEmbedField(
+        name: 'Stack Trace',
+        value: '```\n$stackTraceStr\n```',
+        inline: false,
+      ));
+    }
 
     if (userInfo != null && userInfo.isNotEmpty) {
       fields.add(DiscordEmbedField(

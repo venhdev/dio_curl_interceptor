@@ -12,8 +12,17 @@ enum CurlBehavior {
 enum ResponseStatus {
   informational,
   success,
-  redirect,
+  redirection,
   clientError,
   serverError,
-  unknown,
+  unknown;
+
+  static List<ResponseStatus> get all => [
+        informational,
+        success,
+        redirection,
+        clientError,
+        serverError,
+        unknown,
+      ];
 }

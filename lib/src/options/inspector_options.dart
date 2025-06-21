@@ -57,7 +57,7 @@ class DiscordInspectorOptions {
               return statusCode >= 100 && statusCode < 200;
             case ResponseStatus.success:
               return statusCode >= 200 && statusCode < 300;
-            case ResponseStatus.redirect:
+            case ResponseStatus.redirection:
               return statusCode >= 300 && statusCode < 400;
             case ResponseStatus.clientError:
               return statusCode >= 400 && statusCode < 500;
