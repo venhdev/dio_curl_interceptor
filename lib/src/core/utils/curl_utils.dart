@@ -2,7 +2,7 @@ import 'package:codekit/codekit.dart';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 
-import '../inspector.dart';
+import '../../data/discord_webhook_model.dart';
 
 import '../../data/curl_response_cache.dart';
 import '../../options/curl_options.dart';

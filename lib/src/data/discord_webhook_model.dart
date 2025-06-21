@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:codekit/codekit.dart';
 import 'package:dio/dio.dart';
 
-import 'constants.dart';
+import '../core/constants.dart';
 
 /// A class to represent a Discord webhook message.
 /// This class follows the Discord Webhook API structure.
