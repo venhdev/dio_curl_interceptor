@@ -10,6 +10,22 @@ import 'constants.dart';
 class Helpers {
   const Helpers._();
 
+  static int? tryExtractDuration({
+    Stopwatch? stopwatch,
+    dynamic xClientTimeHeader,
+  }) {
+    if (stopwatch != null) {
+      return stopwatch.elapsedMilliseconds;
+    }
+    if (xClientTimeHeader != null) {
+      final xClientTimeInt = int.tryParse(xClientTimeHeader);
+      if (xClientTimeInt != null) {
+        return DateTime.now().millisecondsSinceEpoch - xClientTimeInt;
+      }
+    }
+    return null;
+  }
+
   /// Wraps the given [text] with Markdown backticks, optionally specifying a [language] for syntax highlighting.
   ///
   /// This is a private helper method used to format code snippets or other text

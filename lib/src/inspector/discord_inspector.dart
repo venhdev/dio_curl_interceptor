@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:codekit/codekit.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_curl_interceptor/src/core/utils/curl_utils.dart';
 
 import '../core/constants.dart';
 import '../core/helpers.dart';
@@ -28,6 +29,12 @@ class DiscordInspector {
     this.excludeUrls = const [],
     this.inspectionStatus = defaultInspectionStatus,
   });
+
+  DiscordWebhookSender get S => DiscordWebhookSender(hookUrls: webhookUrls);
+  DiscordWebhookSender toSender([Dio? dio]) => DiscordWebhookSender(
+        hookUrls: webhookUrls,
+        dio: dio,
+      );
 
   /// Adds a single webhook URL to the [webhookUrls] list.
   void addWebhookUrl(String webhookUrl) {
@@ -64,16 +71,64 @@ class DiscordInspector {
   /// If not empty, requests matching any of these patterns will NOT be sent.
   final List<String> excludeUrls;
 
+  void inspect({
+    required Response response,
+    DioException? err,
+    Stopwatch? stopwatch,
+    String? username,
+    String? avatarUrl,
+  }) {
+    final isError = err != null;
+    final uri = response.requestOptions.uri.toString();
+    final statusCode =
+        isError ? (err.response?.statusCode ?? 0) : (response.statusCode ?? 0);
+
+    if (isMatch(uri, statusCode)) {
+      // extract data and send to discord hook
+
+      final options = isError ? err.requestOptions : response.requestOptions;
+      final String? curl = genCurl(options);
+      final String? responseBody = response.data;
+      int? duration = Helpers.tryExtractDuration(
+        stopwatch: stopwatch,
+        xClientTimeHeader: options.headers[kXClientTime],
+      );
+
+      S.sendCurlLog(
+        curl: curl,
+        method: options.method,
+        uri: uri,
+        statusCode: statusCode,
+        username: username,
+        avatarUrl: avatarUrl,
+        responseTime: '$duration ms',
+        responseBody: responseBody,
+      );
+    }
+  }
+  // void _notify({
+  //   required String curl,
+  //   required String method,
+  //   required String uri,
+  //   required int statusCode,
+  //   String? responseBody,
+  //   String? responseTime,
+  //   String? username,
+  //   String? avatarUrl,
+  // }) {
+  //   S.sendBugReport(error: error)
+  // }
+
   /// Determines if a given URI and status code match the inspection criteria.
   ///
   /// This method checks against [includeUrls], [excludeUrls], and [inspectionStatus]
   /// to decide if a request should trigger a webhook notification.
   ///
-  /// [uri] The URI of the request.
+  /// [url] The URI of the request.
   /// [statusCode] The HTTP status code of the response.
   ///
   /// Returns `true` if the URI and status code match the criteria, `false` otherwise.
-  bool isMatch(String uri, int statusCode) {
+  bool isMatch(String url, int statusCode) {
     final statusMatch = inspectionStatus.isEmpty ||
         inspectionStatus.any((status) {
           switch (status) {
@@ -88,15 +143,15 @@ class DiscordInspector {
             case ResponseStatus.serverError:
               return statusCode >= 500 && statusCode < 600;
             case ResponseStatus.unknown:
-              return false; // Unknown status doesn't match any specific range
+              return true; // Unknown status is always included
           }
         });
 
     final includeMatch = includeUrls.isEmpty ||
-        includeUrls.any((filter) => uri.contains(filter));
+        includeUrls.any((filter) => url.contains(filter));
 
     final excludeMatch = excludeUrls.isEmpty ||
-        !excludeUrls.any((filter) => uri.contains(filter));
+        !excludeUrls.any((filter) => url.contains(filter));
 
     // If both are provided, both must match.
     return includeMatch && excludeMatch && statusMatch;
@@ -176,7 +231,7 @@ class DiscordWebhookSender {
   /// Returns a [Future] that completes with a list of [Response] objects
   /// from each successful webhook call.
   Future<List<Response>> sendCurlLog({
-    required String curl,
+    required String? curl,
     required String method,
     required String uri,
     required int statusCode,
@@ -186,7 +241,7 @@ class DiscordWebhookSender {
     String? avatarUrl,
   }) async {
     final embed = DiscordEmbed.createCurlEmbed(
-      curl: curl,
+      curl: curl ?? kNA,
       method: method,
       uri: uri,
       statusCode: statusCode,

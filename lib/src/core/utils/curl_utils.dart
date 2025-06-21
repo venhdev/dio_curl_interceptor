@@ -3,15 +3,13 @@ import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 
 import '../../data/curl_response_cache.dart';
-import '../../options/curl_options.dart';
 import '../../inspector/discord_inspector.dart';
+import '../../options/curl_options.dart';
 import '../../ui/emoji.dart';
 import '../constants.dart';
 import '../extensions.dart';
 import '../helpers.dart';
 import '../types.dart';
-
-const String _xClientTime = 'X-Client-Time';
 
 /// Generates a cURL command string from [RequestOptions].
 ///
@@ -42,22 +40,6 @@ String _tagCurrentTime() {
   return '[${now.hour}:${now.minute}:${now.second}]';
 }
 
-int? _tryExtractDuration({
-  Stopwatch? stopwatch,
-  dynamic xClientTimeHeader,
-}) {
-  if (stopwatch != null) {
-    return stopwatch.elapsedMilliseconds;
-  }
-  if (xClientTimeHeader != null) {
-    final xClientTimeInt = int.tryParse(xClientTimeHeader);
-    if (xClientTimeInt != null) {
-      return DateTime.now().millisecondsSinceEpoch - xClientTimeInt;
-    }
-  }
-  return null;
-}
-
 /// A utility class for generating, logging, and caching cURL commands
 /// from Dio requests and responses.
 ///
@@ -80,9 +62,9 @@ class CurlUtils {
     if (curl_ == null || curl_.isEmpty) {
       return;
     }
-    int? duration = _tryExtractDuration(
+    int? duration = Helpers.tryExtractDuration(
       stopwatch: stopwatch,
-      xClientTimeHeader: response.requestOptions.headers[_xClientTime],
+      xClientTimeHeader: response.requestOptions.headers[kXClientTime],
     );
     CachedCurlStorage.save(CachedCurlEntry(
       curlCommand: curl_,
@@ -112,9 +94,9 @@ class CurlUtils {
       return;
     }
 
-    int? duration = _tryExtractDuration(
+    int? duration = Helpers.tryExtractDuration(
       stopwatch: stopwatch,
-      xClientTimeHeader: err.requestOptions.headers[_xClientTime],
+      xClientTimeHeader: err.requestOptions.headers[kXClientTime],
     );
 
     CachedCurlStorage.save(CachedCurlEntry(
@@ -143,8 +125,8 @@ class CurlUtils {
   ///
   /// [requestOptions] The [RequestOptions] to modify.
   static void addXClientTime(RequestOptions requestOptions) {
-    if (!requestOptions.headers.containsKey(_xClientTime)) {
-      requestOptions.headers[_xClientTime] =
+    if (!requestOptions.headers.containsKey(kXClientTime)) {
+      requestOptions.headers[kXClientTime] =
           DateTime.now().millisecondsSinceEpoch.toString();
     }
   }
@@ -291,40 +273,21 @@ void _handleOn({
   final Map<String, dynamic> responseHeaders = response?.headers.map ?? {};
   final dynamic responseBody = response?.data;
 
-  // Calculate response time if available
-  String responseTimeStr = '';
-  try {
-    if (curlOptions.responseTime) {
-      if (stopwatch != null) {
-        responseTimeStr = "${stopwatch.elapsedMilliseconds}ms";
-      } else {
-        final String? xClientTime = responseBody?.headers.value(_xClientTime) ??
-            requestOptions.headers[_xClientTime];
-        if (xClientTime != null) {
-          final int xClientTime_ = int.parse(xClientTime);
-          final int responseTime =
-              DateTime.now().millisecondsSinceEpoch - xClientTime_;
-          responseTimeStr = "${responseTime}ms";
-        }
-      }
-    }
-  } catch (e) {
-    responseTimeStr = '';
-  }
+  int? duration = Helpers.tryExtractDuration(
+    stopwatch: stopwatch,
+    xClientTimeHeader: responseHeaders[kXClientTime],
+  );
+  final String responseTimeStr = '${duration ?? kNA}ms';
 
   // Send to Discord webhook if configured and the request matches the filter criteria
-  if (discordInspector != null &&
-      discordInspector.isMatch(uri, statusCode) &&
-      curl != null) {
-    _sendToDiscordWebhook(
-      discordInspector: discordInspector,
+  if (discordInspector != null && discordInspector.isMatch(uri, statusCode)) {
+    discordInspector.S.sendCurlLog(
       curl: curl,
       method: requestOptions.method,
       uri: uri,
       statusCode: statusCode,
-      responseBody: responseBody?.toString(),
-      responseTime:
-          responseTimeStr.isEmpty ? 'unknown duration' : responseTimeStr,
+      responseBody: responseBody,
+      responseTime: '${duration ?? kNA}ms',
     );
   }
 
@@ -418,34 +381,4 @@ void _handleOn({
   ap_(pretty.lineEnd());
 
   printer(result);
-}
-
-/// Sends a cURL log to Discord webhooks.
-Future<void> _sendToDiscordWebhook({
-  required DiscordInspector discordInspector,
-  required String curl,
-  required String method,
-  required String uri,
-  required int statusCode,
-  String? responseBody,
-  String? responseTime,
-}) async {
-  try {
-    // Create an Inspector instance with the webhook URLs
-    final inspector =
-        DiscordWebhookSender(hookUrls: discordInspector.webhookUrls);
-
-    // Send the cURL log to the webhooks
-    await inspector.sendCurlLog(
-      curl: curl,
-      method: method,
-      uri: uri,
-      statusCode: statusCode,
-      responseBody: responseBody,
-      responseTime: responseTime,
-    );
-  } catch (e) {
-    // Silently handle errors to prevent disrupting the main application
-    print('Error sending to Discord webhook: $e');
-  }
 }
