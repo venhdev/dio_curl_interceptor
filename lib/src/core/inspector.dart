@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:codekit/codekit.dart';
 import 'package:dio/dio.dart';
 
+import 'constants.dart';
+
 /// A class to represent a Discord webhook message.
 /// This class follows the Discord Webhook API structure.
 class DiscordWebhookMessage {
-  DiscordWebhookMessage({
+  const DiscordWebhookMessage({
     this.content,
     this.username,
     this.avatarUrl,
@@ -62,7 +64,7 @@ class DiscordWebhookMessage {
 
 /// A class to represent a Discord embed object.
 class DiscordEmbed {
-  DiscordEmbed({
+  const DiscordEmbed({
     this.title,
     this.description,
     this.url,
@@ -128,7 +130,7 @@ class DiscordEmbed {
 
 /// A class to represent a Discord embed author object.
 class DiscordEmbedAuthor {
-  DiscordEmbedAuthor({
+  const DiscordEmbedAuthor({
     this.name,
     this.url,
     this.iconUrl,
@@ -157,7 +159,7 @@ class DiscordEmbedAuthor {
 
 /// A class to represent a Discord embed field object.
 class DiscordEmbedField {
-  DiscordEmbedField({
+  const DiscordEmbedField({
     required this.name,
     required this.value,
     this.inline,
@@ -187,7 +189,7 @@ class DiscordEmbedField {
 
 /// A class to represent a Discord embed thumbnail object.
 class DiscordEmbedThumbnail {
-  DiscordEmbedThumbnail({
+  const DiscordEmbedThumbnail({
     required this.url,
   });
 
@@ -202,7 +204,7 @@ class DiscordEmbedThumbnail {
 
 /// A class to represent a Discord embed image object.
 class DiscordEmbedImage {
-  DiscordEmbedImage({
+  const DiscordEmbedImage({
     required this.url,
   });
 
@@ -217,7 +219,7 @@ class DiscordEmbedImage {
 
 /// A class to represent a Discord embed footer object.
 class DiscordEmbedFooter {
-  DiscordEmbedFooter({
+  const DiscordEmbedFooter({
     required this.text,
     this.iconUrl,
   });
@@ -244,6 +246,14 @@ class Inspector {
     required this.hookUrls,
     Dio? dio,
   }) : _innerDio = dio ?? Dio();
+
+  /// Truncates a string to a specified length, appending '...' if truncated.
+  static String _mayTruncate(String text, int maxLength) {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return '${text.substring(0, maxLength - 3)}...';
+  }
 
   /// The Discord webhook URLs to send cURL logs to.
   final List<String> hookUrls;
@@ -299,16 +309,14 @@ class Inspector {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'cURL Command',
-        value:
-            '```bash\n${curl.length > 1000 ? '${curl.substring(0, 997)}...' : curl}\n```',
+        value: '```bash\n${_mayTruncate(curl, 1000)}\n```',
       ),
     ];
 
     if (responseBody != null && responseBody.isNotEmpty) {
       fields.add(DiscordEmbedField(
         name: 'Response Body',
-        value:
-            '```json\n${responseBody.length > 1000 ? '${responseBody.substring(0, 997)}...' : responseBody}\n```',
+        value: '```json\n${_mayTruncate(responseBody, 1000)}\n```',
       ));
     }
 
@@ -318,7 +326,7 @@ class Inspector {
       color: color,
       fields: fields,
       footer: DiscordEmbedFooter(
-        text: 'Response Time: ${responseTime ?? 'N/A'}',
+        text: 'Response Time: ${responseTime ?? kNA}',
       ),
       timestamp: DateTime.now().toIso8601String(),
     );
@@ -363,36 +371,33 @@ class Inspector {
   /// [message]: An optional descriptive message for the report.
   /// [userInfo]: Optional additional information about the user or context.
   Future<List<Response>> sendBugReport({
-    required dynamic error,
+    required Object error,
     StackTrace? stackTrace,
     String? message,
-    Map<String, dynamic>? userInfo,
+    Map<String, dynamic>? extraInfo,
     String? username,
     String? avatarUrl,
   }) async {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'Error',
-        value: '```\n${stringify(error).substring(0, 1000)}\n```',
+        value: '```\n${_mayTruncate(stringify(error), 1000)}\n```',
         inline: false,
       ),
     ];
 
     if (stackTrace != null) {
-      // TODO Convert stack trace to a string and limit its length to avoid exceeding Discord's limits
-      String stackTraceStr = (stackTrace.toString());
-
       fields.add(DiscordEmbedField(
         name: 'Stack Trace',
-        value: '```\n$stackTraceStr\n```',
+        value: '```\n${_mayTruncate(stringify(stackTrace), 1000)}\n```',
         inline: false,
       ));
     }
 
-    if (userInfo != null && userInfo.isNotEmpty) {
+    if (extraInfo != null) {
       fields.add(DiscordEmbedField(
-        name: 'User Info',
-        value: '```json\n${jsonEncode(userInfo)}\n```',
+        name: 'Extra Info',
+        value: '```json\n${_mayTruncate(jsonEncode(extraInfo), 1000)}\n```',
         inline: false,
       ));
     }

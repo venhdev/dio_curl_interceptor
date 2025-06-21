@@ -9,5 +9,5 @@ export 'src/core/inspector.dart';
 export 'src/interceptors/dio_curl_interceptor_base.dart';
 export 'src/options/cache_options.dart';
 export 'src/options/curl_options.dart';
-export 'src/options/inspector_options.dart';
+export 'src/inspector/discord_inspector.dart';
 export 'src/ui/curl_viewer_popup.dart';

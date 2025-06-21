@@ -6,8 +6,8 @@ const _defaultInspectionStatus = <ResponseStatus>[
 ];
 
 /// Options for configuring Discord webhook integration for cURL logging.
-class DiscordInspectorOptions {
-  const DiscordInspectorOptions({
+class DiscordInspector {
+  const DiscordInspector({
     this.webhookUrls = const <String>[],
     this.uriFilters = const [],
     this.inspectionStatus = _defaultInspectionStatus,

@@ -1,9 +1,9 @@
-import '../../options/inspector_options.dart';
+import '../../inspector/discord_inspector.dart';
 
 class InspectorUtils {
   InspectorUtils({
     this.inspectorOptions,
   });
 
-  final DiscordInspectorOptions? inspectorOptions;
+  final DiscordInspector? inspectorOptions;
 }

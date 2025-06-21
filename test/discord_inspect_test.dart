@@ -107,7 +107,7 @@ void main() {
 
   group('InspectorOptions', () {
     test('isMatch returns true for matching URI and status', () {
-      final options = DiscordInspectorOptions(
+      final options = DiscordInspector(
         webhookUrls: ['url'],
         uriFilters: ['api.example.com'],
         inspectionStatus: [ResponseStatus.success],
@@ -116,7 +116,7 @@ void main() {
     });
 
     test('isMatch returns false for non-matching URI', () {
-      final options = DiscordInspectorOptions(
+      final options = DiscordInspector(
         webhookUrls: ['url'],
         uriFilters: ['api.example.com'],
         inspectionStatus: [ResponseStatus.success],
@@ -125,7 +125,7 @@ void main() {
     });
 
     test('isMatch returns false for non-matching status', () {
-      final options = DiscordInspectorOptions(
+      final options = DiscordInspector(
         webhookUrls: ['url'],
         uriFilters: ['api.example.com'],
         inspectionStatus: [ResponseStatus.clientError],
@@ -134,7 +134,7 @@ void main() {
     });
 
     test('isMatch returns true when no filters are set', () {
-      final options = DiscordInspectorOptions(
+      final options = DiscordInspector(
         webhookUrls: ['url'],
         uriFilters: [],
         inspectionStatus: [], // No specific status filters
@@ -145,7 +145,7 @@ void main() {
     });
 
     test('isMatch handles multiple URI filters', () {
-      final options = DiscordInspectorOptions(
+      final options = DiscordInspector(
         webhookUrls: ['url'],
         uriFilters: ['/users/', '/products/'],
         inspectionStatus: [ResponseStatus.success],
@@ -156,7 +156,7 @@ void main() {
     });
 
     test('isMatch handles multiple inspection statuses', () {
-      final options = DiscordInspectorOptions(
+      final options = DiscordInspector(
         webhookUrls: ['url'],
         uriFilters: ['/data'],
         inspectionStatus: [

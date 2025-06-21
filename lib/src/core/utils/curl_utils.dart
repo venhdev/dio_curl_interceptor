@@ -6,7 +6,7 @@ import '../inspector.dart';
 
 import '../../data/curl_response_cache.dart';
 import '../../options/curl_options.dart';
-import '../../options/inspector_options.dart';
+import '../../inspector/discord_inspector.dart';
 import '../../ui/emoji.dart';
 import '../constants.dart';
 import '../extensions.dart';
@@ -106,7 +106,7 @@ class CurlUtils {
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
-    DiscordInspectorOptions? inspectorOptions,
+    DiscordInspector? inspectorOptions,
     String chronologicalPrefix = '[CurlTime]',
   }) {
     if (curlOptions.requestVisible &&
@@ -123,7 +123,7 @@ class CurlUtils {
   static void handleOnResponse(
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
-    DiscordInspectorOptions? inspectorOptions,
+    DiscordInspector? inspectorOptions,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -139,7 +139,7 @@ class CurlUtils {
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),
-    DiscordInspectorOptions? inspectorOptions,
+    DiscordInspector? inspectorOptions,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -160,7 +160,7 @@ void _handleOn({
   CurlOptions curlOptions = const CurlOptions(),
   Stopwatch? stopwatch,
   required Printer printer,
-  DiscordInspectorOptions? inspectorOptions,
+  DiscordInspector? inspectorOptions,
 }) {
   final bool isError = err != null;
   final String? curl = genCurl(requestOptions, curlOptions.convertFormData);
@@ -312,7 +312,7 @@ void _handleOn({
 
 /// Sends a cURL log to Discord webhooks.
 Future<void> _sendToDiscordWebhook({
-  required DiscordInspectorOptions inspectorOptions,
+  required DiscordInspector inspectorOptions,
   required String curl,
   required String method,
   required String uri,
