@@ -67,13 +67,13 @@ class CurlInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (curlOptions.responseVisible) {
-      Stopwatch? stopwatch;
-      if (curlOptions.responseTime) {
-        stopwatch = _stopwatches.remove(response.requestOptions);
-        stopwatch?.stop();
-      }
+    Stopwatch? stopwatch;
+    if (curlOptions.responseTime) {
+      stopwatch = _stopwatches.remove(response.requestOptions);
+      stopwatch?.stop();
+    }
 
+    if (curlOptions.responseVisible) {
       CurlUtils.handleOnResponse(
         response,
         curlOptions: curlOptions,
@@ -83,7 +83,10 @@ class CurlInterceptor extends Interceptor {
     }
 
     if (cacheOptions.cacheResponse) {
-      CurlUtils.cacheResponse(response);
+      CurlUtils.cacheResponse(
+        response,
+        stopwatch: stopwatch,
+      );
     }
 
     return handler.next(response);
@@ -91,13 +94,12 @@ class CurlInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    Stopwatch? stopwatch;
+    if (curlOptions.responseTime) {
+      stopwatch = _stopwatches.remove(err.requestOptions);
+      stopwatch?.stop();
+    }
     if (curlOptions.errorVisible) {
-      Stopwatch? stopwatch;
-      if (curlOptions.responseTime) {
-        stopwatch = _stopwatches.remove(err.requestOptions);
-        stopwatch?.stop();
-      }
-
       CurlUtils.handleOnError(
         err,
         curlOptions: curlOptions,
@@ -107,7 +109,10 @@ class CurlInterceptor extends Interceptor {
     }
 
     if (cacheOptions.cacheError) {
-      CurlUtils.cacheError(err);
+      CurlUtils.cacheError(
+        err,
+        stopwatch: stopwatch,
+      );
     }
 
     return handler.next(err);

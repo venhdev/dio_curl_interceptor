@@ -21,13 +21,18 @@ class CachedCurlEntryAdapter extends TypeAdapter<CachedCurlEntry> {
       responseBody: fields[1] as String?,
       statusCode: fields[2] as int?,
       timestamp: fields[3] as DateTime,
+      url: fields[4] as String?,
+      duration: fields[5] as int?,
+      responseHeaders: (fields[6] as Map?)?.map((dynamic k, dynamic v) =>
+          MapEntry(k as String, (v as List).cast<String>())),
+      method: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CachedCurlEntry obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.curlCommand)
       ..writeByte(1)
@@ -35,7 +40,15 @@ class CachedCurlEntryAdapter extends TypeAdapter<CachedCurlEntry> {
       ..writeByte(2)
       ..write(obj.statusCode)
       ..writeByte(3)
-      ..write(obj.timestamp);
+      ..write(obj.timestamp)
+      ..writeByte(4)
+      ..write(obj.url)
+      ..writeByte(5)
+      ..write(obj.duration)
+      ..writeByte(6)
+      ..write(obj.responseHeaders)
+      ..writeByte(7)
+      ..write(obj.method);
   }
 
   @override

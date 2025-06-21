@@ -2,8 +2,6 @@ import 'package:codekit/codekit.dart';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 
-import '../../data/discord_webhook_model.dart';
-
 import '../../data/curl_response_cache.dart';
 import '../../options/curl_options.dart';
 import '../../inspector/discord_inspector.dart';
@@ -34,36 +32,70 @@ String _tagCurrentTime() {
   return '[${now.hour}:${now.minute}:${now.second}]';
 }
 
+int? _tryExtractDuration({
+  Stopwatch? stopwatch,
+  dynamic xClientTimeHeader,
+}) {
+  if (stopwatch != null) {
+    return stopwatch.elapsedMilliseconds;
+  }
+  if (xClientTimeHeader != null) {
+    final xClientTimeInt = int.tryParse(xClientTimeHeader);
+    if (xClientTimeInt != null) {
+      return DateTime.now().millisecondsSinceEpoch - xClientTimeInt;
+    }
+  }
+  return null;
+}
+
 class CurlUtils {
   CurlUtils._();
 
   /// Caches a successful response with its curl command
   /// This can be used directly in custom interceptors
-  static void cacheResponse(Response response) {
+  static void cacheResponse(Response response, {Stopwatch? stopwatch}) {
     final curl_ = genCurl(response.requestOptions);
     if (curl_ == null || curl_.isEmpty) {
       return;
     }
+    int? duration = _tryExtractDuration(
+      stopwatch: stopwatch,
+      xClientTimeHeader: response.requestOptions.headers[_xClientTime],
+    );
     CachedCurlStorage.save(CachedCurlEntry(
       curlCommand: curl_,
       responseBody: response.data.toString(),
       statusCode: response.statusCode,
       timestamp: DateTime.now(),
+      url: response.requestOptions.uri.toString(),
+      duration: duration,
+      responseHeaders: response.headers.map,
+      method: response.requestOptions.method,
     ));
   }
 
   /// Caches an error response with its curl command
   /// This can be used directly in custom interceptors
-  static void cacheError(DioException err) {
+  static void cacheError(DioException err, {Stopwatch? stopwatch}) {
     final curl_ = genCurl(err.requestOptions);
     if (curl_ == null || curl_.isEmpty) {
       return;
     }
+
+    int? duration = _tryExtractDuration(
+      stopwatch: stopwatch,
+      xClientTimeHeader: err.requestOptions.headers[_xClientTime],
+    );
+
     CachedCurlStorage.save(CachedCurlEntry(
       curlCommand: curl_,
       responseBody: err.response?.data.toString(),
       statusCode: err.response?.statusCode,
       timestamp: DateTime.now(),
+      url: err.requestOptions.uri.toString(),
+      duration: duration,
+      responseHeaders: err.response?.headers.map,
+      method: err.requestOptions.method,
     ));
   }
 
@@ -199,23 +231,24 @@ void _handleOn({
         }
       }
     }
-
-    // Send to Discord webhook if configured and the request matches the filter criteria
-    if (discordInspector != null &&
-        discordInspector.isMatch(uri, statusCode) &&
-        curl != null) {
-      _sendToDiscordWebhook(
-        discordInspector: discordInspector,
-        curl: curl,
-        method: requestOptions.method,
-        uri: uri,
-        statusCode: statusCode,
-        responseBody: responseBody?.toString(),
-        responseTime: responseTimeStr,
-      );
-    }
   } catch (e) {
     responseTimeStr = '';
+  }
+
+  // Send to Discord webhook if configured and the request matches the filter criteria
+  if (discordInspector != null &&
+      discordInspector.isMatch(uri, statusCode) &&
+      curl != null) {
+    _sendToDiscordWebhook(
+      discordInspector: discordInspector,
+      curl: curl,
+      method: requestOptions.method,
+      uri: uri,
+      statusCode: statusCode,
+      responseBody: responseBody?.toString(),
+      responseTime:
+          responseTimeStr.isEmpty ? 'unknown duration' : responseTimeStr,
+    );
   }
 
   final EmojiC emj = EmojiC(curlOptions.emojiEnabled);

@@ -1,27 +1,39 @@
 import 'dart:convert';
-import 'package:file_saver/file_saver.dart';
 
-import 'package:share_plus/share_plus.dart';
+import 'package:codekit/codekit.dart';
+import 'dart:async';
+
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../core/constants.dart';
 import '../data/curl_response_cache.dart';
 
 void showCurlViewer(
   BuildContext context, {
   void Function(String path)? onExport,
-  bool isShare = true,
+  bool openShareOnExportTap = true,
 }) async {
   showDialog(
     context: context,
-    builder: (_) => CurlViewerPopup(onExport: onExport, isShare: isShare),
+    builder: (_) => CurlViewerPopup(
+      openShareOnExportTap: onExport,
+      isShare: openShareOnExportTap,
+    ),
   );
 }
 
 class CurlViewerPopup extends StatefulWidget {
-  const CurlViewerPopup({super.key, this.onExport, this.isShare = true});
+  const CurlViewerPopup({
+    super.key,
+    this.openShareOnExportTap,
+    this.isShare = true,
+  });
 
-  final void Function(String path)? onExport;
+  final void Function(String path)? openShareOnExportTap;
   final bool isShare;
 
   @override
@@ -34,6 +46,8 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   int totalCount = 0;
   int loadedCount = 0;
   bool isLoading = false;
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchTimer;
   String _searchQuery = '';
   DateTime? _startDate;
   DateTime? _endDate;
@@ -43,6 +57,13 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   void initState() {
     super.initState();
     _loadEntries(reset: true);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadEntries({bool reset = false}) async {
@@ -75,7 +96,16 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   }
 
   void _onSearchChanged(String value) {
-    _searchQuery = value;
+    _searchTimer?.cancel();
+    _searchTimer = Timer(const Duration(seconds: 1), () {
+      _searchQuery = value;
+      _loadEntries(reset: true);
+    });
+  }
+
+  void _performSearch() {
+    _searchTimer?.cancel();
+    _searchQuery = _searchController.text;
     _loadEntries(reset: true);
   }
 
@@ -106,6 +136,10 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                 'statusCode': e.statusCode,
                 'responseBody': e.responseBody,
                 'timestamp': e.timestamp.toIso8601String(),
+                'url': e.url,
+                'duration': e.duration,
+                'responseHeaders': e.responseHeaders,
+                'method': e.method,
               })
           .toList());
       final fileName =
@@ -114,7 +148,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
       path_ = await FileSaver.instance.saveFile(
         name: fileName,
         bytes: bytes,
-        ext: 'json',
+        // ext: 'json',
         mimeType: MimeType.json,
       );
       print('Exported cURL logs to $path_');
@@ -123,7 +157,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
     }
 
     if (path_ != null && mounted) {
-      widget.onExport?.call(path_);
+      widget.openShareOnExportTap?.call(path_);
       if (widget.isShare) {
         await SharePlus.instance.share(ShareParams(files: [XFile(path_)]));
       }
@@ -150,35 +184,56 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // First line: search bar + status dropdown at end
-                Row(
-                  children: [
-                    Expanded(
-                      child: IntrinsicHeight(
+                IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Expanded(
                         child: TextField(
-                          decoration: const InputDecoration(
-                            hintText: 'Search by status, cURL, or response...',
-                            prefixIcon: Icon(Icons.search),
-                            border: OutlineInputBorder(),
-                            // isDense: true,
-                            // contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14), // Made consistent
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText:
+                                'Search by status, cURL, response, URL...',
+                            hintStyle: const TextStyle(fontSize: 14),
+                            suffixIcon: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _performSearch();
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.search),
+                                  onPressed: _performSearch,
+                                ),
+                              ],
+                            ),
+                            border: const OutlineInputBorder(),
+                            isDense: true,
                           ),
                           onChanged: _onSearchChanged,
+                          onSubmitted: (_) => _performSearch(),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 100),
-                      child: DropdownMenu<int?>(
+                      const SizedBox(width: 8),
+                      DropdownMenu<int?>(
                         initialSelection: _statusGroup,
                         onSelected: _onStatusChanged,
+                        width: 90,
                         inputDecorationTheme: const InputDecorationTheme(
                           isCollapsed: true,
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 14),
+                          suffixIconConstraints: BoxConstraints(
+                            minWidth: 24,
+                            minHeight: 24,
+                          ),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                           border: OutlineInputBorder(),
                         ),
                         dropdownMenuEntries: const [
@@ -189,8 +244,8 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                         ],
                         hintText: 'Status',
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 8),
@@ -265,6 +320,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
                           child: ExpansionTile(
+                            dense: true,
                             tilePadding:
                                 const EdgeInsets.symmetric(horizontal: 12),
                             collapsedShape: RoundedRectangleBorder(
@@ -275,7 +331,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                                 horizontal: 12, vertical: 8),
                             // Remove default shadow from ExpansionTile
                             title: Text(
-                              '[$formattedTime] [${entry.statusCode ?? 'N/A'}]',
+                              '[$formattedTime] - [${entry.statusCode ?? 'N/A'}]',
                               style: TextStyle(
                                 color: (entry.statusCode ?? 200) >= 400
                                     ? Colors.red
@@ -284,12 +340,40 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                               ),
                             ),
                             subtitle: Text(
-                              entry.curlCommand,
+                              '${entry.method ?? 'N/A'} ${entry.url ?? 'N/A'}',
                               style: const TextStyle(fontSize: 12),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.left,
                             ),
+                            expandedAlignment: Alignment.centerLeft,
                             children: [
+                              if (entry.url != null)
+                                Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    RichText(
+                                      text: TextSpan(
+                                        style:
+                                            DefaultTextStyle.of(context).style,
+                                        children: [
+                                          TextSpan(
+                                            text: entry.method ?? kNA,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                ' - [${entry.duration ?? kNA} ms]',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SelectableText(entry.url!),
+                                    const SizedBox(height: 8),
+                                  ],
+                                ),
                               Row(
                                 children: [
                                   const Text('cURL:',
@@ -308,7 +392,26 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                               ),
                               SelectableText(entry.curlCommand),
                               const SizedBox(height: 8),
-                              const Text('Response:',
+                              if (entry.responseHeaders != null &&
+                                  entry.responseHeaders!.isNotEmpty)
+                                ExpansionTile(
+                                  tilePadding: EdgeInsets.zero,
+                                  dense: true,
+                                  title: const Text('Response Headers:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: SelectableText(
+                                        stringify(entry.responseHeaders,
+                                            jsonIndent: '  '),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              const SizedBox(height: 8),
+                              const Text('Response Body:',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                               SelectableText(entry.responseBody ?? '<no body>'),

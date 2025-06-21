@@ -21,11 +21,27 @@ class CachedCurlEntry extends HiveObject {
   @HiveField(3)
   DateTime timestamp;
 
+  @HiveField(4)
+  String? url;
+
+  @HiveField(5)
+  int? duration;
+
+  @HiveField(6)
+  Map<String, List<String>>? responseHeaders;
+
+  @HiveField(7)
+  String? method;
+
   CachedCurlEntry({
     required this.curlCommand,
     this.responseBody,
     this.statusCode,
     required this.timestamp,
+    this.url,
+    this.duration,
+    this.responseHeaders,
+    this.method,
   });
 }
 
@@ -99,7 +115,8 @@ class CachedCurlStorage {
       entries = entries.where((entry) =>
           entry.curlCommand.toLowerCase().contains(lower) ||
           (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-          entry.statusCode.toString().contains(lower));
+          entry.statusCode.toString().contains(lower) ||
+          (entry.url ?? '').toLowerCase().contains(lower));
     }
     if (startDate != null) {
       entries = entries.where((entry) => entry.timestamp
@@ -140,7 +157,8 @@ class CachedCurlStorage {
       entries = entries.where((entry) =>
           entry.curlCommand.toLowerCase().contains(lower) ||
           (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-          entry.statusCode.toString().contains(lower));
+          entry.statusCode.toString().contains(lower) ||
+          (entry.url ?? '').toLowerCase().contains(lower));
     }
     if (startDate != null) {
       entries = entries.where((entry) => entry.timestamp
