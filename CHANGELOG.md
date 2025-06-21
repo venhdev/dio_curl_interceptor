@@ -1,7 +1,6 @@
 ## 3.1.0
 
-- Ability to share log cache as json file.
-- Renamed `DiscordInspectorOptions` to `DiscordInspector` for consistency.
+- Introduced Discord webhook integration for remote logging and team collaboration.
 
 ## 3.0.3
 

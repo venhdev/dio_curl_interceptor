@@ -77,7 +77,7 @@ class CurlInterceptor extends Interceptor {
       CurlUtils.handleOnResponse(
         response,
         curlOptions: curlOptions,
-        inspectorOptions: discordInspector,
+        discordInspector: discordInspector,
         stopwatch: stopwatch,
       );
     }
@@ -101,7 +101,7 @@ class CurlInterceptor extends Interceptor {
       CurlUtils.handleOnError(
         err,
         curlOptions: curlOptions,
-        inspectorOptions: discordInspector,
+        discordInspector: discordInspector,
         stopwatch: stopwatch,
       );
     }
