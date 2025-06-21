@@ -105,7 +105,7 @@ void main() {
     });
   });
 
-  group('InspectorOptions', () {
+  group('DiscordInspector', () {
     test('isMatch returns true for matching URI and status', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],

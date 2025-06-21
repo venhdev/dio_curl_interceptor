@@ -1,4 +1,11 @@
+import 'dart:convert';
+
+import 'package:codekit/codekit.dart';
+import 'package:dio/dio.dart';
+
+import '../core/constants.dart';
 import '../core/types.dart';
+import '../data/discord_webhook_model.dart';
 
 const _defaultInspectionStatus = <ResponseStatus>[
   ResponseStatus.clientError,
@@ -37,8 +44,8 @@ class DiscordInspector {
   /// If not empty, only requests matching any of the patterns will be sent.
   ///
   /// Example:
-  /// ```dart
-  /// InspectorOptions(
+/// ```dart
+/// DiscordInspector(
   ///   webhookUrl: 'https://discord.com/api/webhooks/...',
   ///   uriFilters: [
   ///     'api.example.com',
@@ -73,5 +80,185 @@ class DiscordInspector {
 
     // If both are provided, both must match.
     return uriMatch && statusMatch;
+  }
+}
+
+/// A class to handle sending cURL logs to Discord webhooks.
+class Inspector {
+  Inspector({
+    required this.hookUrls,
+    Dio? dio,
+  }) : _innerDio = dio ?? Dio();
+
+  /// Truncates a string to a specified length, appending '...' if truncated.
+  static String _mayTruncate(String text, int maxLength) {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return '${text.substring(0, maxLength - 3)}...';
+  }
+
+  /// The Discord webhook URLs to send cURL logs to.
+  final List<String> hookUrls;
+
+  /// The Dio instance for making HTTP requests.
+  final Dio _innerDio;
+
+  /// Sends a message to all configured Discord webhooks.
+  ///
+  /// Returns a list of responses from each webhook.
+  Future<List<Response>> send(DiscordWebhookMessage message) async {
+    final List<Response> responses = [];
+    final String jsonPayload = jsonEncode(message.toJson());
+
+    for (final String hookUrl in hookUrls) {
+      try {
+        final response = await _innerDio.post(
+          hookUrl,
+          data: jsonPayload,
+          options: Options(headers: {'Content-Type': 'application/json'}),
+        );
+        responses.add(response);
+      } catch (e) {
+        // Handle errors silently to prevent disrupting the main application
+        print('Error sending webhook to $hookUrl: $e');
+      }
+    }
+
+    return responses;
+  }
+
+  /// Creates a Discord embed for a cURL request.
+  static DiscordEmbed createCurlEmbed({
+    required String curl,
+    required String method,
+    required String uri,
+    required int statusCode,
+    String? responseBody,
+    String? responseTime,
+  }) {
+    // Determine color based on status code
+    int color;
+    if (statusCode >= 200 && statusCode < 300) {
+      color = 5763719; // Green for success
+    } else if (statusCode >= 400 && statusCode < 500) {
+      color = 16525609; // Yellow for client errors
+    } else if (statusCode >= 500) {
+      color = 15548997; // Red for server errors
+    } else {
+      color = 5814783; // Blue for other status codes
+    }
+
+    final List<DiscordEmbedField> fields = [
+      DiscordEmbedField(
+        name: 'cURL Command',
+        value: '```bash\n${_mayTruncate(curl, 1000)}\n```',
+      ),
+    ];
+
+    if (responseBody != null && responseBody.isNotEmpty) {
+      fields.add(DiscordEmbedField(
+        name: 'Response Body',
+        value: '```json\n${_mayTruncate(responseBody, 1000)}\n```',
+      ));
+    }
+
+    return DiscordEmbed(
+      title: '$method $uri',
+      description: 'Status Code: $statusCode',
+      color: color,
+      fields: fields,
+      footer: DiscordEmbedFooter(
+        text: 'Response Time: ${responseTime ?? kNA}',
+      ),
+      timestamp: DateTime.now().toIso8601String(),
+    );
+  }
+
+  /// Sends a cURL log to all configured Discord webhooks.
+  Future<List<Response>> sendCurlLog({
+    required String curl,
+    required String method,
+    required String uri,
+    required int statusCode,
+    String? responseBody,
+    String? responseTime,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    final embed = createCurlEmbed(
+      curl: curl,
+      method: method,
+      uri: uri,
+      statusCode: statusCode,
+      responseBody: responseBody,
+      responseTime: responseTime,
+    );
+
+    final message = DiscordWebhookMessage(
+      username: username ?? 'Dio cURL Interceptor',
+      avatarUrl: avatarUrl,
+      embeds: [embed],
+    );
+
+    return send(message);
+  }
+
+  /// Sends a bug report or exception details to Discord webhooks.
+  ///
+  /// This method creates a Discord embed with details about an error or exception,
+  /// including the error message, stack trace, and optional user information.
+  ///
+  /// [error]: The error object or message.
+  /// [stackTrace]: The stack trace associated with the error.
+  /// [message]: An optional descriptive message for the report.
+  /// [userInfo]: Optional additional information about the user or context.
+  Future<List<Response>> sendBugReport({
+    required Object error,
+    StackTrace? stackTrace,
+    String? message,
+    Map<String, dynamic>? extraInfo,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    final List<DiscordEmbedField> fields = [
+      DiscordEmbedField(
+        name: 'Error',
+        value: '```\n${_mayTruncate(stringify(error), 1000)}\n```',
+        inline: false,
+      ),
+    ];
+
+    if (stackTrace != null) {
+      fields.add(DiscordEmbedField(
+        name: 'Stack Trace',
+        value: '```\n${_mayTruncate(stringify(stackTrace), 1000)}\n```',
+        inline: false,
+      ));
+    }
+
+    if (extraInfo != null) {
+      fields.add(DiscordEmbedField(
+        name: 'Extra Info',
+        value: '```json\n${_mayTruncate(jsonEncode(extraInfo), 1000)}\n```',
+        inline: false,
+      ));
+    }
+
+    final embed = DiscordEmbed(
+      title: 'Bug Report / Exception',
+      description: message ?? 'An unhandled exception occurred.',
+      color: 15548997, // Red color for errors
+      fields: fields,
+      timestamp: DateTime.now().toIso8601String(),
+    );
+
+    final discordMessage = DiscordWebhookMessage(
+      username: username ?? 'Bug Reporter',
+      avatarUrl: avatarUrl,
+      embeds: [embed],
+    );
+
+    return send(discordMessage);
   }
 }
