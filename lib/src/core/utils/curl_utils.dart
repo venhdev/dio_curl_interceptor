@@ -13,6 +13,16 @@ import '../types.dart';
 
 const String _xClientTime = 'X-Client-Time';
 
+/// Generates a cURL command string from [RequestOptions].
+///
+/// This method constructs a cURL command that can be executed in a terminal
+/// to replicate the HTTP request defined by the [requestOptions].
+/// It handles various aspects of the request, including method, URL, headers,
+/// and request body.
+///
+/// [requestOptions] The [RequestOptions] from which to generate the cURL command.
+/// [shouldConvertFormData] Whether to convert FormData to JSON in the cURL output.
+/// Returns a [String] representing the cURL command.
 String? genCurl(RequestOptions options, [bool convertFormData = true]) {
   try {
     return Helpers.generateCurlFromRequestOptions(
@@ -48,11 +58,23 @@ int? _tryExtractDuration({
   return null;
 }
 
+/// A utility class for generating, logging, and caching cURL commands
+/// from Dio requests and responses.
+///
+/// This class provides static methods to interact with cURL generation,
+/// handle request/response/error logging, and manage the cURL cache.
 class CurlUtils {
   CurlUtils._();
 
-  /// Caches a successful response with its curl command
+  /// Caches a successful [Response] along with its generated cURL command.
   /// This can be used directly in custom interceptors
+  ///
+  /// This method extracts relevant information from the [response] object,
+  /// including the cURL command, status code, response body, and headers,
+  /// and stores it in the [CachedCurlStorage].
+  ///
+  /// [response] The Dio [Response] object to be cached.
+  /// [stopwatch] An optional [Stopwatch] to calculate the response duration.
   static void cacheResponse(Response response, {Stopwatch? stopwatch}) {
     final curl_ = genCurl(response.requestOptions);
     if (curl_ == null || curl_.isEmpty) {
@@ -76,6 +98,14 @@ class CurlUtils {
 
   /// Caches an error response with its curl command
   /// This can be used directly in custom interceptors
+  /// Caches a [DioException] (error) along with its generated cURL command.
+  ///
+  /// This method extracts relevant information from the [err] object,
+  /// including the cURL command, status code (if available), response body,
+  /// and headers, and stores it in the [CachedCurlStorage].
+  ///
+  /// [err] The [DioException] object representing the error.
+  /// [stopwatch] An optional [Stopwatch] to calculate the request/response duration.
   static void cacheError(DioException err, {Stopwatch? stopwatch}) {
     final curl_ = genCurl(err.requestOptions);
     if (curl_ == null || curl_.isEmpty) {
@@ -99,6 +129,19 @@ class CurlUtils {
     ));
   }
 
+  /// Adds an 'X-Client-Time' header to the [RequestOptions].
+  ///
+  /// This header stores the current timestamp in milliseconds since epoch,
+  /// which can be used later to calculate the duration of the request/response cycle.
+  /// This is useful for measuring response time.
+  ///
+  /// [requestOptions] The [RequestOptions] to which the header will be added.
+  /// Adds an 'X-Client-Time' header to the [RequestOptions] if it doesn't already exist.
+  ///
+  /// This is a private helper method used internally to ensure the client time
+  /// is recorded for request tracking.
+  ///
+  /// [requestOptions] The [RequestOptions] to modify.
   static void addXClientTime(RequestOptions requestOptions) {
     if (!requestOptions.headers.containsKey(_xClientTime)) {
       requestOptions.headers[_xClientTime] =
@@ -106,6 +149,17 @@ class CurlUtils {
     }
   }
 
+  /// Generates and logs a cURL command for a given [RequestOptions].
+  ///
+  /// This method creates a cURL string from the [requestOptions] and prints it
+  /// using the provided [printer] function (or a default one). It can also
+  /// apply ANSI colors to the output.
+  ///
+  /// [requestOptions] The [RequestOptions] from which to generate the cURL command.
+  /// [shouldConvertFormData] Whether to convert FormData to JSON in the cURL output.
+  /// [prefix] A prefix to add to the logged cURL command.
+  /// [ansi] An optional [Ansi] object to apply colors to the output.
+  /// [printer] An optional custom printer function to use for logging.
   static void logCurl(
     RequestOptions requestOptions, {
     bool shouldConvertFormData = true,
@@ -135,6 +189,14 @@ class CurlUtils {
     }
   }
 
+  /// Handles the cURL logging for a request before it is sent.
+  ///
+  /// This method is typically called within Dio's `onRequest` interceptor.
+  /// It generates and logs the cURL command for the outgoing request.
+  ///
+  /// [requestOptions] The [RequestOptions] of the outgoing request.
+  /// [handler] The [RequestInterceptorHandler] to control the request flow.
+  /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
@@ -152,6 +214,14 @@ class CurlUtils {
     }
   }
 
+  /// Handles the cURL logging for a successful response.
+  ///
+  /// This method is typically called within Dio's `onResponse` interceptor.
+  /// It logs the cURL command associated with the response and caches it.
+  ///
+  /// [response] The [Response] object received from the request.
+  /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
+
   static void handleOnResponse(
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
@@ -168,6 +238,13 @@ class CurlUtils {
         printer: curlOptions.printOnResponse,
       );
 
+  /// Handles the cURL logging for an error response.
+  ///
+  /// This method is typically called within Dio's `onError` interceptor.
+  /// It logs the cURL command associated with the error and caches it.
+  ///
+  /// [err] The [DioException] object representing the error.
+  /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),

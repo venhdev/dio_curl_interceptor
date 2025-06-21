@@ -145,6 +145,18 @@ void main() {
       expect(options.isMatch('http://any.url.com', 404), isTrue);
     });
 
+    test('isMatch returns true for any URI when includeUrls is empty', () {
+      final options = DiscordInspector(
+        webhookUrls: ['url'],
+        includeUrls: [],
+        excludeUrls: ['/admin'], // Exclude specific URLs
+        inspectionStatus: [ResponseStatus.success],
+      );
+      expect(options.isMatch('http://api.com/data', 200), isTrue);
+      expect(options.isMatch('http://api.com/users', 200), isTrue);
+      expect(options.isMatch('http://api.com/admin', 200), isFalse);
+    });
+
     test('isMatch handles multiple URI filters', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],
@@ -154,6 +166,45 @@ void main() {
       expect(options.isMatch('http://api.com/users/1', 200), isTrue);
       expect(options.isMatch('http://api.com/products/5', 200), isTrue);
       expect(options.isMatch('http://api.com/orders/10', 200), isFalse);
+    });
+
+    test('isMatch returns false for matching URI in excludeUrls', () {
+      final options = DiscordInspector(
+        webhookUrls: ['url'],
+        excludeUrls: ['api.example.com'],
+        inspectionStatus: [ResponseStatus.success],
+      );
+      expect(options.isMatch('http://api.example.com/data', 200), isFalse);
+    });
+
+    test('isMatch handles both includeUrls and excludeUrls', () {
+      final options = DiscordInspector(
+        webhookUrls: ['url'],
+        includeUrls: ['/users'],
+        excludeUrls: ['/users/admin'],
+        inspectionStatus: [ResponseStatus.success],
+      );
+      expect(options.isMatch('http://api.com/users/123', 200), isTrue);
+      expect(options.isMatch('http://api.com/users/admin/123', 200), isFalse);
+      expect(options.isMatch('http://api.com/products/123', 200), isFalse);
+    });
+
+    test('isMatch handles very long URIs', () {
+      final longUri = 'http://example.com/' + 'a' * 2000 + '/data';
+      final options = DiscordInspector(
+        webhookUrls: ['url'],
+        includeUrls: ['/data'],
+        inspectionStatus: [ResponseStatus.success],
+      );
+      expect(options.isMatch(longUri, 200), isTrue);
+    });
+
+    test('isMatch handles unusual response statuses', () {
+      final options = DiscordInspector(
+        webhookUrls: ['url'],
+        inspectionStatus: [ResponseStatus.unknown],
+      );
+      expect(options.isMatch('http://api.com/data', 999), isFalse); // Unknown status should not match
     });
 
     test('isMatch handles multiple inspection statuses', () {
