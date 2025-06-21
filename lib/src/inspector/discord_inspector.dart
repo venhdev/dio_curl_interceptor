@@ -18,7 +18,8 @@ const _defaultInspectionStatus = <ResponseStatus>[
 class DiscordInspector {
   const DiscordInspector({
     this.webhookUrls = const <String>[],
-    this.uriFilters = const [],
+    this.includeUrls = const [],
+    this.excludeUrls = const [],
     this.inspectionStatus = _defaultInspectionStatus,
   });
 
@@ -26,8 +27,12 @@ class DiscordInspector {
     webhookUrls.add(webhookUrl);
   }
 
-  void addUriFilter(String uriFilter) {
-    uriFilters.add(uriFilter);
+  void addIncludeUrl(String url) {
+    includeUrls.add(url);
+  }
+
+  void addExcludeUrl(String url) {
+    excludeUrls.add(url);
   }
 
   void addInspectionStatus(ResponseStatus status) {
@@ -41,22 +46,13 @@ class DiscordInspector {
   /// If empty, webhook functionality will be disabled.
   final List<String> webhookUrls;
 
-  /// List of URI patterns to filter which requests should be sent to the webhook.
-  /// If empty, all requests will be sent to the webhook with inspection statuses [inspectionStatus]
-  /// If not empty, only requests matching any of the patterns will be sent.
-  ///
-  /// Example:
-  /// ```dart
-  /// DiscordInspector(
-  ///   webhookUrl: 'https://discord.com/api/webhooks/...',
-  ///   uriFilters: [
-  ///     'api.example.com',
-  ///     '/users/',
-  ///   ],
-  /// )
-  /// ```
-  /// This will only send requests to the webhook if the URI contains 'api.example.com' or '/users/'.
-  final List<String> uriFilters;
+  /// List of URI patterns to include for webhook requests.
+  /// If not empty, only requests matching any of these patterns will be sent.
+  final List<String> includeUrls;
+
+  /// List of URI patterns to exclude for webhook requests.
+  /// If not empty, requests matching any of these patterns will NOT be sent.
+  final List<String> excludeUrls;
 
   bool isMatch(String uri, int statusCode) {
     final statusMatch = inspectionStatus.isEmpty ||
@@ -77,11 +73,14 @@ class DiscordInspector {
           }
         });
 
-    final uriMatch =
-        uriFilters.isEmpty || uriFilters.any((filter) => uri.contains(filter));
+    final includeMatch = includeUrls.isEmpty ||
+        includeUrls.any((filter) => uri.contains(filter));
+
+    final excludeMatch = excludeUrls.isEmpty ||
+        !excludeUrls.any((filter) => uri.contains(filter));
 
     // If both are provided, both must match.
-    return uriMatch && statusMatch;
+    return includeMatch && excludeMatch && statusMatch;
   }
 }
 

@@ -67,7 +67,8 @@ void main() async {
     // List of Discord webhook URLs
     ['https://discord.com/api/webhooks/your-webhook-url'],
     // Optional: Filter which URIs should trigger webhook notifications
-    uriFilters: ['api.example.com', '/users/'],
+    includeUrls: ['api.example.com', '/users/'],
+    excludeUrls: ['/healthz'],
     // Optional: Configure curl options
     curlOptions: CurlOptions(
       status: true,

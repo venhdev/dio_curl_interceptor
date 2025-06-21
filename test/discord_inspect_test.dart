@@ -109,7 +109,7 @@ void main() {
     test('isMatch returns true for matching URI and status', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],
-        uriFilters: ['api.example.com'],
+        includeUrls: ['api.example.com'],
         inspectionStatus: [ResponseStatus.success],
       );
       expect(options.isMatch('http://api.example.com/data', 200), isTrue);
@@ -118,7 +118,7 @@ void main() {
     test('isMatch returns false for non-matching URI', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],
-        uriFilters: ['api.example.com'],
+        includeUrls: ['api.example.com'],
         inspectionStatus: [ResponseStatus.success],
       );
       expect(options.isMatch('http://another.api.com/data', 200), isFalse);
@@ -127,7 +127,7 @@ void main() {
     test('isMatch returns false for non-matching status', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],
-        uriFilters: ['api.example.com'],
+        includeUrls: ['api.example.com'],
         inspectionStatus: [ResponseStatus.clientError],
       );
       expect(options.isMatch('http://api.example.com/data', 200), isFalse);
@@ -136,7 +136,8 @@ void main() {
     test('isMatch returns true when no filters are set', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],
-        uriFilters: [],
+        includeUrls: [],
+        excludeUrls: [],
         inspectionStatus: [], // No specific status filters
       );
       // If inspectionStatus is empty, it should match any status
@@ -147,7 +148,7 @@ void main() {
     test('isMatch handles multiple URI filters', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],
-        uriFilters: ['/users/', '/products/'],
+        includeUrls: ['/users/', '/products/'],
         inspectionStatus: [ResponseStatus.success],
       );
       expect(options.isMatch('http://api.com/users/1', 200), isTrue);
@@ -158,7 +159,7 @@ void main() {
     test('isMatch handles multiple inspection statuses', () {
       final options = DiscordInspector(
         webhookUrls: ['url'],
-        uriFilters: ['/data'],
+        includeUrls: ['/data'],
         inspectionStatus: [
           ResponseStatus.clientError,
           ResponseStatus.serverError

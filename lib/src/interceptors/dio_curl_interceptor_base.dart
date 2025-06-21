@@ -25,7 +25,8 @@ class CurlInterceptor extends Interceptor {
   /// Factory constructor to create a CurlInterceptor with webhook enabled
   factory CurlInterceptor.discord(
     List<String> webhookUrls, {
-    List<String> uriFilters = const [],
+    List<String> includeUrls = const [],
+    List<String> excludeUrls = const [],
     List<ResponseStatus> inspectionStatus = const <ResponseStatus>[
       ResponseStatus.clientError,
       ResponseStatus.serverError,
@@ -38,7 +39,8 @@ class CurlInterceptor extends Interceptor {
         cacheOptions: cacheOptions,
         discordInspector: DiscordInspector(
           webhookUrls: webhookUrls,
-          uriFilters: uriFilters,
+          includeUrls: includeUrls,
+          excludeUrls: excludeUrls,
           inspectionStatus: inspectionStatus,
         ),
       );

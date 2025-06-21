@@ -1,4 +1,7 @@
 import 'package:colored_logger/colored_logger.dart';
+import 'dart:convert';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -64,7 +67,23 @@ class CachedCurlStorage {
     final dir = await getApplicationDocumentsDirectory();
     Hive.init(dir.path);
     Hive.registerAdapter(CachedCurlEntryAdapter());
-    await Hive.openBox<CachedCurlEntry>(_boxName);
+
+    const secureStorage = FlutterSecureStorage();
+    final encryptionKey = await secureStorage.read(key: 'hive_encryption_key');
+    if (encryptionKey == null) {
+      final key = Hive.generateSecureKey();
+      await secureStorage.write(
+        key: 'hive_encryption_key',
+        value: base64UrlEncode(key),
+      );
+    }
+    final key = await secureStorage.read(key: 'hive_encryption_key');
+    final encryptionKeyUint8List = base64Url.decode(key!);
+
+    await Hive.openBox<CachedCurlEntry>(
+      _boxName,
+      encryptionCipher: HiveAesCipher(encryptionKeyUint8List),
+    );
   }
 
   static Future<void> save(CachedCurlEntry entry) async {

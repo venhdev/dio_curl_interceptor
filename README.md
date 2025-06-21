@@ -14,22 +14,17 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 
 > This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
 
-![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png)
-<br>
-<sub>Simultaneous (log the curl and response (error) together)</sub>
-
-![Screenshot](https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png)
-<br>
-<sub>Chronological (print the curl immediately after the request is made)</sub>
+For detailed screenshots of the interceptor's behavior, including simultaneous and chronological logging, please refer to the [Screenshots](#screenshots) section at the bottom of this README.
 
 ## Terminal Compatibility
 
 Below is a compatibility table for different terminals and their support for printing and ANSI colors:
+
 > `--` currently being tested
 
 | Terminal/Console         | print/debugPrint | log (dart:developer) | ANSI Colors Support |
 | ------------------------ | :--------------: | :------------------: | :-----------------: |
-| VS Code Debug Console    |        ✅         |          ✅           |          ✅          |
+| VS Code Debug Console    |        ✅        |          ✅          |         ✅          |
 | Android Studio Logcat    |        --        |          --          |         --          |
 | Android Studio Debug Tab |        --        |          --          |         --          |
 | IntelliJ IDEA Console    |        --        |          --          |         --          |
@@ -141,7 +136,8 @@ dio.interceptors.add(CurlInterceptor.discord(
   // List of Discord webhook URLs
   ['https://discord.com/api/webhooks/your-webhook-url'],
   // Optional: Filter which URIs should trigger webhook notifications
-  uriFilters: ['api.example.com', '/users/'],
+  includeUrls: ['api.example.com', '/users/'],
+  excludeUrls: ['/healthz'],
   // Optional: Configure which response status types should be sent
   inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
   // Optional: Configure curl options
@@ -202,7 +198,7 @@ try {
   await dio.get('https://invalid-url.com');
 } on DioException catch (e) {
   CurlUtils.handleOnError(e);
-  
+
   // Cache an error response
   CurlUtils.cacheError(e);
 }
@@ -249,6 +245,23 @@ void main() async {
   runApp(const MyApp());
 }
 ```
+
+## Screenshots
+
+### Simultaneous (log the curl and response (error) together)
+<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png" width="300" alt="Simultaneous Screenshot">
+
+### Chronological (log the curl immediately after the request is made)
+<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png" width="300" alt="Chronological Screenshot">
+
+### Cached Viewer
+<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-cached-viewer.jpg" width="300" alt="Cached Viewer Screenshot">
+
+### Inspect Bug Discord
+<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-inspect-bug-discord.png" width="300" alt="Inspect Bug Discord Screenshot">
+
+### Inspect cURL Discord
+<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-inspect-curl-discord.png" width="300" alt="Inspect cURL Discord Screenshot">
 
 ## License
 
