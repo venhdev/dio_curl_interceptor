@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-typedef Printer = void Function(String text);
+import 'types.dart';
 
 const Printer kPrinter = log;
 const String kPrefix = '[Curl]';

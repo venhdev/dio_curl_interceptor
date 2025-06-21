@@ -1,3 +1,5 @@
+typedef Printer = void Function(String text);
+
 enum CurlBehavior {
   /// Prints the curl immediately after the request is made. Suitable for viewing the curl in a chronological order.
   ///
