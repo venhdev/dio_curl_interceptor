@@ -62,6 +62,7 @@ class CachedCurlStorage {
   static Future<void> init() async {
     if (Hive.isBoxOpen(_boxName)) {
       // Already initialized
+      ColoredLogger.warning('CachedCurlStorage is already initialized.');
       return;
     }
     final dir = await getApplicationDocumentsDirectory();
@@ -83,7 +84,9 @@ class CachedCurlStorage {
     await Hive.openBox<CachedCurlEntry>(
       _boxName,
       encryptionCipher: HiveAesCipher(encryptionKeyUint8List),
-    );
+    ).then((value) {
+      ColoredLogger.success('CachedCurlStorage initialized.');
+    });
   }
 
   static Future<void> save(CachedCurlEntry entry) async {

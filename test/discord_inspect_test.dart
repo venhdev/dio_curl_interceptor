@@ -165,7 +165,7 @@ void main() {
     });
 
     test('isMatch handles very long URIs', () {
-      final longUri = 'http://example.com/' + 'a' * 2000 + '/data';
+      final longUri = 'http://example.com/${'a' * 2000}/data';
       final options = DiscordInspector(
         webhookUrls: ['url'],
         includeUrls: ['/data'],
