@@ -18,7 +18,7 @@ environment:
 dependencies:
   dio: ^5.5.0+1
   colored_logger: ^2.1.0
-  codekit: ^0.0.5
+  codekit: ^0.0.8
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5

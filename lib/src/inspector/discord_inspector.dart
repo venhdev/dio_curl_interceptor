@@ -7,6 +7,8 @@ import '../core/constants.dart';
 import '../core/types.dart';
 import '../data/discord_webhook_model.dart';
 
+const Map<String, String> _replacementsEmbedField = {'```': ''};
+
 const _defaultInspectionStatus = <ResponseStatus>[
   ResponseStatus.clientError,
   ResponseStatus.serverError,
@@ -44,8 +46,8 @@ class DiscordInspector {
   /// If not empty, only requests matching any of the patterns will be sent.
   ///
   /// Example:
-/// ```dart
-/// DiscordInspector(
+  /// ```dart
+  /// DiscordInspector(
   ///   webhookUrl: 'https://discord.com/api/webhooks/...',
   ///   uriFilters: [
   ///     'api.example.com',
@@ -90,12 +92,11 @@ class Inspector {
     Dio? dio,
   }) : _innerDio = dio ?? Dio();
 
-  /// Truncates a string to a specified length, appending '...' if truncated.
-  static String _mayTruncate(String text, int maxLength) {
-    if (text.length <= maxLength) {
-      return text;
+  static String _wrapWithBackticks(String text, [String? language]) {
+    if (language != null && language.isNotEmpty) {
+      return '```$language\n$text\n```';
     }
-    return '${text.substring(0, maxLength - 3)}...';
+    return '```\n$text\n```';
   }
 
   /// The Discord webhook URLs to send cURL logs to.
@@ -152,14 +153,20 @@ class Inspector {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'cURL Command',
-        value: '```bash\n${_mayTruncate(curl, 1000)}\n```',
+        value: _wrapWithBackticks(
+            stringify(curl,
+                maxLen: 1000, replacements: _replacementsEmbedField),
+            'bash'),
       ),
     ];
 
     if (responseBody != null && responseBody.isNotEmpty) {
       fields.add(DiscordEmbedField(
         name: 'Response Body',
-        value: '```json\n${_mayTruncate(responseBody, 1000)}\n```',
+        value: _wrapWithBackticks(
+            stringify(responseBody,
+                maxLen: 1000, replacements: _replacementsEmbedField),
+            'json'),
       ));
     }
 
@@ -224,7 +231,8 @@ class Inspector {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'Error',
-        value: '```\n${_mayTruncate(stringify(error), 1000)}\n```',
+        value: _wrapWithBackticks(stringify(error,
+            maxLen: 1000, replacements: _replacementsEmbedField)),
         inline: false,
       ),
     ];
@@ -232,7 +240,8 @@ class Inspector {
     if (stackTrace != null) {
       fields.add(DiscordEmbedField(
         name: 'Stack Trace',
-        value: '```\n${_mayTruncate(stringify(stackTrace), 1000)}\n```',
+        value: _wrapWithBackticks(stringify(stackTrace,
+            maxLen: 1000, replacements: _replacementsEmbedField)),
         inline: false,
       ));
     }
@@ -240,7 +249,12 @@ class Inspector {
     if (extraInfo != null) {
       fields.add(DiscordEmbedField(
         name: 'Extra Info',
-        value: '```json\n${_mayTruncate(jsonEncode(extraInfo), 1000)}\n```',
+        value: _wrapWithBackticks(
+            stringify(extraInfo,
+                maxLen: 1000,
+                replacements: _replacementsEmbedField,
+                jsonIndent: '  '),
+            'json'),
         inline: false,
       ));
     }
