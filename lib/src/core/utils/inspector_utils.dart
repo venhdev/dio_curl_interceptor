@@ -11,14 +11,16 @@ class InspectorUtils {
   // in future we will add more inspection methods, such as logcat, etc.
 
   Future<void> inspect({
-    required Response response,
+    required RequestOptions requestOptions,
+    required Response? response,
     DioException? err,
     Stopwatch? stopwatch,
     String? username,
     String? avatarUrl,
   }) async {
     if (discordInspector != null) {
-      discordInspector!.inspect(
+      discordInspector!.inspectOn(
+        options: requestOptions,
         response: response,
         err: err,
         stopwatch: stopwatch,

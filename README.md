@@ -132,7 +132,7 @@ You can use the Discord webhook integration to send cURL logs to Discord channel
 
 ```dart
 // Using the factory constructor with webhook support
-dio.interceptors.add(CurlInterceptor.discord(
+dio.interceptors.add(CurlInterceptor.withDiscordInspector(
   // List of Discord webhook URLs
   ['https://discord.com/api/webhooks/your-webhook-url'],
   // Optional: Filter which URIs should trigger webhook notifications
@@ -165,6 +165,7 @@ await inspector.sendCurlLog(
   responseTime: '150ms',
 );
 
+```dart
 // Send a bug report
 await Inspector.sendBugReport(
   hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
@@ -173,6 +174,36 @@ await Inspector.sendBugReport(
   message: 'An example bug report.',
   userInfo: {'userId': 'testUser', 'appVersion': '1.0.0'},
 );
+```
+
+### Option 4: Using InspectorUtils for centralized inspection
+
+`InspectorUtils` provides a centralized way to manage and trigger various inspection methods, such as Discord webhooks. This is useful when you want to abstract the inspection logic and potentially add more inspection methods in the future (e.g., logcat, Sentry, etc.).
+
+First, initialize `InspectorUtils` with your desired inspectors:
+
+```dart
+final inspectorUtils = InspectorUtils(
+  discordInspector: DiscordInspector(
+    hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+  ),
+);
+```
+
+Then, you can use the `inspect` method to trigger inspections based on a Dio `Response` or `DioException`:
+
+```dart
+// Example with a successful response
+final dio = Dio();
+final response = await dio.get('https://example.com/api/data');
+await inspectorUtils.inspect(response: response);
+
+// Example with an error <>?
+try {
+  await dio.get('https://example.com/api/nonexistent');
+} on DioException catch (e) {
+  await inspectorUtils.inspect(response: e.response!, err: e);
+}
 ```
 
 ### Option 4: Using utility functions directly
@@ -249,18 +280,23 @@ void main() async {
 ## Screenshots
 
 ### Simultaneous (log the curl and response (error) together)
+
 <img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png" width="300" alt="Simultaneous Screenshot">
 
 ### Chronological (log the curl immediately after the request is made)
+
 <img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png" width="300" alt="Chronological Screenshot">
 
 ### Cached Viewer
+
 <img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-cached-viewer.jpg" width="300" alt="Cached Viewer Screenshot">
 
 ### Inspect Bug Discord
+
 <img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-inspect-bug-discord.png" width="300" alt="Inspect Bug Discord Screenshot">
 
 ### Inspect cURL Discord
+
 <img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-inspect-curl-discord.png" width="300" alt="Inspect cURL Discord Screenshot">
 
 ## License

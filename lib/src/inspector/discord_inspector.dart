@@ -3,11 +3,11 @@ import 'dart:developer';
 
 import 'package:codekit/codekit.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_curl_interceptor/src/core/utils/curl_utils.dart';
 
 import '../core/constants.dart';
 import '../core/helpers.dart';
 import '../core/types.dart';
+import '../core/utils/curl_utils.dart';
 import '../data/discord_webhook_model.dart';
 
 /// Options for configuring Discord webhook integration for cURL logging.
@@ -71,24 +71,49 @@ class DiscordInspector {
   /// If not empty, requests matching any of these patterns will NOT be sent.
   final List<String> excludeUrls;
 
-  void inspect({
-    required Response response,
+  void inspectOnResponse({
+    required Response<dynamic> response,
+    Stopwatch? stopwatch,
+    String? username,
+    String? avatarUrl,
+  }) =>
+      inspectOn(
+        options: response.requestOptions,
+        response: response,
+        stopwatch: stopwatch,
+        username: username,
+        avatarUrl: avatarUrl,
+      );
+
+  void inspectOnError({
+    required DioException err,
+    Stopwatch? stopwatch,
+    String? username,
+    String? avatarUrl,
+  }) =>
+      inspectOn(
+        options: err.requestOptions,
+        response: err.response,
+        err: err,
+        stopwatch: stopwatch,
+        username: username,
+        avatarUrl: avatarUrl,
+      );
+
+  void inspectOn({
+    required RequestOptions options,
+    required Response<dynamic>? response,
     DioException? err,
     Stopwatch? stopwatch,
     String? username,
     String? avatarUrl,
   }) {
-    final isError = err != null;
-    final uri = response.requestOptions.uri.toString();
-    final statusCode =
-        isError ? (err.response?.statusCode ?? 0) : (response.statusCode ?? 0);
+    final uri = options.uri.toString();
+    final statusCode = response?.statusCode ?? -1;
 
     if (isMatch(uri, statusCode)) {
-      // extract data and send to discord hook
-
-      final options = isError ? err.requestOptions : response.requestOptions;
       final String? curl = genCurl(options);
-      final String? responseBody = response.data;
+      final dynamic responseBody = response?.data;
       int? duration = Helpers.tryExtractDuration(
         stopwatch: stopwatch,
         xClientTimeHeader: options.headers[kXClientTime],
@@ -103,21 +128,12 @@ class DiscordInspector {
         avatarUrl: avatarUrl,
         responseTime: '$duration ms',
         responseBody: responseBody,
+        extraInfo: err != null
+            ? {'type': err.type.name, 'message': err.message}
+            : null,
       );
     }
   }
-  // void _notify({
-  //   required String curl,
-  //   required String method,
-  //   required String uri,
-  //   required int statusCode,
-  //   String? responseBody,
-  //   String? responseTime,
-  //   String? username,
-  //   String? avatarUrl,
-  // }) {
-  //   S.sendBugReport(error: error)
-  // }
 
   /// Determines if a given URI and status code match the inspection criteria.
   ///
@@ -235,10 +251,11 @@ class DiscordWebhookSender {
     required String method,
     required String uri,
     required int statusCode,
-    String? responseBody,
+    dynamic responseBody,
     String? responseTime,
     String? username,
     String? avatarUrl,
+    Map<String, dynamic>? extraInfo,
   }) async {
     final embed = DiscordEmbed.createCurlEmbed(
       curl: curl ?? kNA,
@@ -247,6 +264,7 @@ class DiscordWebhookSender {
       statusCode: statusCode,
       responseBody: responseBody,
       responseTime: responseTime,
+      extraInfo: extraInfo,
     );
 
     final message = DiscordWebhookMessage(
@@ -278,8 +296,7 @@ class DiscordWebhookSender {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'Error',
-        value: Helpers.wrapWithBackticks(stringify(error,
-            maxLen: 1000, replacements: replacementsEmbedField)),
+        value: formatEmbedValue(error),
         inline: false,
       ),
     ];
@@ -287,8 +304,7 @@ class DiscordWebhookSender {
     if (stackTrace != null) {
       fields.add(DiscordEmbedField(
         name: 'Stack Trace',
-        value: Helpers.wrapWithBackticks(stringify(stackTrace,
-            maxLen: 1000, replacements: replacementsEmbedField)),
+        value: formatEmbedValue(stackTrace),
         inline: false,
       ));
     }
@@ -296,12 +312,7 @@ class DiscordWebhookSender {
     if (extraInfo != null) {
       fields.add(DiscordEmbedField(
         name: 'Extra Info',
-        value: Helpers.wrapWithBackticks(
-            stringify(extraInfo,
-                maxLen: 1000,
-                replacements: replacementsEmbedField,
-                jsonIndent: '  '),
-            'json'),
+        value: formatEmbedValue(extraInfo, 'json'),
         inline: false,
       ));
     }
@@ -322,4 +333,19 @@ class DiscordWebhookSender {
 
     return send(discordMessage);
   }
+}
+
+String formatEmbedValue(dynamic rawValue, [String? language]) =>
+    _wrapWithBackticks(
+      stringify(rawValue, maxLen: 1000, replacements: _replacementsEmbedField),
+      language,
+    );
+
+const Map<String, String> _replacementsEmbedField = {'```': ''};
+
+String _wrapWithBackticks(String text, [String? language]) {
+  if (language != null && language.isNotEmpty) {
+    return '```$language\n$text\n```';
+  }
+  return '```\n$text\n```';
 }

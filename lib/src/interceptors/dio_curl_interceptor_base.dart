@@ -47,7 +47,7 @@ class CurlInterceptor extends Interceptor {
   /// [inspectionStatus] (optional) defines which response statuses trigger webhook notifications.
   /// [curlOptions] (optional) customizes how cURL commands are generated.
   /// [cacheOptions] (optional) configures caching behavior.
-  factory CurlInterceptor.discord(
+  factory CurlInterceptor.withDiscordInspector(
     List<String> webhookUrls, {
     List<String> includeUrls = const [],
     List<String> excludeUrls = const [],

@@ -3,6 +3,10 @@
 - Enhanced caching security by encrypting the Hive box with `flutter_secure_storage`.
 - Updated `CurlInterceptor.discord` factory and `DiscordInspector` tests to use `includeUrls` and `excludeUrls` for URI filtering.
 
+## 3.2.1
+
+- Introduced `InspectorUtils` for centralized inspection methods, currently supporting Discord webhook integration.
+
 ## 3.1.0
 
 - Introduced Discord webhook integration for remote logging and team collaboration.

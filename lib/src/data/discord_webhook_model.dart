@@ -1,7 +1,5 @@
-import 'package:codekit/codekit.dart';
-
 import '../core/constants.dart';
-import '../core/helpers.dart';
+import '../inspector/discord_inspector.dart';
 
 /// A class to represent a Discord webhook message.
 /// This class follows the Discord Webhook API structure.
@@ -93,8 +91,9 @@ class DiscordEmbed {
     required String method,
     required String uri,
     required int statusCode,
-    String? responseBody,
+    dynamic responseBody,
     String? responseTime,
+    Map<String, dynamic>? extraInfo,
   }) {
     // Determine color based on status code
     int color;
@@ -111,19 +110,24 @@ class DiscordEmbed {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
         name: 'cURL Command',
-        value: Helpers.wrapWithBackticks(
-            stringify(curl, maxLen: 1000, replacements: replacementsEmbedField),
-            'bash'),
+        value: formatEmbedValue(curl),
       ),
     ];
 
-    if (responseBody != null && responseBody.isNotEmpty) {
+    if (responseBody != null) {
+      fields.add(
+        DiscordEmbedField(
+          name: 'Response Body',
+          value: formatEmbedValue(responseBody, 'json'),
+        ),
+      );
+    }
+
+    if (extraInfo != null) {
       fields.add(DiscordEmbedField(
-        name: 'Response Body',
-        value: Helpers.wrapWithBackticks(
-            stringify(responseBody,
-                maxLen: 1000, replacements: replacementsEmbedField),
-            'json'),
+        name: 'Extra Info',
+        value: formatEmbedValue(extraInfo, 'json'),
+        inline: false,
       ));
     }
 

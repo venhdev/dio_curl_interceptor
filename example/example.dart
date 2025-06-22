@@ -63,7 +63,7 @@ void main() async {
   }
 
   // Example 5: Using Discord webhook integration
-  dio.interceptors.add(CurlInterceptor.discord(
+  dio.interceptors.add(CurlInterceptor.withDiscordInspector(
     // List of Discord webhook URLs
     ['https://discord.com/api/webhooks/your-webhook-url'],
     // Optional: Filter which URIs should trigger webhook notifications

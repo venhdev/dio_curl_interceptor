@@ -26,20 +26,20 @@ class Helpers {
     return null;
   }
 
-  /// Wraps the given [text] with Markdown backticks, optionally specifying a [language] for syntax highlighting.
-  ///
-  /// This is a private helper method used to format code snippets or other text
-  /// for display in Discord embeds.
-  ///
-  /// [text] The text content to be wrapped.
-  /// [language] An optional language identifier for Markdown syntax highlighting.
-  /// Returns the wrapped string.
-  static String wrapWithBackticks(String text, [String? language]) {
-    if (language != null && language.isNotEmpty) {
-      return '```$language\n$text\n```';
-    }
-    return '```\n$text\n```';
-  }
+  // /// Wraps the given [text] with Markdown backticks, optionally specifying a [language] for syntax highlighting. <>del
+  // ///
+  // /// This is a private helper method used to format code snippets or other text
+  // /// for display in Discord embeds.
+  // ///
+  // /// [text] The text content to be wrapped.
+  // /// [language] An optional language identifier for Markdown syntax highlighting.
+  // /// Returns the wrapped string.
+  // static String wrapWithBackticks(String text, [String? language]) {
+  //   if (language != null && language.isNotEmpty) {
+  //     return '```$language\n$text\n```';
+  //   }
+  //   return '```\n$text\n```';
+  // }
 
   static String generateCurlFromRequestOptions(
     RequestOptions originRequestOptions, {
