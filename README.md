@@ -12,8 +12,6 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🔔 Discord webhook integration for remote logging and team collaboration (including bug and exception reporting).
 - 📝 Utility methods for custom interceptors and direct use.
 
-> This package is actively maintained with ❤️ and updated regularly with improvements, bug fixes, and new features
-
 For detailed screenshots of the interceptor's behavior, including simultaneous and chronological logging, please refer to the [Screenshots](#screenshots) section at the bottom of this README.
 
 ## Terminal Compatibility
@@ -92,6 +90,12 @@ dio.interceptors.add(CurlInterceptor(
       print('Custom log: $text'); // remember to print the text
     },
   ),
+  discordInspector: DiscordInspector(
+    webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+    inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    includeUrls: const ['/api/v1/users', 'https://example.com/data'],
+    excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
+  ),
 ))
 ```
 
@@ -101,6 +105,15 @@ If you prefer to use the utility methods in your own custom interceptor, you can
 
 ```dart
 class YourInterceptor extends Interceptor {
+  // Initialize InspectorUtils with your DiscordInspector
+  final inspectorUtils = InspectorUtils(
+    discordInspector: DiscordInspector(
+      webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+      // Configure inspection status and URL filters as needed
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    ),
+  );
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // ... your request handling logic (like adding headers, modifying options, etc.)
@@ -111,20 +124,74 @@ class YourInterceptor extends Interceptor {
     CurlUtils.handleOnRequest(options);
     handler.next(options);
   }
+
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     // ... your response handling logic
     CurlUtils.handleOnResponse(response);
+    // Use InspectorUtils to inspect successful responses
+    inspectorUtils.inspect(requestOptions: response.requestOptions, response: response);
     handler.next(response);
   }
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     // ... your error handling logic
     CurlUtils.handleOnError(err);
+    // Use InspectorUtils to inspect error responses
+    inspectorUtils.inspect(requestOptions: err.requestOptions, response: err.response, err: err);
     handler.next(err);
   }
 }
 ```
+
+#### Integrating InspectorUtils in Custom Interceptors
+
+If you're building your own custom Dio interceptor, you can integrate `InspectorUtils` to centralize your inspection logic, including Discord webhook notifications. This allows for a cleaner separation of concerns and easier management of various inspection methods.
+
+Here's how you can modify your custom interceptor to use `InspectorUtils`:
+
+```dart
+// Example of a custom interceptor using InspectorUtils
+class YourInterceptor extends Interceptor {
+  // Initialize InspectorUtils with your DiscordInspector
+  final inspectorUtils = InspectorUtils(
+    discordInspector: DiscordInspector(
+      webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+      // Configure inspection status and URL filters as needed
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    ),
+  );
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    // ... existing request handling logic
+    CurlUtils.addXClientTime(options);
+    CurlUtils.handleOnRequest(options);
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // ... existing response handling logic
+    CurlUtils.handleOnResponse(response);
+    // Use InspectorUtils to inspect successful responses
+    inspectorUtils.inspect(requestOptions: response.requestOptions, response: response);
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    // ... existing error handling logic
+    CurlUtils.handleOnError(err);
+    // Use InspectorUtils to inspect error responses
+    inspectorUtils.inspect(requestOptions: err.requestOptions, response: err.response, err: err);
+    handler.next(err);
+  }
+}
+```
+
+By integrating `InspectorUtils`, your custom interceptor can leverage the centralized inspection capabilities, making your code more modular and maintainable.
 
 ### Option 3: Using Discord webhook integration
 
@@ -166,13 +233,15 @@ await inspector.sendCurlLog(
 );
 
 ```dart
-// Send a bug report
-await Inspector.sendBugReport(
+// Send a bug report using DiscordWebhookSender
+final inspector = DiscordWebhookSender(
   hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+);
+await inspector.sendBugReport(
   error: 'Example Error',
   stackTrace: StackTrace.current,
   message: 'An example bug report.',
-  userInfo: {'userId': 'testUser', 'appVersion': '1.0.0'},
+  extraInfo: {'userId': 'testUser', 'appVersion': '1.0.0'},
 );
 ```
 
@@ -180,29 +249,26 @@ await Inspector.sendBugReport(
 
 `InspectorUtils` provides a centralized way to manage and trigger various inspection methods, such as Discord webhooks. This is useful when you want to abstract the inspection logic and potentially add more inspection methods in the future (e.g., logcat, Sentry, etc.).
 
-First, initialize `InspectorUtils` with your desired inspectors:
+To use `InspectorUtils`, first initialize it with your `DiscordInspector` instance:
 
 ```dart
 final inspectorUtils = InspectorUtils(
   discordInspector: DiscordInspector(
-    hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+    webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
   ),
 );
-```
 
-Then, you can use the `inspect` method to trigger inspections based on a Dio `Response` or `DioException`:
+// Then, you can use it to inspect responses or errors:
 
-```dart
-// Example with a successful response
-final dio = Dio();
+// Inspect a successful response
 final response = await dio.get('https://example.com/api/data');
-await inspectorUtils.inspect(response: response);
+await inspectorUtils.inspect(requestOptions: response.requestOptions, response: response);
 
-// Example with an error <>?
+// Inspect an error response
 try {
   await dio.get('https://example.com/api/nonexistent');
 } on DioException catch (e) {
-  await inspectorUtils.inspect(response: e.response!, err: e);
+  await inspectorUtils.inspect(requestOptions: e.requestOptions, response: e.response, err: e);
 }
 ```
 
@@ -233,17 +299,6 @@ try {
   // Cache an error response
   CurlUtils.cacheError(e);
 }
-```
-
-### Option 5: Retrieve the curl
-
-If you want to retrieve the curl command from a response, you can use the `genCurl` public function:
-
-```dart
-final curl = genCurl(requestOptions);
-
-// now you can log, share, etc...
-```
 
 ## Dio Cache Storage
 
@@ -306,5 +361,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Repository**: [GitHub](https://github.com/venhdev/dio_curl_interceptor)
 - **Bug Reports**: Please file issues on the [GitHub repository](https://github.com/venhdev/dio_curl_interceptor/issues)
 - **Feature Requests**: Feel free to suggest new features through GitHub issues
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/venhdev)
 
 Contributions are welcome! Please feel free to submit a Pull Request.
