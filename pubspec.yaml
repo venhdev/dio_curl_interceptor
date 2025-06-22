@@ -7,9 +7,9 @@ repository: https://github.com/venhdev/dio_curl_interceptor
 topics:
   - curl
   - dio
-  - http
   - logging
   - console
+  - monitor
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
