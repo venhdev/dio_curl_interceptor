@@ -322,7 +322,7 @@ class DiscordWebhookSender {
       description: message ?? 'An unhandled exception occurred.',
       color: 15548997, // Red color for errors
       fields: fields,
-      timestamp: DateTime.now().toIso8601String(),
+      timestamp: DateTime.now().toUtc().toIso8601String(),
     );
 
     final discordMessage = DiscordWebhookMessage(

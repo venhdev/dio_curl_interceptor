@@ -1,4 +1,4 @@
-## 3.2.4
+## 3.2.5
 
 - Added examples for `includeUrls` and `excludeUrls` in `DiscordInspector` configuration.
 - Bug fixes

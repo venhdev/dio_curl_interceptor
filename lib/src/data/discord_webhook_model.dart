@@ -155,7 +155,7 @@ class DiscordEmbed {
       footer: DiscordEmbedFooter(
         text: 'Response Time: ${responseTime ?? kNA}',
       ),
-      timestamp: DateTime.now().toIso8601String(),
+      timestamp: DateTime.now().toUtc().toIso8601String(),
     );
   }
 
