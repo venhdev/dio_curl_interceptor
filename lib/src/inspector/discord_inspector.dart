@@ -312,7 +312,7 @@ class DiscordWebhookSender {
     if (extraInfo != null) {
       fields.add(DiscordEmbedField(
         name: 'Extra Info',
-        value: formatEmbedValue(extraInfo, 'json'),
+        value: formatEmbedValue(extraInfo, lang: 'json'),
         inline: false,
       ));
     }
@@ -335,10 +335,10 @@ class DiscordWebhookSender {
   }
 }
 
-String formatEmbedValue(dynamic rawValue, [String? language]) =>
+String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) =>
     _wrapWithBackticks(
-      stringify(rawValue, maxLen: 1000, replacements: _replacementsEmbedField),
-      language,
+      stringify(rawValue, maxLen: len, replacements: _replacementsEmbedField),
+      lang,
     );
 
 const Map<String, String> _replacementsEmbedField = {'```': ''};

@@ -1,3 +1,8 @@
+## 3.2.4
+
+- Added examples for `includeUrls` and `excludeUrls` in `DiscordInspector` configuration.
+- Bug fixes
+
 ## 3.2.3
 
 - Updated `README.md` to include `discordInspector` parameter in `CurlInterceptor` example.

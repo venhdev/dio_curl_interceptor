@@ -106,19 +106,35 @@ class DiscordEmbed {
     } else {
       color = 5814783; // Blue for other status codes
     }
+    final List<DiscordEmbedField> fields = [];
 
-    final List<DiscordEmbedField> fields = [
-      DiscordEmbedField(
-        name: 'cURL Command',
-        value: formatEmbedValue(curl),
-      ),
-    ];
+    // Split curl command into chunks of 1000 characters
+    final int chunkSize = 1000;
+    final List<String> curlChunks = [];
+    for (var i = 0; i < curl.length; i += chunkSize) {
+      curlChunks.add(
+        curl.substring(
+            i, i + chunkSize < curl.length ? i + chunkSize : curl.length),
+      );
+    }
+
+    // Create fields for each chunk
+    for (var i = 0; i < curlChunks.length; i++) {
+      fields.add(
+        DiscordEmbedField(
+          name: curlChunks.length > 1
+              ? 'cURL Command (Part ${i + 1}/${curlChunks.length})'
+              : 'cURL Command',
+          value: formatEmbedValue(curlChunks[i]),
+        ),
+      );
+    }
 
     if (responseBody != null) {
       fields.add(
         DiscordEmbedField(
           name: 'Response Body',
-          value: formatEmbedValue(responseBody, 'json'),
+          value: formatEmbedValue(responseBody, lang: 'json'),
         ),
       );
     }
@@ -126,7 +142,7 @@ class DiscordEmbed {
     if (extraInfo != null) {
       fields.add(DiscordEmbedField(
         name: 'Extra Info',
-        value: formatEmbedValue(extraInfo, 'json'),
+        value: formatEmbedValue(extraInfo, lang: 'json'),
         inline: false,
       ));
     }

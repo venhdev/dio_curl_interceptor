@@ -36,6 +36,19 @@ void main() {
       print('Successful cURL log embed sent.');
     });
 
+    test('Send a LONG cURL log embed for a successful request', () async {
+      await sender.sendCurlLog(
+        curl:
+            r'curl -i -X POST -H "Accept: application/json" -H "content-type: application/json" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVIeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVIeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVIeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVIeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVIeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVIeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVIeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS1wY2NjLm5ld3dlYi52bi9jbGllbnQvYXV0aC9sb2dpbiIsImlhdCI6MTc1MDYwMTIzOCwiZXhwIjoxNzgyMTM3MjM4LCJuYmYiOjE3NTA2MDEyMzgsImp0aSI6InpYRlN4UU9sdk5KTzNxanUiLCJzdWIiOiI3MTAwIiwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.Cq9z1na3Ovi_mnhHjkkgh5k7RCl_V9Nt27vYqVRQsVI" -H "x-api-key: 88" -H "X-Client-Time: 1750608146840" -d "{\"user_id\":7100,\"user_hub_id\":9807,\"note\":\"\",\"images\":[],\"group_code\":\"\",\"conversation_note\":\"\",\"auto\":1}" "https://api-pccc.newweb.vn/v1/salemans/check/out"',
+        method: 'GET',
+        uri: 'https://api.example.com/data',
+        statusCode: 200,
+        responseBody: '{"status": "success", "data": "some data"}',
+        responseTime: '150ms',
+      );
+      print('Successful cURL log embed sent.');
+    });
+
     test('Send a cURL log embed for a client error', () async {
       await sender.sendCurlLog(
         curl: 'curl -X POST https://api.example.com/invalid',
