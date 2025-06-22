@@ -275,7 +275,7 @@ void _handleOn({
 
   int? duration = Helpers.tryExtractDuration(
     stopwatch: stopwatch,
-    xClientTimeHeader: responseHeaders[kXClientTime],
+    xClientTimeHeader: requestHeaders[kXClientTime],
   );
   final String responseTimeStr = '${duration ?? kNA}ms';
 

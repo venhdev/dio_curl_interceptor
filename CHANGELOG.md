@@ -1,3 +1,9 @@
+## 3.2.3
+
+- Updated `README.md` to include `discordInspector` parameter in `CurlInterceptor` example.
+- Added examples for `includeUrls` and `excludeUrls` in `DiscordInspector` configuration.
+- Enhanced `README.md` with a new section "Integrating InspectorUtils in Custom Interceptors" under "Option 2: Using CurlUtils directly in your own interceptor".
+
 ## 3.2.2
 
 - Introduced `InspectorUtils` for centralized inspection methods, currently supporting Discord webhook integration.
