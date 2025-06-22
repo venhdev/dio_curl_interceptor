@@ -1,7 +1,7 @@
 class CacheOptions {
   const CacheOptions({
     this.cacheResponse = false,
-    this.cacheError = false,
+    this.cacheError = true,
   });
 
   // allEnabled factory constructor
