@@ -1,6 +1,6 @@
-import 'package:codekit/codekit.dart';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
+import 'package:type_caster/type_caster.dart';
 
 import '../../data/curl_response_cache.dart';
 import '../../inspector/discord_inspector.dart';
@@ -332,7 +332,7 @@ void _handleOn({
       indentJson(
         requestHeaders,
         indent: curlOptions.prettyConfig.jsonIndent,
-        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
+        maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
       midTitleTop: '${emj.requestHeaders} Request Headers',
@@ -346,7 +346,7 @@ void _handleOn({
       indentJson(
         requestBody,
         indent: curlOptions.prettyConfig.jsonIndent,
-        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
+        maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
       midTitleTop: '${emj.requestBody} Request Body',
@@ -358,7 +358,7 @@ void _handleOn({
       indentJson(
         responseHeaders,
         indent: curlOptions.prettyConfig.jsonIndent,
-        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
+        maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
       midTitleTop: '${emj.responseHeaders} Response Headers',
@@ -368,12 +368,13 @@ void _handleOn({
   if (curlOptions.responseBodyOf(isError) &&
       ((responseBody != null && responseBody is! Map) ||
           (responseBody is Map && responseBody.isNotEmpty))) {
+    final String bodyFormatted = indentJson(
+      responseBody,
+      indent: curlOptions.prettyConfig.jsonIndent,
+      maxStringLength: curlOptions.limitResponseBodyOf(isError),
+    ).maybeTruncate(curlOptions.limitResponseFieldOf(isError));
     ap(
-      indentJson(
-        responseBody,
-        indent: curlOptions.prettyConfig.jsonIndent,
-        maxFieldLength: curlOptions.limitResponseBodyOf(isError),
-      ),
+      bodyFormatted,
       midLineTop: true,
       midTitleTop: '${emj.responseBody} Response Body',
     );

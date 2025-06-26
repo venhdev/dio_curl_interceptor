@@ -1,6 +1,6 @@
 library dio_curl_interceptor;
 
-export 'package:colored_logger/colored_logger.dart';
+export 'package:colored_logger/colored_logger.dart' show Ansi;
 
 export 'src/core/types.dart';
 export 'src/core/utils/curl_utils.dart';

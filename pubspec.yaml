@@ -1,6 +1,6 @@
 name: dio_curl_interceptor
 description: A powerful Dio interceptor that converts HTTP requests to cURL commands, with modern UI for debugging, caching, filtering, and Discord webhook integration.
-version: 3.2.5
+version: 3.2.6-alpha
 homepage: https://github.com/venhdev/dio_curl_interceptor
 repository: https://github.com/venhdev/dio_curl_interceptor
 
@@ -28,6 +28,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
+  type_caster: ^0.0.3-beta.1
 
 dev_dependencies:
   http_parser: ^4.0.2

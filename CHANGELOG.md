@@ -1,3 +1,7 @@
+##  3.2.6-alpha
+
+- Added limitResponseField
+
 ## 3.2.5
 
 - Added examples for `includeUrls` and `excludeUrls` in `DiscordInspector` configuration.

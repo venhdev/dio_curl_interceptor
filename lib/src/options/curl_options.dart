@@ -135,6 +135,8 @@ class CurlOptions {
       false;
   int? limitResponseBodyOf(bool isError) =>
       isError ? onError?.limitResponseBody : onResponse?.limitResponseBody;
+  int? limitResponseFieldOf(bool isError) =>
+      isError ? onError?.limitResponseField : onResponse?.limitResponseField;
 }
 
 /// see [Ansi] for more colors and styles
@@ -175,6 +177,7 @@ class ResponseDetails extends CurlDetails {
     this.responseBody = true,
     this.responseHeaders = false,
     this.limitResponseBody,
+    this.limitResponseField,
   });
 
   final bool requestHeaders;
@@ -182,6 +185,7 @@ class ResponseDetails extends CurlDetails {
   final bool responseBody;
   final bool responseHeaders;
   final int? limitResponseBody;
+  final int? limitResponseField;
 }
 
 class ErrorDetails extends ResponseDetails {
@@ -193,6 +197,7 @@ class ErrorDetails extends ResponseDetails {
     super.responseBody,
     super.responseHeaders,
     super.limitResponseBody,
+    super.limitResponseField,
   });
 }
 

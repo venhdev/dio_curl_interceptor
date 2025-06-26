@@ -1,20 +1,8 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('envs', () {
-    var envs = Iterable.generate(4, (index) => 'env_$index');
-
-    print('envs: ${envs.join(';\n').red()}');
-    print('---------------------');
-    debugPrint('envs: ${envs.join(';\n').red()}');
-    print('---------------------');
-    log('envs: ${envs.join(';\n').red()}');
-  });
   test('curl', () async {
     final dio = Dio();
     dio.interceptors.add(CurlInterceptor(
