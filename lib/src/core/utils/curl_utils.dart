@@ -372,7 +372,7 @@ void _handleOn({
       responseBody,
       indent: curlOptions.prettyConfig.jsonIndent,
       maxStringLength: curlOptions.limitResponseBodyOf(isError),
-    ).maybeTruncate(curlOptions.limitResponseFieldOf(isError));
+    ).truncate(curlOptions.limitResponseFieldOf(isError));
     ap(
       bodyFormatted,
       midLineTop: true,
