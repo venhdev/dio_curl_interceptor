@@ -1,12 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:codekit/codekit.dart';
-import 'dart:async';
-
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/constants.dart';
@@ -164,6 +162,19 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
     }
   }
 
+  String _formatDateTime(DateTime dateTime, {bool includeTime = false}) {
+    final year = dateTime.year.toString();
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final day = dateTime.day.toString().padLeft(2, '0');
+    if (includeTime) {
+      final hour = dateTime.hour.toString().padLeft(2, '0');
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+      final second = dateTime.second.toString().padLeft(2, '0');
+      return '$year-$month-$day $hour:$minute:$second';
+    }
+    return '$year-$month-$day';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -282,7 +293,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                               onPressed: _pickDateRange,
                               icon: const Icon(Icons.date_range),
                               label: Text(
-                                '${_startDate != null ? DateFormat('yyyy-MM-dd').format(_startDate!) : ''} ~ ${_endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : ''}',
+                                '${_startDate != null ? _formatDateTime(_startDate!) : ''} ~ ${_endDate != null ? _formatDateTime(_endDate!) : ''}',
                                 style: const TextStyle(fontSize: 13),
                               ),
                             ),
@@ -311,8 +322,9 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                       itemCount: entries.length,
                       itemBuilder: (context, index) {
                         final entry = entries[index];
-                        final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss')
-                            .format(entry.timestamp.toLocal());
+                        final formattedTime = _formatDateTime(
+                            entry.timestamp.toLocal(),
+                            includeTime: true);
                         return Card(
                           margin: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),

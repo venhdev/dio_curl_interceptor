@@ -1,6 +1,7 @@
-##  3.2.6-alpha
+##  3.2.6-alpha.3
 
 - Added limitResponseField
+- Removed intl dependencies
 
 ## 3.2.5
 
