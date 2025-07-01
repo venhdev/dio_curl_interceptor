@@ -1,7 +1,8 @@
-##  3.2.6-alpha.3
+##  3.2.6-alpha.4
 
 - Added limitResponseField
 - Removed intl dependencies
+- Added sendFiles to DiscordInspector
 
 ## 3.2.5
 
