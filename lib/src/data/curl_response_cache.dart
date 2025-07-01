@@ -121,44 +121,19 @@ class CachedCurlStorage {
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
-    int? statusGroup,
+    HttpStatusGroup? statusGroup,
     int offset = 0,
     int limit = 50,
   }) {
     if (!_isInitialized()) {
       return [];
     }
-    final box = Hive.box<CachedCurlEntry>(_boxName);
-    Iterable<CachedCurlEntry> entries = box.values;
-    // Reverse for most recent first
-    entries = entries.toList().reversed;
-    if (search.isNotEmpty) {
-      final lower = search.toLowerCase();
-      entries = entries.where((entry) =>
-          entry.curlCommand.toLowerCase().contains(lower) ||
-          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-          entry.statusCode.toString().contains(lower) ||
-          (entry.url ?? '').toLowerCase().contains(lower));
-    }
-    if (startDate != null) {
-      entries = entries.where((entry) => entry.timestamp
-          .isAfter(startDate.subtract(const Duration(seconds: 1))));
-    }
-    if (endDate != null) {
-      entries = entries.where((entry) =>
-          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
-    }
-    if (statusGroup != null) {
-      entries = entries.where((entry) =>
-          (statusGroup == 2 &&
-              (entry.statusCode ?? 0) >= 200 &&
-              (entry.statusCode ?? 0) < 300) ||
-          (statusGroup == 4 &&
-              (entry.statusCode ?? 0) >= 400 &&
-              (entry.statusCode ?? 0) < 500) ||
-          (statusGroup == 5 && (entry.statusCode ?? 0) >= 500));
-    }
-    final filtered = entries.skip(offset).take(limit).toList();
+    final filtered = _getFilteredEntries(
+      search: search,
+      startDate: startDate,
+      endDate: endDate,
+      statusGroup: statusGroup,
+    ).skip(offset).take(limit).toList();
     return filtered;
   }
 
@@ -167,13 +142,28 @@ class CachedCurlStorage {
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
-    int? statusGroup,
+    HttpStatusGroup? statusGroup,
   }) {
     if (!_isInitialized()) {
       return 0;
     }
+    return _getFilteredEntries(
+      search: search,
+      startDate: startDate,
+      endDate: endDate,
+      statusGroup: statusGroup,
+    ).length;
+  }
+
+  static Iterable<CachedCurlEntry> _getFilteredEntries({
+    String search = '',
+    DateTime? startDate,
+    DateTime? endDate,
+    HttpStatusGroup? statusGroup,
+  }) {
     final box = Hive.box<CachedCurlEntry>(_boxName);
-    Iterable<CachedCurlEntry> entries = box.values;
+    Iterable<CachedCurlEntry> entries = box.values.toList().reversed;
+
     if (search.isNotEmpty) {
       final lower = search.toLowerCase();
       entries = entries.where((entry) =>
@@ -182,24 +172,36 @@ class CachedCurlStorage {
           entry.statusCode.toString().contains(lower) ||
           (entry.url ?? '').toLowerCase().contains(lower));
     }
+
     if (startDate != null) {
       entries = entries.where((entry) => entry.timestamp
           .isAfter(startDate.subtract(const Duration(seconds: 1))));
     }
+
     if (endDate != null) {
       entries = entries.where((entry) =>
           entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
     }
+
     if (statusGroup != null) {
-      entries = entries.where((entry) =>
-          (statusGroup == 2 &&
-              (entry.statusCode ?? 0) >= 200 &&
-              (entry.statusCode ?? 0) < 300) ||
-          (statusGroup == 4 &&
-              (entry.statusCode ?? 0) >= 400 &&
-              (entry.statusCode ?? 0) < 500) ||
-          (statusGroup == 5 && (entry.statusCode ?? 0) >= 500));
+      entries = entries.where((entry) {
+        final statusCode = entry.statusCode ?? 0;
+        switch (statusGroup) {
+          case HttpStatusGroup.success:
+            return statusCode >= 200 && statusCode < 300;
+          case HttpStatusGroup.clientError:
+            return statusCode >= 400 && statusCode < 500;
+          case HttpStatusGroup.serverError:
+            return statusCode >= 500 && statusCode < 600;
+        }
+      });
     }
-    return entries.length;
+    return entries;
   }
+}
+
+enum HttpStatusGroup {
+  success,
+  clientError,
+  serverError,
 }

@@ -49,7 +49,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   String _searchQuery = '';
   DateTime? _startDate;
   DateTime? _endDate;
-  int? _statusGroup;
+  HttpStatusGroup? _statusGroup;
 
   @override
   void initState() {
@@ -108,7 +108,15 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   }
 
   void _onStatusChanged(int? val) {
-    _statusGroup = val;
+    if (val == null) {
+      _statusGroup = null;
+    } else if (val == 2) {
+      _statusGroup = HttpStatusGroup.success;
+    } else if (val == 4) {
+      _statusGroup = HttpStatusGroup.clientError;
+    } else if (val == 5) {
+      _statusGroup = HttpStatusGroup.serverError;
+    }
     _loadEntries(reset: true);
   }
 
@@ -233,7 +241,13 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
                       ),
                       const SizedBox(width: 8),
                       DropdownMenu<int?>(
-                        initialSelection: _statusGroup,
+                        initialSelection: _statusGroup == null
+                            ? null
+                            : (_statusGroup == HttpStatusGroup.success
+                                ? 2
+                                : (_statusGroup == HttpStatusGroup.clientError
+                                    ? 4
+                                    : 5)),
                         onSelected: _onStatusChanged,
                         width: 90,
                         inputDecorationTheme: const InputDecorationTheme(
