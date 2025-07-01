@@ -1,6 +1,9 @@
+import 'dart:typed_data' show Uint8List;
+
 import 'package:colored_logger/colored_logger.dart';
 import 'dart:convert';
 
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -154,6 +157,38 @@ class CachedCurlStorage {
       statusGroup: statusGroup,
     ).length;
   }
+
+  static Future<String?> exportLogs(List<CachedCurlEntry> entries) async {
+    String? path_;
+    try {
+      final jsonStr = jsonEncode(entries
+          .map((e) => {
+                'curl': e.curlCommand,
+                'statusCode': e.statusCode,
+                'responseBody': e.responseBody,
+                'timestamp': e.timestamp.toIso8601String(),
+                'url': e.url,
+                'duration': e.duration,
+                'responseHeaders': e.responseHeaders,
+                'method': e.method,
+              })
+          .toList());
+      final fileName =
+          'curl_logs_${DateTime.now().millisecondsSinceEpoch}.json';
+      final bytes = utf8.encode(jsonStr);
+      path_ = await FileSaver.instance.saveFile(
+        name: fileName,
+        bytes: Uint8List.fromList(bytes),
+        mimeType: MimeType.json,
+      );
+      print('Exported cURL logs to $path_');
+    } catch (e) {
+      print('Error exporting logs: $e');
+    }
+    return path_;
+  }
+
+
 
   static Iterable<CachedCurlEntry> _getFilteredEntries({
     String search = '',

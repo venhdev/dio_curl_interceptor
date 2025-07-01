@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:codekit/codekit.dart';
-import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -134,34 +132,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   }
 
   Future<void> _exportLogs() async {
-    String? path_;
-    try {
-      final jsonStr = jsonEncode(entries
-          .map((e) => {
-                'curl': e.curlCommand,
-                'statusCode': e.statusCode,
-                'responseBody': e.responseBody,
-                'timestamp': e.timestamp.toIso8601String(),
-                'url': e.url,
-                'duration': e.duration,
-                'responseHeaders': e.responseHeaders,
-                'method': e.method,
-              })
-          .toList());
-      final fileName =
-          'curl_logs_${DateTime.now().millisecondsSinceEpoch}.json';
-      final bytes = Uint8List.fromList(utf8.encode(jsonStr));
-      path_ = await FileSaver.instance.saveFile(
-        name: fileName,
-        bytes: bytes,
-        // ext: 'json',
-        mimeType: MimeType.json,
-      );
-      print('Exported cURL logs to $path_');
-    } catch (e) {
-      print('Error exporting logs: $e');
-    }
-
+    final path_ = await CachedCurlStorage.exportLogs(entries);
     if (path_ != null && mounted) {
       widget.openShareOnExportTap?.call(path_);
       if (widget.isShare) {
