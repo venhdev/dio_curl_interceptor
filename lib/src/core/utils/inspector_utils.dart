@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
-
-import '../../inspector/discord_inspector.dart';
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 
 class InspectorUtils {
-  // static Future<void> sendToDiscordWebhook(
+  // Future<void> sendToDiscordWebhook(
   //     String webhookUrl, String filePath) async {
   //   try {
   //     final file = File(filePath);
@@ -34,7 +33,6 @@ class InspectorUtils {
   //   }
   // }
 
-
   InspectorUtils({
     this.discordInspector,
   });
@@ -59,6 +57,13 @@ class InspectorUtils {
         username: username,
         avatarUrl: avatarUrl,
       );
+    }
+  }
+
+  Future<void> sendAllCachedCurlAsJson() async {
+    if (discordInspector != null) {
+      final path_ = await CachedCurlStorage.exportFile();
+      discordInspector!.S.sendFiles(paths: path_ == null ? [] : [path_]);
     }
   }
 }

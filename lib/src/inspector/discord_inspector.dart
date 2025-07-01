@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:codekit/codekit.dart';
 import 'package:dio/dio.dart';
@@ -179,6 +180,63 @@ class DiscordInspector {
 /// This class provides methods to send various types of information,
 /// including cURL commands, bug reports, and simple messages, to Discord channels.
 class DiscordWebhookSender {
+  /// Sends files to Discord webhooks using multipart/form-data
+  ///
+  /// [paths] List of file paths to send
+  /// [payload] Optional JSON payload to include with files
+  /// [username] Optional username for the webhook message
+  /// [avatarUrl] Optional avatar URL for the webhook message
+  Future<List<Response>> sendFiles({
+    required List<String> paths,
+    Map<String, dynamic>? payload,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    final List<Response> responses = [];
+    final formData = FormData();
+
+    // Add files to form data
+    for (var i = 0; i < paths.length; i++) {
+      final path = paths[i];
+      final file = File(path);
+      if (await file.exists()) {
+        formData.files.add(MapEntry(
+          'file$i',
+          await MultipartFile.fromFile(path),
+        ));
+      }
+    }
+
+    // Add JSON payload if provided
+    if (payload != null) {
+      formData.fields.add(MapEntry(
+        'payload_json',
+        jsonEncode({
+          'username': username,
+          'avatar_url': avatarUrl,
+          ...payload,
+        }),
+      ));
+    }
+
+    // Send to all webhook URLs
+    for (final hookUrl in hookUrls) {
+      try {
+        final response = await _innerDio.post(
+          hookUrl,
+          data: formData,
+          options: Options(contentType: 'multipart/form-data'),
+        );
+        responses.add(response);
+      } catch (e) {
+        log('Error sending files to $hookUrl: $e',
+            name: 'DiscordWebhookSender');
+      }
+    }
+
+    return responses;
+  }
+
   /// Creates an [DiscordWebhookSender] instance.
   ///
   /// [hookUrls] A list of Discord webhook URLs where messages will be sent.
@@ -332,6 +390,21 @@ class DiscordWebhookSender {
     );
 
     return send(discordMessage);
+  }
+
+  /// Sends a single file to Discord webhooks.
+  ///
+  /// This is a convenience method that wraps the `sendFiles` method
+  /// for sending a single file.
+  ///
+  /// [webhookUrl] The specific webhook URL to send the file to (note: this method currently sends to all configured hookUrls).
+  /// [filePaths] The path to the file to send.
+  Future<void> sendToDiscordWebhook(
+      String webhookUrl, List<String> filePaths) async {
+    // Note: The original implementation of sendToDiscordWebhook was not found.
+    // This new implementation uses the existing sendFiles method.
+    // The webhookUrl parameter is currently ignored as sendFiles uses the class's hookUrls.
+    await sendFiles(paths: filePaths);
   }
 }
 

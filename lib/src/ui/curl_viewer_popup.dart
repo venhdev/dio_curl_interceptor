@@ -132,7 +132,7 @@ class _CurlViewerPopupState extends State<CurlViewerPopup> {
   }
 
   Future<void> _exportLogs() async {
-    final path_ = await CachedCurlStorage.exportLogs(entries);
+    final path_ = await CachedCurlStorage.exportFileWithEntries(entries);
     if (path_ != null && mounted) {
       widget.openShareOnExportTap?.call(path_);
       if (widget.isShare) {

@@ -157,8 +157,17 @@ class CachedCurlStorage {
       statusGroup: statusGroup,
     ).length;
   }
+  // all entries
+  static Future<String?> exportFile() async {
+    if (!_isInitialized()) {
+      return null;
+    }
+    return await exportFileWithEntries(loadAll());
+  }
 
-  static Future<String?> exportLogs(List<CachedCurlEntry> entries) async {
+  static Future<String?> exportFileWithEntries(
+    List<CachedCurlEntry> entries,
+  ) async {
     String? path_;
     try {
       final jsonStr = jsonEncode(entries
@@ -173,8 +182,7 @@ class CachedCurlStorage {
                 'method': e.method,
               })
           .toList());
-      final fileName =
-          'curl_logs_${DateTime.now().millisecondsSinceEpoch}.json';
+      final fileName = 'curl_logs_${DateTime.now().millisecondsSinceEpoch}';
       final bytes = utf8.encode(jsonStr);
       path_ = await FileSaver.instance.saveFile(
         name: fileName,
@@ -187,8 +195,6 @@ class CachedCurlStorage {
     }
     return path_;
   }
-
-
 
   static Iterable<CachedCurlEntry> _getFilteredEntries({
     String search = '',
