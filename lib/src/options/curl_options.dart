@@ -12,7 +12,7 @@ class CurlOptions {
     this.onRequest = const RequestDetails(),
     this.onResponse = const ResponseDetails(),
     this.onError = const ErrorDetails(),
-    this.behavior = CurlBehavior.chronological,
+    this.behavior = CurlBehavior.simultaneous,
     this.printer = log,
     this.prettyConfig = const PrettyConfig(),
   });

@@ -1,8 +1,9 @@
-##  3.2.6-alpha.4
+##  3.2.6
 
 - Added limitResponseField
 - Removed intl dependencies
 - Added sendFiles to DiscordInspector
+- Change the default behavior from CurlBehavior.chronological to CurlBehavior.simultaneous
 
 ## 3.2.5
 
