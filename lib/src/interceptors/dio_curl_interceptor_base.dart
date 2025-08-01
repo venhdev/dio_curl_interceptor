@@ -5,6 +5,8 @@ import '../core/utils/curl_utils.dart';
 import '../options/cache_options.dart';
 import '../options/curl_options.dart';
 import '../inspector/discord_inspector.dart';
+import '../inspector/telegram_inspector.dart';
+import '../inspector/webhook_inspector_base.dart';
 
 /// A Dio interceptor that converts HTTP requests into cURL commands
 /// and provides options for logging, caching, and Discord webhook integration.
@@ -13,11 +15,11 @@ class CurlInterceptor extends Interceptor {
   ///
   /// [curlOptions] defines how cURL commands are generated and displayed.
   /// [cacheOptions] configures caching behavior for requests and responses.
-  /// [discordInspectors] provides integration with Discord webhooks for logging.
+  /// [webhookInspectors] provides integration with webhook services for logging.
   CurlInterceptor({
     this.curlOptions = const CurlOptions(),
     this.cacheOptions = const CacheOptions(),
-    this.discordInspectors,
+    this.webhookInspectors,
   });
 
   /// Creates a [CurlInterceptor] instance with all cURL and cache options enabled.
@@ -25,17 +27,17 @@ class CurlInterceptor extends Interceptor {
   /// This factory provides a convenient way to set up the interceptor
   /// with maximum logging and caching capabilities.
   ///
-  /// [inspectorOptions] (optional) allows for Discord webhook integration.
+  /// [inspectorOptions] (optional) allows for webhook integration.
   factory CurlInterceptor.allEnabled([
-    DiscordInspector? inspectorOptions,
+    WebhookInspectorBase? inspectorOptions,
   ]) =>
       CurlInterceptor(
         curlOptions: CurlOptions.allEnabled(),
         cacheOptions: CacheOptions.allEnabled(),
-        discordInspectors: inspectorOptions != null ? [inspectorOptions] : null,
+        webhookInspectors: inspectorOptions != null ? [inspectorOptions] : null,
       );
 
-  /// Factory constructor to create a CurlInterceptor with webhook enabled
+  /// Factory constructor to create a CurlInterceptor with Discord webhook enabled
   /// Creates a [CurlInterceptor] instance configured for Discord webhook integration.
   ///
   /// This factory simplifies the setup for sending cURL logs and inspection
@@ -61,8 +63,44 @@ class CurlInterceptor extends Interceptor {
       CurlInterceptor(
         curlOptions: curlOptions,
         cacheOptions: cacheOptions,
-        discordInspectors: [
+        webhookInspectors: [
           DiscordInspector(
+            webhookUrls: webhookUrls,
+            includeUrls: includeUrls,
+            excludeUrls: excludeUrls,
+            inspectionStatus: inspectionStatus,
+          ),
+        ],
+      );
+
+  /// Factory constructor to create a CurlInterceptor with Telegram webhook enabled
+  /// Creates a [CurlInterceptor] instance configured for Telegram webhook integration.
+  ///
+  /// This factory simplifies the setup for sending cURL logs and inspection
+  /// data to specified Telegram webhook URLs.
+  ///
+  /// [webhookUrls] is a list of Telegram webhook URLs where logs will be sent.
+  /// [includeUrls] (optional) specifies a list of URI patterns to include for inspection.
+  /// [excludeUrls] (optional) specifies a list of URI patterns to exclude from inspection.
+  /// [inspectionStatus] (optional) defines which response statuses trigger webhook notifications.
+  /// [curlOptions] (optional) customizes how cURL commands are generated.
+  /// [cacheOptions] (optional) configures caching behavior.
+  factory CurlInterceptor.withTelegramInspector(
+    List<String> webhookUrls, {
+    List<String> includeUrls = const [],
+    List<String> excludeUrls = const [],
+    List<ResponseStatus> inspectionStatus = const <ResponseStatus>[
+      ResponseStatus.clientError,
+      ResponseStatus.serverError,
+    ],
+    CurlOptions curlOptions = const CurlOptions(),
+    CacheOptions cacheOptions = const CacheOptions(),
+  }) =>
+      CurlInterceptor(
+        curlOptions: curlOptions,
+        cacheOptions: cacheOptions,
+        webhookInspectors: [
+          TelegramInspector(
             webhookUrls: webhookUrls,
             includeUrls: includeUrls,
             excludeUrls: excludeUrls,
@@ -73,7 +111,7 @@ class CurlInterceptor extends Interceptor {
 
   final CacheOptions cacheOptions;
   final CurlOptions curlOptions;
-  final List<DiscordInspector>? discordInspectors;
+  final List<WebhookInspectorBase>? webhookInspectors;
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
 
   /// Intercepts the request before it is sent.
@@ -89,7 +127,7 @@ class CurlInterceptor extends Interceptor {
     CurlUtils.handleOnRequest(
       options,
       curlOptions: curlOptions,
-      inspectorOptions: discordInspectors,
+      inspectorOptions: webhookInspectors,
     );
 
     if (curlOptions.responseTime) {
@@ -119,7 +157,7 @@ class CurlInterceptor extends Interceptor {
       CurlUtils.handleOnResponse(
         response,
         curlOptions: curlOptions,
-        discordInspectors: discordInspectors,
+        webhookInspectors: webhookInspectors,
         stopwatch: stopwatch,
       );
     }
@@ -152,7 +190,7 @@ class CurlInterceptor extends Interceptor {
       CurlUtils.handleOnError(
         err,
         curlOptions: curlOptions,
-        discordInspectors: discordInspectors,
+        webhookInspectors: webhookInspectors,
         stopwatch: stopwatch,
       );
     }

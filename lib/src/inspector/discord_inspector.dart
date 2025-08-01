@@ -1,21 +1,18 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
 
-import 'package:codekit/codekit.dart';
 import 'package:dio/dio.dart';
 
 import '../core/constants.dart';
-import '../core/helpers.dart';
 import '../core/types.dart';
-import '../core/utils/curl_utils.dart';
+import '../core/utils/webhook_utils.dart';
 import '../data/discord_webhook_model.dart';
+import 'webhook_inspector_base.dart';
 
 /// Options for configuring Discord webhook integration for cURL logging.
 ///
 /// This class allows you to define rules for when and how cURL logs
 /// are sent to Discord, including URL filtering and status code-based inspection.
-class DiscordInspector {
+class DiscordInspector extends WebhookInspectorBase {
   /// Creates a [DiscordInspector] instance.
   ///
   /// [webhookUrls] A list of Discord webhook URLs to send logs to.
@@ -25,10 +22,10 @@ class DiscordInspector {
   ///   requests matching any of these patterns will NOT be sent.
   /// [inspectionStatus] A list of [ResponseStatus] types that trigger webhook notifications.
   const DiscordInspector({
-    this.webhookUrls = const <String>[],
-    this.includeUrls = const [],
-    this.excludeUrls = const [],
-    this.inspectionStatus = defaultInspectionStatus,
+    super.webhookUrls = const <String>[],
+    super.includeUrls = const [],
+    super.excludeUrls = const [],
+    super.inspectionStatus = defaultInspectionStatus,
   });
 
   DiscordWebhookSender get S => DiscordWebhookSender(hookUrls: webhookUrls);
@@ -37,141 +34,76 @@ class DiscordInspector {
         dio: dio,
       );
 
-  /// Adds a single webhook URL to the [webhookUrls] list.
-  void addWebhookUrl(String webhookUrl) {
-    webhookUrls.add(webhookUrl);
-  }
-
-  /// Adds a single URI pattern to the [includeUrls] list.
-  void addIncludeUrl(String url) {
-    includeUrls.add(url);
-  }
-
-  /// Adds a single URI pattern to the [excludeUrls] list.
-  void addExcludeUrl(String url) {
-    excludeUrls.add(url);
-  }
-
-  /// Adds a single [ResponseStatus] to the [inspectionStatus] list.
-  void addInspectionStatus(ResponseStatus status) {
-    inspectionStatus.add(status);
-  }
-
-  /// The type of inspection to perform.
-  final List<ResponseStatus> inspectionStatus;
-
-  /// The Discord webhook URL to send cURL logs to.
-  /// If empty, webhook functionality will be disabled.
-  final List<String> webhookUrls;
-
-  /// List of URI patterns to include for webhook requests.
-  /// If not empty, only requests matching any of these patterns will be sent.
-  final List<String> includeUrls;
-
-  /// List of URI patterns to exclude for webhook requests.
-  /// If not empty, requests matching any of these patterns will NOT be sent.
-  final List<String> excludeUrls;
-
-  void inspectOnResponse({
-    required Response<dynamic> response,
-    Stopwatch? stopwatch,
+  @override
+  Future<List<Response>> sendCurlLog({
+    required String? curl,
+    required String method,
+    required String uri,
+    required int statusCode,
+    dynamic responseBody,
+    String? responseTime,
     String? username,
     String? avatarUrl,
-  }) =>
-      inspectOn(
-        options: response.requestOptions,
-        response: response,
-        stopwatch: stopwatch,
-        username: username,
-        avatarUrl: avatarUrl,
-      );
-
-  void inspectOnError({
-    required DioException err,
-    Stopwatch? stopwatch,
-    String? username,
-    String? avatarUrl,
-  }) =>
-      inspectOn(
-        options: err.requestOptions,
-        response: err.response,
-        err: err,
-        stopwatch: stopwatch,
-        username: username,
-        avatarUrl: avatarUrl,
-      );
-
-  void inspectOn({
-    required RequestOptions options,
-    required Response<dynamic>? response,
-    DioException? err,
-    Stopwatch? stopwatch,
-    String? username,
-    String? avatarUrl,
-  }) {
-    final uri = options.uri.toString();
-    final statusCode = response?.statusCode ?? -1;
-
-    if (isMatch(uri, statusCode)) {
-      final String? curl = genCurl(options);
-      final dynamic responseBody = response?.data;
-      int? duration = Helpers.tryExtractDuration(
-        stopwatch: stopwatch,
-        xClientTimeHeader: options.headers[kXClientTime],
-      );
-
-      S.sendCurlLog(
-        curl: curl,
-        method: options.method,
-        uri: uri,
-        statusCode: statusCode,
-        username: username,
-        avatarUrl: avatarUrl,
-        responseTime: '$duration ms',
-        responseBody: responseBody,
-        extraInfo: err != null
-            ? {'type': err.type.name, 'message': err.message}
-            : null,
-      );
-    }
+    Map<String, dynamic>? extraInfo,
+  }) async {
+    return S.sendCurlLog(
+      curl: curl,
+      method: method,
+      uri: uri,
+      statusCode: statusCode,
+      responseBody: responseBody,
+      responseTime: responseTime,
+      username: username,
+      avatarUrl: avatarUrl,
+      extraInfo: extraInfo,
+    );
   }
 
-  /// Determines if a given URI and status code match the inspection criteria.
-  ///
-  /// This method checks against [includeUrls], [excludeUrls], and [inspectionStatus]
-  /// to decide if a request should trigger a webhook notification.
-  ///
-  /// [url] The URI of the request.
-  /// [statusCode] The HTTP status code of the response.
-  ///
-  /// Returns `true` if the URI and status code match the criteria, `false` otherwise.
-  bool isMatch(String url, int statusCode) {
-    final statusMatch = inspectionStatus.isEmpty ||
-        inspectionStatus.any((status) {
-          switch (status) {
-            case ResponseStatus.informational:
-              return statusCode >= 100 && statusCode < 200;
-            case ResponseStatus.success:
-              return statusCode >= 200 && statusCode < 300;
-            case ResponseStatus.redirection:
-              return statusCode >= 300 && statusCode < 400;
-            case ResponseStatus.clientError:
-              return statusCode >= 400 && statusCode < 500;
-            case ResponseStatus.serverError:
-              return statusCode >= 500 && statusCode < 600;
-            case ResponseStatus.unknown:
-              return true; // Unknown status is always included
-          }
-        });
+  @override
+  Future<List<Response>> sendBugReport({
+    required Object error,
+    StackTrace? stackTrace,
+    String? message,
+    Map<String, dynamic>? extraInfo,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    return S.sendBugReport(
+      error: error,
+      stackTrace: stackTrace,
+      message: message,
+      extraInfo: extraInfo,
+      username: username,
+      avatarUrl: avatarUrl,
+    );
+  }
 
-    final includeMatch = includeUrls.isEmpty ||
-        includeUrls.any((filter) => url.contains(filter));
+  @override
+  Future<List<Response>> sendFiles({
+    required List<String> paths,
+    Map<String, dynamic>? payload,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    return S.sendFiles(
+      paths: paths,
+      payload: payload,
+      username: username,
+      avatarUrl: avatarUrl,
+    );
+  }
 
-    final excludeMatch = excludeUrls.isEmpty ||
-        !excludeUrls.any((filter) => url.contains(filter));
-
-    // If both are provided, both must match.
-    return includeMatch && excludeMatch && statusMatch;
+  @override
+  Future<List<Response>> sendMessage({
+    required String content,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    return S.sendMessage(
+      content: content,
+      username: username,
+      avatarUrl: avatarUrl,
+    );
   }
 }
 
@@ -179,79 +111,15 @@ class DiscordInspector {
 ///
 /// This class provides methods to send various types of information,
 /// including cURL commands, bug reports, and simple messages, to Discord channels.
-class DiscordWebhookSender {
-  /// Sends files to Discord webhooks using multipart/form-data
-  ///
-  /// [paths] List of file paths to send
-  /// [payload] Optional JSON payload to include with files
-  /// [username] Optional username for the webhook message
-  /// [avatarUrl] Optional avatar URL for the webhook message
-  Future<List<Response>> sendFiles({
-    required List<String> paths,
-    Map<String, dynamic>? payload,
-    String? username,
-    String? avatarUrl,
-  }) async {
-    final List<Response> responses = [];
-    final formData = FormData();
-
-    // Add files to form data
-    for (var i = 0; i < paths.length; i++) {
-      final path = paths[i];
-      final file = File(path);
-      if (await file.exists()) {
-        formData.files.add(MapEntry(
-          'file$i',
-          await MultipartFile.fromFile(path),
-        ));
-      }
-    }
-
-    // Add JSON payload if provided
-    if (payload != null) {
-      formData.fields.add(MapEntry(
-        'payload_json',
-        jsonEncode({
-          'username': username,
-          'avatar_url': avatarUrl,
-          ...payload,
-        }),
-      ));
-    }
-
-    // Send to all webhook URLs
-    for (final hookUrl in hookUrls) {
-      try {
-        final response = await _innerDio.post(
-          hookUrl,
-          data: formData,
-          options: Options(contentType: 'multipart/form-data'),
-        );
-        responses.add(response);
-      } catch (e) {
-        log('Error sending files to $hookUrl: $e',
-            name: 'DiscordWebhookSender');
-      }
-    }
-
-    return responses;
-  }
-
+class DiscordWebhookSender extends WebhookSenderBase {
   /// Creates an [DiscordWebhookSender] instance.
   ///
   /// [hookUrls] A list of Discord webhook URLs where messages will be sent.
   /// [dio] An optional Dio instance to use for making HTTP requests to webhooks.
-  ///   If not provided, a new Dio instance will be created.
   DiscordWebhookSender({
-    required this.hookUrls,
-    Dio? dio,
-  }) : _innerDio = dio ?? Dio();
-
-  /// The Discord webhook URLs to send cURL logs to.
-  final List<String> hookUrls;
-
-  /// The Dio instance for making HTTP requests.
-  final Dio _innerDio;
+    required super.hookUrls,
+    super.dio,
+  });
 
   /// Sends a message to all configured Discord webhooks.
   ///
@@ -267,24 +135,11 @@ class DiscordWebhookSender {
   /// Returns a [Future] that completes with a list of [Response] objects
   /// from each successful webhook call.
   Future<List<Response>> send(DiscordWebhookMessage message) async {
-    final List<Response> responses = [];
     final String jsonPayload = jsonEncode(message.toJson());
-
-    for (final String hookUrl in hookUrls) {
-      try {
-        final response = await _innerDio.post(
-          hookUrl,
-          data: jsonPayload,
-          options: Options(headers: {'Content-Type': 'application/json'}),
-        );
-        responses.add(response);
-      } catch (e) {
-        // Handle errors silently to prevent disrupting the main application
-        log('Error sending webhook to $hookUrl: $e', name: 'DiscordInspector');
-      }
-    }
-
-    return responses;
+    return sendToAll(
+      payload: jsonPayload,
+      headers: {'Content-Type': 'application/json'},
+    );
   }
 
   /// Sends a cURL log to all configured Discord webhooks.
@@ -406,19 +261,23 @@ class DiscordWebhookSender {
     // The webhookUrl parameter is currently ignored as sendFiles uses the class's hookUrls.
     await sendFiles(paths: filePaths);
   }
-}
 
-String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) =>
-    _wrapWithBackticks(
-      stringify(rawValue, maxLen: len, replacements: _replacementsEmbedField),
-      lang,
+  /// Sends a simple message to Discord webhooks.
+  ///
+  /// [content] The message content to send.
+  /// [username] Optional username for the webhook message.
+  /// [avatarUrl] Optional avatar URL for the webhook message.
+  Future<List<Response>> sendMessage({
+    required String content,
+    String? username,
+    String? avatarUrl,
+  }) async {
+    final message = DiscordWebhookMessage(
+      content: content,
+      username: username ?? 'Dio cURL Interceptor',
+      avatarUrl: avatarUrl,
     );
 
-const Map<String, String> _replacementsEmbedField = {'```': ''};
-
-String _wrapWithBackticks(String text, [String? language]) {
-  if (language != null && language.isNotEmpty) {
-    return '```$language\n$text\n```';
+    return send(message);
   }
-  return '```\n$text\n```';
 }

@@ -1,13 +1,10 @@
 ## 3.3.0
 
-- **BREAKING CHANGE**: Extended `DiscordInspector` to support multiple inspectors
-  - Changed `discordInspector` parameter to `discordInspectors` (List<DiscordInspector>?) in `CurlInterceptor`
-  - Updated `CurlUtils` methods to handle multiple Discord inspectors
-  - Updated `InspectorUtils` to support multiple inspectors
-  - Each inspector operates independently with its own webhook URLs, filters, and status criteria
-  - Maintains backward compatibility through factory methods
-- Added comprehensive example showing multiple Discord inspector configurations
-- Fixed test expectation for `ResponseStatus.unknown` to match actual implementation
+- **NEW**: Added Telegram webhook integration (`TelegramInspector`)
+- **BREAKING**: Renamed `discordInspectors` → `webhookInspectors` in `CurlInterceptor`
+- **FEATURE**: Created extensible webhook system with `WebhookInspectorBase`
+- **FIX**: Resolved linter warnings and import conflicts
+- **ENHANCEMENT**: Added comprehensive webhook examples
 
 ## 3.2.6
 
