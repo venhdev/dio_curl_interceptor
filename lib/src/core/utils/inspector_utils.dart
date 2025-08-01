@@ -34,10 +34,10 @@ class InspectorUtils {
   // }
 
   InspectorUtils({
-    this.discordInspector,
+    this.discordInspectors,
   });
 
-  final DiscordInspector? discordInspector;
+  final List<DiscordInspector>? discordInspectors;
   // in future we will add more inspection methods, such as logcat, etc.
 
   Future<void> inspect({
@@ -48,22 +48,26 @@ class InspectorUtils {
     String? username,
     String? avatarUrl,
   }) async {
-    if (discordInspector != null) {
-      discordInspector!.inspectOn(
-        options: requestOptions,
-        response: response,
-        err: err,
-        stopwatch: stopwatch,
-        username: username,
-        avatarUrl: avatarUrl,
-      );
+    if (discordInspectors != null && discordInspectors!.isNotEmpty) {
+      for (final discordInspector in discordInspectors!) {
+        discordInspector.inspectOn(
+          options: requestOptions,
+          response: response,
+          err: err,
+          stopwatch: stopwatch,
+          username: username,
+          avatarUrl: avatarUrl,
+        );
+      }
     }
   }
 
   Future<void> sendAllCachedCurlAsJson() async {
-    if (discordInspector != null) {
+    if (discordInspectors != null && discordInspectors!.isNotEmpty) {
       final path_ = await CachedCurlStorage.exportFile();
-      discordInspector!.S.sendFiles(paths: path_ == null ? [] : [path_]);
+      for (final discordInspector in discordInspectors!) {
+        discordInspector.S.sendFiles(paths: path_ == null ? [] : [path_]);
+      }
     }
   }
 }

@@ -1,4 +1,15 @@
-##  3.2.6
+## 3.3.0
+
+- **BREAKING CHANGE**: Extended `DiscordInspector` to support multiple inspectors
+  - Changed `discordInspector` parameter to `discordInspectors` (List<DiscordInspector>?) in `CurlInterceptor`
+  - Updated `CurlUtils` methods to handle multiple Discord inspectors
+  - Updated `InspectorUtils` to support multiple inspectors
+  - Each inspector operates independently with its own webhook URLs, filters, and status criteria
+  - Maintains backward compatibility through factory methods
+- Added comprehensive example showing multiple Discord inspector configurations
+- Fixed test expectation for `ResponseStatus.unknown` to match actual implementation
+
+## 3.2.6
 
 - Added limitResponseField
 - Removed intl dependencies

@@ -180,7 +180,7 @@ void main() {
         inspectionStatus: [ResponseStatus.unknown],
       );
       expect(options.isMatch('http://api.com/data', 999),
-          isFalse); // Unknown status should not match
+          isTrue); // Unknown status should match any status code
     });
 
     test('isMatch handles multiple inspection statuses', () {

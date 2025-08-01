@@ -182,7 +182,7 @@ class CurlUtils {
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
-    DiscordInspector? inspectorOptions,
+    List<DiscordInspector>? inspectorOptions,
     String chronologicalPrefix = '[CurlTime]',
   }) {
     if (curlOptions.requestVisible &&
@@ -207,7 +207,7 @@ class CurlUtils {
   static void handleOnResponse(
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
-    DiscordInspector? discordInspector,
+    List<DiscordInspector>? discordInspectors,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -215,7 +215,7 @@ class CurlUtils {
         response: response,
         err: null,
         curlOptions: curlOptions,
-        discordInspector: discordInspector,
+        discordInspectors: discordInspectors,
         stopwatch: stopwatch,
         printer: curlOptions.printOnResponse,
       );
@@ -230,7 +230,7 @@ class CurlUtils {
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),
-    DiscordInspector? discordInspector,
+    List<DiscordInspector>? discordInspectors,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -238,7 +238,7 @@ class CurlUtils {
         response: err.response,
         err: err,
         curlOptions: curlOptions,
-        discordInspector: discordInspector,
+        discordInspectors: discordInspectors,
         stopwatch: stopwatch,
         printer: curlOptions.printOnError,
       );
@@ -251,7 +251,7 @@ void _handleOn({
   CurlOptions curlOptions = const CurlOptions(),
   Stopwatch? stopwatch,
   required Printer printer,
-  DiscordInspector? discordInspector,
+  List<DiscordInspector>? discordInspectors,
 }) {
   final bool isError = err != null;
   final String? curl = genCurl(requestOptions, curlOptions.convertFormData);
@@ -279,16 +279,20 @@ void _handleOn({
   );
   final String responseTimeStr = '${duration ?? kNA}ms';
 
-  // Send to Discord webhook if configured and the request matches the filter criteria
-  if (discordInspector != null && discordInspector.isMatch(uri, statusCode)) {
-    discordInspector.S.sendCurlLog(
-      curl: curl,
-      method: requestOptions.method,
-      uri: uri,
-      statusCode: statusCode,
-      responseBody: responseBody,
-      responseTime: '${duration ?? kNA}ms',
-    );
+  // Send to Discord webhooks if configured and the request matches the filter criteria
+  if (discordInspectors != null && discordInspectors.isNotEmpty) {
+    for (final discordInspector in discordInspectors) {
+      if (discordInspector.isMatch(uri, statusCode)) {
+        discordInspector.S.sendCurlLog(
+          curl: curl,
+          method: requestOptions.method,
+          uri: uri,
+          statusCode: statusCode,
+          responseBody: responseBody,
+          responseTime: '${duration ?? kNA}ms',
+        );
+      }
+    }
   }
 
   final EmojiC emj = EmojiC(curlOptions.emojiEnabled);

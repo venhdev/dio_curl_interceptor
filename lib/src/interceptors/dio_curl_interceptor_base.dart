@@ -13,11 +13,11 @@ class CurlInterceptor extends Interceptor {
   ///
   /// [curlOptions] defines how cURL commands are generated and displayed.
   /// [cacheOptions] configures caching behavior for requests and responses.
-  /// [discordInspector] provides integration with Discord webhooks for logging.
+  /// [discordInspectors] provides integration with Discord webhooks for logging.
   CurlInterceptor({
     this.curlOptions = const CurlOptions(),
     this.cacheOptions = const CacheOptions(),
-    this.discordInspector,
+    this.discordInspectors,
   });
 
   /// Creates a [CurlInterceptor] instance with all cURL and cache options enabled.
@@ -32,7 +32,7 @@ class CurlInterceptor extends Interceptor {
       CurlInterceptor(
         curlOptions: CurlOptions.allEnabled(),
         cacheOptions: CacheOptions.allEnabled(),
-        discordInspector: inspectorOptions,
+        discordInspectors: inspectorOptions != null ? [inspectorOptions] : null,
       );
 
   /// Factory constructor to create a CurlInterceptor with webhook enabled
@@ -61,17 +61,19 @@ class CurlInterceptor extends Interceptor {
       CurlInterceptor(
         curlOptions: curlOptions,
         cacheOptions: cacheOptions,
-        discordInspector: DiscordInspector(
-          webhookUrls: webhookUrls,
-          includeUrls: includeUrls,
-          excludeUrls: excludeUrls,
-          inspectionStatus: inspectionStatus,
-        ),
+        discordInspectors: [
+          DiscordInspector(
+            webhookUrls: webhookUrls,
+            includeUrls: includeUrls,
+            excludeUrls: excludeUrls,
+            inspectionStatus: inspectionStatus,
+          ),
+        ],
       );
 
   final CacheOptions cacheOptions;
   final CurlOptions curlOptions;
-  final DiscordInspector? discordInspector;
+  final List<DiscordInspector>? discordInspectors;
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
 
   /// Intercepts the request before it is sent.
@@ -87,7 +89,7 @@ class CurlInterceptor extends Interceptor {
     CurlUtils.handleOnRequest(
       options,
       curlOptions: curlOptions,
-      inspectorOptions: discordInspector,
+      inspectorOptions: discordInspectors,
     );
 
     if (curlOptions.responseTime) {
@@ -117,7 +119,7 @@ class CurlInterceptor extends Interceptor {
       CurlUtils.handleOnResponse(
         response,
         curlOptions: curlOptions,
-        discordInspector: discordInspector,
+        discordInspectors: discordInspectors,
         stopwatch: stopwatch,
       );
     }
@@ -150,7 +152,7 @@ class CurlInterceptor extends Interceptor {
       CurlUtils.handleOnError(
         err,
         curlOptions: curlOptions,
-        discordInspector: discordInspector,
+        discordInspectors: discordInspectors,
         stopwatch: stopwatch,
       );
     }

@@ -76,6 +76,31 @@ void main() async {
     ),
   ));
 
+  // Example 5.1: Using multiple Discord inspectors
+  dio.interceptors.add(CurlInterceptor(
+    curlOptions: CurlOptions.allEnabled(),
+    discordInspectors: [
+      // Inspector for errors only
+      DiscordInspector(
+        webhookUrls: ['https://discord.com/api/webhooks/errors-webhook'],
+        inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+        includeUrls: ['api.example.com'],
+      ),
+      // Inspector for all successful requests
+      DiscordInspector(
+        webhookUrls: ['https://discord.com/api/webhooks/success-webhook'],
+        inspectionStatus: [ResponseStatus.success],
+        includeUrls: ['api.example.com'],
+      ),
+      // Inspector for specific endpoints
+      DiscordInspector(
+        webhookUrls: ['https://discord.com/api/webhooks/specific-webhook'],
+        includeUrls: ['/users/', '/auth/'],
+        excludeUrls: ['/healthz'],
+      ),
+    ],
+  ));
+
   // Example 6: Manual webhook sending
   final inspector = DiscordWebhookSender(
     hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
