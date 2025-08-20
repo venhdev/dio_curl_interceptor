@@ -9,7 +9,7 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🔍 Converts Dio HTTP requests to cURL commands for easy debugging and sharing.
 - 💾 Caches cURL commands and responses with filtering, search, and export options.
 - 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, export, clear, copy, etc).
-- 🔔 Discord webhook integration for remote logging and team collaboration (including bug and exception reporting).
+- 🔔 Webhook integration for remote logging and team collaboration (Discord & Telegram support, including bug and exception reporting).
 - 📝 Utility methods for custom interceptors and direct use.
 
 For detailed screenshots of the interceptor's behavior, including simultaneous and chronological logging, please refer to the [Screenshots](#screenshots) section at the bottom of this README.
@@ -90,12 +90,20 @@ dio.interceptors.add(CurlInterceptor(
       print('Custom log: $text'); // remember to print the text
     },
   ),
-  discordInspector: DiscordInspector(
-    webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
-    inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
-    includeUrls: const ['/api/v1/users', 'https://example.com/data'],
-    excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
-  ),
+  webhookInspectors: [
+    DiscordInspector(
+      webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+      includeUrls: const ['/api/v1/users', 'https://example.com/data'],
+      excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
+    ),
+    TelegramInspector(
+      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+      includeUrls: const ['/api/v1/users', 'https://example.com/data'],
+      excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
+    ),
+  ],
 ))
 ```
 
@@ -105,14 +113,17 @@ If you prefer to use the utility methods in your own custom interceptor, you can
 
 ```dart
 class YourInterceptor extends Interceptor {
-  // Initialize InspectorUtils with your DiscordInspector
-  final inspectorUtils = InspectorUtils(
-    discordInspector: DiscordInspector(
+  // Initialize webhook inspectors
+  final webhookInspectors = [
+    DiscordInspector(
       webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
-      // Configure inspection status and URL filters as needed
       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
     ),
-  );
+    TelegramInspector(
+      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    ),
+  ];
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -128,151 +139,131 @@ class YourInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     // ... your response handling logic
-    CurlUtils.handleOnResponse(response);
-    // Use InspectorUtils to inspect successful responses
-    inspectorUtils.inspect(requestOptions: response.requestOptions, response: response);
+    CurlUtils.handleOnResponse(response, webhookInspectors: webhookInspectors);
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     // ... your error handling logic
-    CurlUtils.handleOnError(err);
-    // Use InspectorUtils to inspect error responses
-    inspectorUtils.inspect(requestOptions: err.requestOptions, response: err.response, err: err);
+    CurlUtils.handleOnError(err, webhookInspectors: webhookInspectors);
     handler.next(err);
   }
 }
 ```
 
-#### Integrating InspectorUtils in Custom Interceptors
+#### Using Multiple Webhook Inspectors
 
-If you're building your own custom Dio interceptor, you can integrate `InspectorUtils` to centralize your inspection logic, including Discord webhook notifications. This allows for a cleaner separation of concerns and easier management of various inspection methods.
-
-Here's how you can modify your custom interceptor to use `InspectorUtils`:
+You can configure multiple webhook inspectors to send notifications to different services simultaneously. Each inspector operates independently with its own filters and configuration:
 
 ```dart
-// Example of a custom interceptor using InspectorUtils
-class YourInterceptor extends Interceptor {
-  // Initialize InspectorUtils with your DiscordInspector
-  final inspectorUtils = InspectorUtils(
-    discordInspector: DiscordInspector(
-      webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
-      // Configure inspection status and URL filters as needed
-      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
-    ),
-  );
+// Example of using multiple webhook inspectors
+final webhookInspectors = [
+  DiscordInspector(
+    webhookUrls: ['https://discord.com/api/webhooks/your-discord-webhook'],
+    inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    includeUrls: ['api.example.com'],
+  ),
+  TelegramInspector(
+    webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+    inspectionStatus: [ResponseStatus.serverError], // Only server errors to Telegram
+    includeUrls: ['api.example.com'],
+  ),
+];
 
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // ... existing request handling logic
-    CurlUtils.addXClientTime(options);
-    CurlUtils.handleOnRequest(options);
-    handler.next(options);
-  }
-
-  @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // ... existing response handling logic
-    CurlUtils.handleOnResponse(response);
-    // Use InspectorUtils to inspect successful responses
-    inspectorUtils.inspect(requestOptions: response.requestOptions, response: response);
-    handler.next(response);
-  }
-
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    // ... existing error handling logic
-    CurlUtils.handleOnError(err);
-    // Use InspectorUtils to inspect error responses
-    inspectorUtils.inspect(requestOptions: err.requestOptions, response: err.response, err: err);
-    handler.next(err);
-  }
-}
+// Use with CurlInterceptor
+dio.interceptors.add(CurlInterceptor(
+  webhookInspectors: webhookInspectors,
+  // ... other options
+));
 ```
 
-By integrating `InspectorUtils`, your custom interceptor can leverage the centralized inspection capabilities, making your code more modular and maintainable.
+### Option 3: Using webhook integration
 
-### Option 3: Using Discord webhook integration
-
-You can use the Discord webhook integration to send cURL logs to Discord channels for remote logging and team collaboration:
+You can use webhook integration to send cURL logs to Discord channels or Telegram chats for remote logging and team collaboration:
 
 ```dart
-// Using the factory constructor with webhook support
+// Using factory constructors for convenience
 dio.interceptors.add(CurlInterceptor.withDiscordInspector(
-  // List of Discord webhook URLs
   ['https://discord.com/api/webhooks/your-webhook-url'],
-  // Optional: Filter which URIs should trigger webhook notifications
   includeUrls: ['api.example.com', '/users/'],
   excludeUrls: ['/healthz'],
-  // Optional: Configure which response status types should be sent
   inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
-  // Optional: Configure curl options
-  curlOptions: CurlOptions(
-    status: true,
-    responseTime: true,
-  ),
+));
+
+dio.interceptors.add(CurlInterceptor.withTelegramInspector(
+  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+  includeUrls: ['api.example.com'],
+  inspectionStatus: [ResponseStatus.serverError], // Only server errors
 ));
 
 // Manual webhook sending
-final inspector = Inspector(
-  hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+final discordInspector = DiscordInspector(
+  webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
 );
 
-// Send a simple message
-await inspector.send(DiscordWebhookMessage.simple('Hello from Dio cURL Interceptor!'));
-
-// Send a curl log
-await inspector.sendCurlLog(
-  curl: 'curl -X GET "https://example.com/api"',
-  method: 'GET',
-  uri: 'https://example.com/api',
-  statusCode: 200,
-  responseBody: '{"success": true}',
-  responseTime: '150ms',
+final telegramInspector = TelegramInspector(
+  webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
 );
 
-```dart
-// Send a bug report using DiscordWebhookSender
-final inspector = DiscordWebhookSender(
-  hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
-);
-await inspector.sendBugReport(
+// Send messages
+await discordInspector.sendMessage(content: 'Hello from Discord!');
+await telegramInspector.sendMessage(content: 'Hello from Telegram!');
+
+// Send bug reports
+await discordInspector.sendBugReport(
   error: 'Example Error',
-  stackTrace: StackTrace.current,
   message: 'An example bug report.',
   extraInfo: {'userId': 'testUser', 'appVersion': '1.0.0'},
 );
-```
 
-### Option 4: Using InspectorUtils for centralized inspection
-
-`InspectorUtils` provides a centralized way to manage and trigger various inspection methods, such as Discord webhooks. This is useful when you want to abstract the inspection logic and potentially add more inspection methods in the future (e.g., logcat, Sentry, etc.).
-
-To use `InspectorUtils`, first initialize it with your `DiscordInspector` instance:
-
-```dart
-final inspectorUtils = InspectorUtils(
-  discordInspector: DiscordInspector(
-    webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
-  ),
+await telegramInspector.sendBugReport(
+  error: 'Example Error',
+  message: 'An example bug report.',
+  extraInfo: {'userId': 'testUser', 'appVersion': '1.0.0'},
 );
 
-// Then, you can use it to inspect responses or errors:
+// Send files
+await discordInspector.sendFiles(
+  paths: ['/path/to/logfile.txt'],
+  payload: {'message': 'Log file attached'},
+);
 
-// Inspect a successful response
-final response = await dio.get('https://example.com/api/data');
-await inspectorUtils.inspect(requestOptions: response.requestOptions, response: response);
-
-// Inspect an error response
-try {
-  await dio.get('https://example.com/api/nonexistent');
-} on DioException catch (e) {
-  await inspectorUtils.inspect(requestOptions: e.requestOptions, response: e.response, err: e);
-}
+await telegramInspector.sendFiles(
+  paths: ['/path/to/logfile.txt'],
+  payload: {'caption': 'Log file attached'},
+);
 ```
 
-### Option 4: Using utility functions directly
+### Option 4: Using factory constructors for quick setup
+
+For quick setup with common configurations, you can use the factory constructors:
+
+```dart
+// Discord-only setup
+dio.interceptors.add(CurlInterceptor.withDiscordInspector(
+  ['https://discord.com/api/webhooks/your-webhook-url'],
+  includeUrls: ['api.example.com'],
+  inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+));
+
+// Telegram-only setup
+dio.interceptors.add(CurlInterceptor.withTelegramInspector(
+  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+  includeUrls: ['api.example.com'],
+  inspectionStatus: [ResponseStatus.serverError],
+));
+
+// Multiple webhook setup
+dio.interceptors.add(CurlInterceptor.allEnabled(
+  webhookInspectors: [
+    DiscordInspector(webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url']),
+    TelegramInspector(webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage']),
+  ],
+));
+```
+
+### Option 5: Using utility functions directly
 
 If you don't want to add a full interceptor, you can use the utility functions directly in your code:
 
