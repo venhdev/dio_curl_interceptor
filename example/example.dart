@@ -50,7 +50,7 @@ void main() async {
   // Example 3: Using CurlUtils in your own interceptor
   dio.interceptors.add(YourInterceptor());
 
-  // Example 4: Using CurlUtils directly without an interceptor
+  // Example 4: Using CurlUtils directly without an interceptor (simple cases)
   try {
     final response =
         await dio.get('https://jsonplaceholder.typicode.com/posts/1');
@@ -173,6 +173,18 @@ void main() async {
 
 // Example of a custom interceptor using CurlUtils
 class YourInterceptor extends Interceptor {
+  // Initialize webhook inspectors for remote logging
+  final webhookInspectors = [
+    DiscordInspector(
+      webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    ),
+    TelegramInspector(
+      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    ),
+  ];
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Generate and log curl command
@@ -181,21 +193,33 @@ class YourInterceptor extends Interceptor {
     // Add timing header if you want to track response time
     CurlUtils.addXClientTime(options);
 
+    // Handle request logging with webhook support
+    CurlUtils.handleOnRequest(
+      options,
+      webhookInspectors: webhookInspectors,
+    );
+
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // Handle and log response
-    CurlUtils.handleOnResponse(response);
+    // Handle and log response with webhook support
+    CurlUtils.handleOnResponse(
+      response,
+      webhookInspectors: webhookInspectors,
+    );
 
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Handle and log error
-    CurlUtils.handleOnError(err);
+    // Handle and log error with webhook support
+    CurlUtils.handleOnError(
+      err,
+      webhookInspectors: webhookInspectors,
+    );
 
     handler.next(err);
   }

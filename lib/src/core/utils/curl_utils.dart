@@ -45,6 +45,8 @@ String _tagCurrentTime() {
 ///
 /// This class provides static methods to interact with cURL generation,
 /// handle request/response/error logging, and manage the cURL cache.
+/// The handleOn* methods are specifically designed to be used directly
+/// in custom interceptors, allowing full customization of logging behavior.
 class CurlUtils {
   CurlUtils._();
 
@@ -175,14 +177,16 @@ class CurlUtils {
   ///
   /// This method is typically called within Dio's `onRequest` interceptor.
   /// It generates and logs the cURL command for the outgoing request.
+  /// This method is designed to be used directly in custom interceptors.
   ///
-  /// [requestOptions] The [RequestOptions] of the outgoing request.
-  /// [handler] The [RequestInterceptorHandler] to control the request flow.
+  /// [options] The [RequestOptions] of the outgoing request.
   /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
+  /// [webhookInspectors] Optional list of webhook inspectors for remote logging.
+  /// [chronologicalPrefix] Prefix for chronological logging behavior.
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
-    List<WebhookInspectorBase>? inspectorOptions,
+    List<WebhookInspectorBase>? webhookInspectors,
     String chronologicalPrefix = '[CurlTime]',
   }) {
     if (curlOptions.requestVisible &&
@@ -200,9 +204,12 @@ class CurlUtils {
   ///
   /// This method is typically called within Dio's `onResponse` interceptor.
   /// It logs the cURL command associated with the response and caches it.
+  /// This method is designed to be used directly in custom interceptors.
   ///
   /// [response] The [Response] object received from the request.
   /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
+  /// [webhookInspectors] Optional list of webhook inspectors for remote logging.
+  /// [stopwatch] Optional [Stopwatch] to calculate response duration.
 
   static void handleOnResponse(
     Response response, {
@@ -224,9 +231,12 @@ class CurlUtils {
   ///
   /// This method is typically called within Dio's `onError` interceptor.
   /// It logs the cURL command associated with the error and caches it.
+  /// This method is designed to be used directly in custom interceptors.
   ///
   /// [err] The [DioException] object representing the error.
   /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
+  /// [webhookInspectors] Optional list of webhook inspectors for remote logging.
+  /// [stopwatch] Optional [Stopwatch] to calculate response duration.
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),

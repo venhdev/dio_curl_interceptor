@@ -127,7 +127,7 @@ class CurlInterceptor extends Interceptor {
     CurlUtils.handleOnRequest(
       options,
       curlOptions: curlOptions,
-      inspectorOptions: webhookInspectors,
+      webhookInspectors: webhookInspectors,
     );
 
     if (curlOptions.responseTime) {
