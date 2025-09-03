@@ -1,7 +1,9 @@
-## v3.3.3
+## v3.3.2
 
-- Alpha release for testing and feedback
-- Request ID: 0844fa8e-8eb0-49e4-8a54-3431f6bff885
+- **NEW**: Added SenderInfo class for custom sender information in webhook inspectors
+- **FEATURE**: Updated all webhook inspectors to use SenderInfo for consistent API
+- **ENHANCEMENT**: InspectorUtils now supports all webhook types via WebhookInspectorBase
+- **BREAKING**: InspectorUtils uses webhookInspectors instead of discordInspectors
 
 ## 3.3.0
 
