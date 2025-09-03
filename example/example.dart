@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:dio_curl_interceptor/src/core/constants.dart';
 
 void main() async {
   final dio = Dio();
@@ -111,7 +112,7 @@ void main() async {
 
   // Send a simple message
   await inspector
-      .send(DiscordWebhookMessage.simple('Hello from Dio cURL Interceptor!'));
+      .send(DiscordWebhookMessage.simple('Hello from $kDefaultUsername!'));
 
   // Send a curl log
   await inspector.sendCurlLog(
@@ -177,11 +178,17 @@ class YourInterceptor extends Interceptor {
   final webhookInspectors = [
     DiscordInspector(
       webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
-      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+      inspectionStatus: [
+        ResponseStatus.clientError,
+        ResponseStatus.serverError
+      ],
     ),
     TelegramInspector(
       webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
-      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+      inspectionStatus: [
+        ResponseStatus.clientError,
+        ResponseStatus.serverError
+      ],
     ),
   ];
 

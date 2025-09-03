@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:dio_curl_interceptor/src/core/constants.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -19,7 +20,7 @@ void main() {
 
     test('Send a simple message to Discord', () async {
       final message =
-          DiscordWebhookMessage.simple('Hello from Dio cURL Interceptor!');
+          DiscordWebhookMessage.simple('Hello from $kDefaultUsername!');
       await sender.send(message);
       print('Simple message sent.');
     });

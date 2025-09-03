@@ -1,72 +1,70 @@
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 
+/// Utility class for handling webhook inspections across different webhook services.
+///
+/// This class provides a unified interface for working with various webhook inspectors
+/// (Discord, Telegram, etc.) through the common [WebhookInspectorBase] interface.
 class InspectorUtils {
-  // Future<void> sendToDiscordWebhook(
-  //     String webhookUrl, String filePath) async {
-  //   try {
-  //     final file = File(filePath);
-  //     if (!await file.exists()) {
-  //       print('File not found: $filePath');
-  //       return;
-  //     }
-
-  //     final dio = Dio();
-  //     final formData = FormData.fromMap({
-  //       'file1': await MultipartFile.fromFile(filePath),
-  //     });
-
-  //     final response = await dio.post(
-  //       webhookUrl,
-  //       data: formData,
-  //       options: Options(contentType: 'multipart/form-data'),
-  //     );
-
-  //     if (response.statusCode == 200 || response.statusCode == 204) {
-  //       print('Successfully sent file to Discord webhook.');
-  //     } else {
-  //       print(
-  //           'Failed to send file to Discord webhook. Status: ${response.statusCode}, Body: ${response.data}');
-  //     }
-  //   } catch (e) {
-  //     print('Error sending file to Discord webhook: $e');
-  //   }
-  // }
-
+  /// Creates an [InspectorUtils] instance.
+  ///
+  /// [webhookInspectors] A list of webhook inspectors for different services
+  /// (Discord, Telegram, etc.) that will be used for inspection and file sending.
   InspectorUtils({
-    this.discordInspectors,
+    this.webhookInspectors,
   });
 
-  final List<DiscordInspector>? discordInspectors;
+  /// The webhook inspectors to use for inspection and file operations.
+  /// Supports any service that extends [WebhookInspectorBase] (Discord, Telegram, etc.).
+  final List<WebhookInspectorBase>? webhookInspectors;
+
   // in future we will add more inspection methods, such as logcat, etc.
 
+  /// Inspects a request/response using all configured webhook inspectors.
+  ///
+  /// This method delegates the inspection to all webhook inspectors,
+  /// allowing them to handle the request/response according to their
+  /// specific configuration (URL filtering, status code filtering, etc.).
+  ///
+  /// [requestOptions] The request options to inspect.
+  /// [response] The response to inspect (if available).
+  /// [err] Any error that occurred during the request.
+  /// [stopwatch] Optional stopwatch for timing information.
+  /// [senderInfo] Optional sender information for webhook messages.
   Future<void> inspect({
     required RequestOptions requestOptions,
     required Response? response,
     DioException? err,
     Stopwatch? stopwatch,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
-    if (discordInspectors != null && discordInspectors!.isNotEmpty) {
-      for (final discordInspector in discordInspectors!) {
-        discordInspector.inspectOn(
+    if (webhookInspectors != null && webhookInspectors!.isNotEmpty) {
+      for (final webhookInspector in webhookInspectors!) {
+        webhookInspector.inspectOn(
           options: requestOptions,
           response: response,
           err: err,
           stopwatch: stopwatch,
-          username: username,
-          avatarUrl: avatarUrl,
+          senderInfo: senderInfo,
         );
       }
     }
   }
 
+  /// Sends all cached cURL data to all configured webhook inspectors.
+  ///
+  /// This method exports the cached cURL data and sends it to all
+  /// webhook inspectors, allowing them to handle the data according
+  /// to their specific service requirements.
+  ///
+  /// Returns a [Future] that completes when all webhook inspectors
+  /// have processed the cached data.
   Future<void> sendAllCachedCurlAsJson() async {
-    if (discordInspectors != null && discordInspectors!.isNotEmpty) {
+    if (webhookInspectors != null && webhookInspectors!.isNotEmpty) {
       final path_ = await CachedCurlStorage.exportFile();
-      for (final discordInspector in discordInspectors!) {
-        discordInspector.S.sendFiles(paths: path_ == null ? [] : [path_]);
+      for (final webhookInspector in webhookInspectors!) {
+        // Use the sendFiles method from WebhookInspectorBase
+        await webhookInspector.sendFiles(paths: path_ == null ? [] : [path_]);
       }
     }
   }

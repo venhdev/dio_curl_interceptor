@@ -20,11 +20,13 @@ class TelegramInspector extends WebhookInspectorBase {
   /// [excludeUrls] A list of URI patterns to exclude from inspection. If not empty,
   ///   requests matching any of these patterns will NOT be sent.
   /// [inspectionStatus] A list of [ResponseStatus] types that trigger webhook notifications.
+  /// [senderInfo] Optional sender information (username, avatar) for webhook messages.
   const TelegramInspector({
     super.webhookUrls = const <String>[],
     super.includeUrls = const [],
     super.excludeUrls = const [],
     super.inspectionStatus = defaultInspectionStatus,
+    super.senderInfo,
   });
 
   TelegramWebhookSender get S => TelegramWebhookSender(hookUrls: webhookUrls);
@@ -41,8 +43,7 @@ class TelegramInspector extends WebhookInspectorBase {
     required int statusCode,
     dynamic responseBody,
     String? responseTime,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
     Map<String, dynamic>? extraInfo,
   }) async {
     return S.sendCurlLog(
@@ -52,8 +53,7 @@ class TelegramInspector extends WebhookInspectorBase {
       statusCode: statusCode,
       responseBody: responseBody,
       responseTime: responseTime,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
       extraInfo: extraInfo,
     );
   }
@@ -64,16 +64,14 @@ class TelegramInspector extends WebhookInspectorBase {
     StackTrace? stackTrace,
     String? message,
     Map<String, dynamic>? extraInfo,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     return S.sendBugReport(
       error: error,
       stackTrace: stackTrace,
       message: message,
       extraInfo: extraInfo,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
     );
   }
 
@@ -81,27 +79,23 @@ class TelegramInspector extends WebhookInspectorBase {
   Future<List<Response>> sendFiles({
     required List<String> paths,
     Map<String, dynamic>? payload,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     return S.sendFiles(
       paths: paths,
       payload: payload,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
     );
   }
 
   @override
   Future<List<Response>> sendMessage({
     required String content,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     return S.sendMessage(
       content: content,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
     );
   }
 }
@@ -131,8 +125,7 @@ class TelegramWebhookSender extends WebhookSenderBase {
   /// [statusCode] The HTTP status code of the response.
   /// [responseBody] (optional) The body of the response.
   /// [responseTime] (optional) The time taken for the response.
-  /// [username] (optional) The username to display for the webhook message.
-  /// [avatarUrl] (optional) The avatar URL to display for the webhook message.
+  /// [senderInfo] (optional) Sender information for the webhook message.
   /// [extraInfo] (optional) Additional information to include in the message.
   ///
   /// Returns a [Future] that completes with a list of [Response] objects
@@ -144,8 +137,7 @@ class TelegramWebhookSender extends WebhookSenderBase {
     required int statusCode,
     dynamic responseBody,
     String? responseTime,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
     Map<String, dynamic>? extraInfo,
   }) async {
     final message = _createCurlMessage(
@@ -173,15 +165,13 @@ class TelegramWebhookSender extends WebhookSenderBase {
   /// [stackTrace] The stack trace associated with the error.
   /// [message] An optional descriptive message for the report.
   /// [extraInfo] Optional additional information about the user or context.
-  /// [username] Optional username for the webhook message.
-  /// [avatarUrl] Optional avatar URL for the webhook message.
+  /// [senderInfo] Optional sender information for the webhook message.
   Future<List<Response>> sendBugReport({
     required Object error,
     StackTrace? stackTrace,
     String? message,
     Map<String, dynamic>? extraInfo,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     final content = _createBugReportMessage(
       error: error,
@@ -204,12 +194,10 @@ class TelegramWebhookSender extends WebhookSenderBase {
   /// Sends a simple message to Telegram webhooks.
   ///
   /// [content] The message content to send.
-  /// [username] Optional username for the webhook message.
-  /// [avatarUrl] Optional avatar URL for the webhook message.
+  /// [senderInfo] Optional sender information for the webhook message.
   Future<List<Response>> sendMessage({
     required String content,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     final telegramMessage = {
       'text': content,
@@ -226,8 +214,7 @@ class TelegramWebhookSender extends WebhookSenderBase {
   Future<List<Response>> sendFiles({
     required List<String> paths,
     Map<String, dynamic>? payload,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     // Note: Telegram Bot API doesn't support direct file uploads via webhooks
     // This method sends a message with file information instead

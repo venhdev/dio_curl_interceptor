@@ -12,3 +12,7 @@ const defaultInspectionStatus = <ResponseStatus>[
   ResponseStatus.clientError,
   ResponseStatus.serverError,
 ];
+
+// Default sender information constants
+const String kDefaultUsername = 'Dio cURL Interceptor';
+const String kDefaultBugReporterUsername = 'Bug Reporter';

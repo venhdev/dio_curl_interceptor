@@ -21,11 +21,13 @@ class DiscordInspector extends WebhookInspectorBase {
   /// [excludeUrls] A list of URI patterns to exclude from inspection. If not empty,
   ///   requests matching any of these patterns will NOT be sent.
   /// [inspectionStatus] A list of [ResponseStatus] types that trigger webhook notifications.
+  /// [senderInfo] Optional sender information (username, avatar) for webhook messages.
   const DiscordInspector({
     super.webhookUrls = const <String>[],
     super.includeUrls = const [],
     super.excludeUrls = const [],
     super.inspectionStatus = defaultInspectionStatus,
+    super.senderInfo,
   });
 
   DiscordWebhookSender get S => DiscordWebhookSender(hookUrls: webhookUrls);
@@ -42,8 +44,7 @@ class DiscordInspector extends WebhookInspectorBase {
     required int statusCode,
     dynamic responseBody,
     String? responseTime,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
     Map<String, dynamic>? extraInfo,
   }) async {
     return S.sendCurlLog(
@@ -53,8 +54,7 @@ class DiscordInspector extends WebhookInspectorBase {
       statusCode: statusCode,
       responseBody: responseBody,
       responseTime: responseTime,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
       extraInfo: extraInfo,
     );
   }
@@ -65,16 +65,14 @@ class DiscordInspector extends WebhookInspectorBase {
     StackTrace? stackTrace,
     String? message,
     Map<String, dynamic>? extraInfo,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     return S.sendBugReport(
       error: error,
       stackTrace: stackTrace,
       message: message,
       extraInfo: extraInfo,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
     );
   }
 
@@ -82,27 +80,23 @@ class DiscordInspector extends WebhookInspectorBase {
   Future<List<Response>> sendFiles({
     required List<String> paths,
     Map<String, dynamic>? payload,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     return S.sendFiles(
       paths: paths,
       payload: payload,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
     );
   }
 
   @override
   Future<List<Response>> sendMessage({
     required String content,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     return S.sendMessage(
       content: content,
-      username: username,
-      avatarUrl: avatarUrl,
+      senderInfo: senderInfo ?? this.senderInfo,
     );
   }
 }
@@ -154,8 +148,7 @@ class DiscordWebhookSender extends WebhookSenderBase {
   /// [statusCode] The HTTP status code of the response.
   /// [responseBody] (optional) The body of the response.
   /// [responseTime] (optional) The time taken for the response.
-  /// [username] (optional) The username to display for the webhook message.
-  /// [avatarUrl] (optional) The avatar URL to display for the webhook message.
+  /// [senderInfo] (optional) Sender information for the webhook message.
   ///
   /// Returns a [Future] that completes with a list of [Response] objects
   /// from each successful webhook call.
@@ -166,8 +159,7 @@ class DiscordWebhookSender extends WebhookSenderBase {
     required int statusCode,
     dynamic responseBody,
     String? responseTime,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
     Map<String, dynamic>? extraInfo,
   }) async {
     final embed = DiscordEmbed.createCurlEmbed(
@@ -181,8 +173,8 @@ class DiscordWebhookSender extends WebhookSenderBase {
     );
 
     final message = DiscordWebhookMessage(
-      username: username ?? 'Dio cURL Interceptor',
-      avatarUrl: avatarUrl,
+      username: senderInfo?.username ?? kDefaultUsername,
+      avatarUrl: senderInfo?.avatarUrl,
       embeds: [embed],
     );
 
@@ -197,14 +189,14 @@ class DiscordWebhookSender extends WebhookSenderBase {
   /// [error]: The error object or message.
   /// [stackTrace]: The stack trace associated with the error.
   /// [message]: An optional descriptive message for the report.
-  /// [userInfo]: Optional additional information about the user or context.
+  /// [extraInfo]: Optional additional information about the user or context.
+  /// [senderInfo]: Optional sender information for the webhook message.
   Future<List<Response>> sendBugReport({
     required Object error,
     StackTrace? stackTrace,
     String? message,
     Map<String, dynamic>? extraInfo,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     final List<DiscordEmbedField> fields = [
       DiscordEmbedField(
@@ -239,8 +231,8 @@ class DiscordWebhookSender extends WebhookSenderBase {
     );
 
     final discordMessage = DiscordWebhookMessage(
-      username: username ?? 'Bug Reporter',
-      avatarUrl: avatarUrl,
+      username: senderInfo?.username ?? kDefaultBugReporterUsername,
+      avatarUrl: senderInfo?.avatarUrl,
       embeds: [embed],
     );
 
@@ -254,28 +246,27 @@ class DiscordWebhookSender extends WebhookSenderBase {
   ///
   /// [webhookUrl] The specific webhook URL to send the file to (note: this method currently sends to all configured hookUrls).
   /// [filePaths] The path to the file to send.
-  Future<void> sendToDiscordWebhook(
-      String webhookUrl, List<String> filePaths) async {
+  /// [senderInfo] Optional sender information for the webhook message.
+  Future<void> sendToDiscordWebhook(String webhookUrl, List<String> filePaths,
+      {SenderInfo? senderInfo}) async {
     // Note: The original implementation of sendToDiscordWebhook was not found.
     // This new implementation uses the existing sendFiles method.
     // The webhookUrl parameter is currently ignored as sendFiles uses the class's hookUrls.
-    await sendFiles(paths: filePaths);
+    await sendFiles(paths: filePaths, senderInfo: senderInfo);
   }
 
   /// Sends a simple message to Discord webhooks.
   ///
   /// [content] The message content to send.
-  /// [username] Optional username for the webhook message.
-  /// [avatarUrl] Optional avatar URL for the webhook message.
+  /// [senderInfo] Optional sender information for the webhook message.
   Future<List<Response>> sendMessage({
     required String content,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     final message = DiscordWebhookMessage(
       content: content,
-      username: username ?? 'Dio cURL Interceptor',
-      avatarUrl: avatarUrl,
+      username: senderInfo?.username ?? kDefaultUsername,
+      avatarUrl: senderInfo?.avatarUrl,
     );
 
     return send(message);

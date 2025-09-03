@@ -22,11 +22,13 @@ abstract class WebhookInspectorBase {
   /// [excludeUrls] A list of URI patterns to exclude from inspection. If not empty,
   ///   requests matching any of these patterns will NOT be sent.
   /// [inspectionStatus] A list of [ResponseStatus] types that trigger webhook notifications.
+  /// [senderInfo] Optional sender information (username, avatar) for webhook messages.
   const WebhookInspectorBase({
     required this.webhookUrls,
     this.includeUrls = const [],
     this.excludeUrls = const [],
     this.inspectionStatus = defaultInspectionStatus,
+    this.senderInfo,
   });
 
   /// The webhook URLs to send logs to.
@@ -42,6 +44,9 @@ abstract class WebhookInspectorBase {
 
   /// The type of inspection to perform.
   final List<ResponseStatus> inspectionStatus;
+
+  /// Optional sender information for webhook messages.
+  final SenderInfo? senderInfo;
 
   /// Determines if a given URI and status code match the inspection criteria.
   ///
@@ -84,30 +89,26 @@ abstract class WebhookInspectorBase {
   void inspectOnResponse({
     required Response<dynamic> response,
     Stopwatch? stopwatch,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) =>
       inspectOn(
         options: response.requestOptions,
         response: response,
         stopwatch: stopwatch,
-        username: username,
-        avatarUrl: avatarUrl,
+        senderInfo: senderInfo,
       );
 
   void inspectOnError({
     required DioException err,
     Stopwatch? stopwatch,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) =>
       inspectOn(
         options: err.requestOptions,
         response: err.response,
         err: err,
         stopwatch: stopwatch,
-        username: username,
-        avatarUrl: avatarUrl,
+        senderInfo: senderInfo,
       );
 
   void inspectOn({
@@ -115,8 +116,7 @@ abstract class WebhookInspectorBase {
     required Response<dynamic>? response,
     DioException? err,
     Stopwatch? stopwatch,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) {
     final uri = options.uri.toString();
     final statusCode = response?.statusCode ?? -1;
@@ -129,13 +129,15 @@ abstract class WebhookInspectorBase {
         xClientTimeHeader: options.headers[kXClientTime],
       );
 
+      // Use provided senderInfo or fall back to class-level senderInfo
+      final effectiveSenderInfo = senderInfo ?? this.senderInfo;
+
       sendCurlLog(
         curl: curl,
         method: options.method,
         uri: uri,
         statusCode: statusCode,
-        username: username,
-        avatarUrl: avatarUrl,
+        senderInfo: effectiveSenderInfo,
         responseTime: '$duration ms',
         responseBody: responseBody,
         extraInfo: err != null
@@ -156,8 +158,7 @@ abstract class WebhookInspectorBase {
   /// [statusCode] The HTTP status code of the response.
   /// [responseBody] (optional) The body of the response.
   /// [responseTime] (optional) The time taken for the response.
-  /// [username] (optional) The username to display for the webhook message.
-  /// [avatarUrl] (optional) The avatar URL to display for the webhook message.
+  /// [senderInfo] (optional) Sender information for the webhook message.
   /// [extraInfo] (optional) Additional information to include in the message.
   Future<List<Response>> sendCurlLog({
     required String? curl,
@@ -166,8 +167,7 @@ abstract class WebhookInspectorBase {
     required int statusCode,
     dynamic responseBody,
     String? responseTime,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
     Map<String, dynamic>? extraInfo,
   });
 
@@ -177,39 +177,33 @@ abstract class WebhookInspectorBase {
   /// [stackTrace] The stack trace associated with the error.
   /// [message] An optional descriptive message for the report.
   /// [extraInfo] Optional additional information about the user or context.
-  /// [username] Optional username for the webhook message.
-  /// [avatarUrl] Optional avatar URL for the webhook message.
+  /// [senderInfo] Optional sender information for the webhook message.
   Future<List<Response>> sendBugReport({
     required Object error,
     StackTrace? stackTrace,
     String? message,
     Map<String, dynamic>? extraInfo,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   });
 
   /// Abstract method to send files to the webhook service.
   ///
   /// [paths] List of file paths to send.
   /// [payload] Optional payload to include with files.
-  /// [username] Optional username for the webhook message.
-  /// [avatarUrl] Optional avatar URL for the webhook message.
+  /// [senderInfo] Optional sender information for the webhook message.
   Future<List<Response>> sendFiles({
     required List<String> paths,
     Map<String, dynamic>? payload,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   });
 
   /// Abstract method to send a simple message to the webhook service.
   ///
   /// [content] The message content to send.
-  /// [username] Optional username for the webhook message.
-  /// [avatarUrl] Optional avatar URL for the webhook message.
+  /// [senderInfo] Optional sender information for the webhook message.
   Future<List<Response>> sendMessage({
     required String content,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   });
 }
 
@@ -275,13 +269,11 @@ abstract class WebhookSenderBase {
   ///
   /// [paths] List of file paths to send.
   /// [payload] Optional JSON payload to include with files.
-  /// [username] Optional username for the webhook message.
-  /// [avatarUrl] Optional avatar URL for the webhook message.
+  /// [senderInfo] Optional sender information for the webhook message.
   Future<List<Response>> sendFiles({
     required List<String> paths,
     Map<String, dynamic>? payload,
-    String? username,
-    String? avatarUrl,
+    SenderInfo? senderInfo,
   }) async {
     final List<Response> responses = [];
     final formData = FormData();
@@ -303,8 +295,8 @@ abstract class WebhookSenderBase {
       formData.fields.add(MapEntry(
         'payload_json',
         jsonEncode({
-          'username': username,
-          'avatar_url': avatarUrl,
+          'username': senderInfo?.username,
+          'avatar_url': senderInfo?.avatarUrl,
           ...payload,
         }),
       ));
