@@ -51,21 +51,4 @@ class InspectorUtils {
     }
   }
 
-  /// Sends all cached cURL data to all configured webhook inspectors.
-  ///
-  /// This method exports the cached cURL data and sends it to all
-  /// webhook inspectors, allowing them to handle the data according
-  /// to their specific service requirements.
-  ///
-  /// Returns a [Future] that completes when all webhook inspectors
-  /// have processed the cached data.
-  Future<void> sendAllCachedCurlAsJson() async {
-    if (webhookInspectors != null && webhookInspectors!.isNotEmpty) {
-      final path_ = await CachedCurlStorage.exportFile();
-      for (final webhookInspector in webhookInspectors!) {
-        // Use the sendFiles method from WebhookInspectorBase
-        await webhookInspector.sendFiles(paths: path_ == null ? [] : [path_]);
-      }
-    }
-  }
 }

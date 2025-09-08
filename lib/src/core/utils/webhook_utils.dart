@@ -1,4 +1,5 @@
-import 'package:codekit/codekit.dart';
+
+import 'package:type_caster/type_caster.dart';
 
 /// Formats a value for embedding in webhook messages.
 ///
