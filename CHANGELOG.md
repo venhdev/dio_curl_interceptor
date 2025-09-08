@@ -1,3 +1,10 @@
+## v3.3.3-alpha
+
+- **BREAKING**: Removed file export functionality from CurlViewer (moved to legacy documentation)
+- **REFACTOR**: Cleaned up unused dependencies (`codekit`, `file_saver`) from pubspec.yaml
+- **ENHANCEMENT**: Refactored `CurlViewerPopup` to `CurlViewer` with improved UI and display logic
+- **DOCS**: Added legacy documentation for removed export file functionality
+
 ## v3.3.2
 
 - **NEW**: Added SenderInfo class for custom sender information in webhook inspectors

@@ -19,4 +19,4 @@ export 'src/interceptors/dio_curl_interceptor_base.dart';
 export 'src/options/cache_options.dart';
 export 'src/options/curl_options.dart';
 // ui
-export 'src/ui/curl_viewer_popup.dart';
+export 'src/ui/curl_viewer.dart';
