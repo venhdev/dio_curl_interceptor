@@ -187,9 +187,9 @@ class _CurlViewerState extends State<CurlViewer> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         text,
@@ -216,9 +216,10 @@ class _CurlViewerState extends State<CurlViewer> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  border:
+                      Border.all(color: Colors.green.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   '$totalCount entries',
@@ -453,13 +454,13 @@ class _CurlViewerState extends State<CurlViewer> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: (entry.statusCode ?? 200) >= 400
-                                ? Colors.red.withOpacity(0.2)
-                                : Colors.green.withOpacity(0.2),
+                                ? Colors.red.withValues(alpha: 0.2)
+                                : Colors.green.withValues(alpha: 0.2),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -482,13 +483,13 @@ class _CurlViewerState extends State<CurlViewer> {
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: (entry.statusCode ?? 200) >= 400
-                                      ? Colors.red.withOpacity(0.1)
-                                      : Colors.green.withOpacity(0.1),
+                                      ? Colors.red.withValues(alpha: 0.1)
+                                      : Colors.green.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: (entry.statusCode ?? 200) >= 400
-                                        ? Colors.red.withOpacity(0.3)
-                                        : Colors.green.withOpacity(0.3),
+                                        ? Colors.red.withValues(alpha: 0.3)
+                                        : Colors.green.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Text(
