@@ -155,7 +155,6 @@ class CachedCurlStorage {
     ).length;
   }
 
-
   static Iterable<CachedCurlEntry> _getFilteredEntries({
     String search = '',
     DateTime? startDate,
