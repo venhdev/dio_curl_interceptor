@@ -1,0 +1,111 @@
+---
+description: Flutter BLoC data sharing patterns and clean architecture rules
+globs:
+alwaysApply: false
+---
+
+# Flutter BLoC Data Sharing Rules
+
+## Core Principles
+- **Single Source of Truth**: Use Repository/Service for shared data
+- **No Bloc-to-Bloc Dependencies**: Blocs depend only on repositories, never other blocs
+- **Reactive State**: Expose state via `Stream` + `getter`
+- **Subscribe in Blocs**: Listen to repository streams and react
+
+## Repository Pattern
+```dart
+abstract class AuthRepository {
+  Stream<User?> get userStream;
+  User? get currentUser;
+  Future<void> login(String email, String password);
+  Future<void> logout();
+}
+
+class AuthRepositoryImpl implements AuthRepository {
+  final _controller = BehaviorSubject<User?>();
+  User? _currentUser;
+
+  @override
+  Stream<User?> get userStream => _controller.stream;
+
+  @override
+  User? get currentUser => _currentUser;
+
+  @override
+  Future<void> login(String email, String password) async {
+    final user = await api.login(email, password);
+    _currentUser = user;
+    _controller.add(user);
+  }
+
+  @override
+  Future<void> logout() async {
+    _currentUser = null;
+    _controller.add(null);
+  }
+}
+```
+
+## Bloc Implementation
+
+### AuthBloc - Updates Repository
+```dart
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final AuthRepository authRepository;
+
+  AuthBloc(this.authRepository) : super(AuthInitial()) {
+    on<LoginRequested>((event, emit) async {
+      await authRepository.login(event.email, event.password);
+      emit(AuthSuccess(authRepository.currentUser!));
+    });
+
+    on<LogoutRequested>((event, emit) async {
+      await authRepository.logout();
+      emit(AuthLoggedOut());
+    });
+  }
+}
+```
+
+### Feature Bloc - Listens to Repository
+```dart
+class CartBloc extends Bloc<CartEvent, CartState> {
+  final AuthRepository authRepository;
+  late final StreamSubscription _authSub;
+
+  CartBloc(this.authRepository) : super(CartInitial()) {
+    _authSub = authRepository.userStream.listen((user) {
+      if (user != null) {
+        add(LoadCart(userId: user.id));
+      } else {
+        add(ClearCart());
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _authSub.cancel();
+    return super.close();
+  }
+}
+```
+
+## Architecture Flow
+```
+AuthRepository (Single Source) 
+    ↓ Stream<User?>
+AuthBloc → Feature Blocs (CartBloc, ProfileBloc)
+```
+
+## Don'ts
+- ❌ Pass blocs into each other
+- ❌ Store user state in multiple blocs  
+- ❌ Forget to cancel subscriptions
+- ❌ Use repositories as "dumb data holders"
+
+## Pro Tips
+- Use `BehaviorSubject` for "latest value + stream"
+- Cache data inside repository for persistence
+- Handle token refresh in repository, not blocs
+- Let AuthRepository be the only authority for auth state

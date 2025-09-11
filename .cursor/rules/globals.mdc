@@ -1,0 +1,31 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Global Task Logging Rule
+
+For all tasks, write a short description after finished (using echo) to [agent_task.log](mdc:agent_task.log) - keep it as brief as possible.
+
+# Project tech stack & architecture patterns
+
+## Core Framework
+- **Language**: Dart + Flutter (package)
+- **State Management**:
+- **Networking**: Dio
+
+## Storage & Data
+- **Local Storage**: SharedPreferences (simple), SecureStorage (sensitive)
+
+## UI & Architecture
+- **UI & Theming**:
+- **Dependency Injection**:
+- **Navigation**:
+
+## Development & Testing
+- **Logging & Debugging**:
+- **Testing**:
+
+## Deployment
+- **CI/CD & Distribution**: GitHub Actions
