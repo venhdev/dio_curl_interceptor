@@ -14,8 +14,10 @@ void main() async {
   );
 
   // Example 2: Using Telegram webhook inspector
+  // Note: For Telegram, you need to include the chat_id in the webhook URL
+  // Format: https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage?chat_id=<CHAT_ID>
   final telegramInspector = TelegramInspector(
-    webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+    webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
     includeUrls: ['api.example.com'],
     excludeUrls: ['api.example.com/health'],
     inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
@@ -40,7 +42,7 @@ void main() async {
   // );
 
   // final telegramOnlyInterceptor = CurlInterceptor.withTelegramInspector(
-  //   ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+  //   ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
   //   includeUrls: ['api.example.com'],
   //   inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
   // );

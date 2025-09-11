@@ -72,7 +72,6 @@ dio.interceptors.add(
     curlOptions: const CurlOptions(
       status: true,         // Show status codes in logs
       responseTime: true,   // Show response timing
-      convertFormData: true, // Convert FormData to JSON in cURL output
       onRequest: RequestDetails(visible: true),
       onResponse: ResponseDetails(visible: true, responseBody: true),
       onError: ErrorDetails(visible: true, responseBody: true),
@@ -199,9 +198,6 @@ Generates and logs a curl command from request options:
 ```dart
 CurlUtils.logCurl(
   requestOptions,
-  curlOptions: CurlOptions(
-    convertFormData: true,
-  ),
 );
 ```
 

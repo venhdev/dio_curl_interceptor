@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:type_caster/type_caster.dart';
 
 /// Formats a value for embedding in webhook messages.
@@ -7,11 +9,24 @@ import 'package:type_caster/type_caster.dart';
 /// [lang] Optional language identifier for syntax highlighting.
 ///
 /// Returns a formatted string suitable for webhook messages.
-String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) =>
-    _wrapWithBackticks(
-      stringify(rawValue, maxLen: len, replacements: _replacementsEmbedField),
-      lang,
-    );
+String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) {
+  String formatted;
+  
+  if (rawValue is Map || rawValue is List) {
+    // Use proper JSON formatting for structured data
+    try {
+      formatted = JsonEncoder.withIndent('  ').convert(rawValue);
+    } catch (e) {
+      // Fallback to stringify if JSON encoding fails
+      formatted = stringify(rawValue, maxLen: len, replacements: _replacementsEmbedField);
+    }
+  } else {
+    // Use stringify for other types
+    formatted = stringify(rawValue, maxLen: len, replacements: _replacementsEmbedField);
+  }
+  
+  return _wrapWithBackticks(formatted, lang);
+}
 
 const Map<String, String> _replacementsEmbedField = {'```': ''};
 

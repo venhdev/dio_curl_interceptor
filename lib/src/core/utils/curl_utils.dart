@@ -19,13 +19,11 @@ import '../types.dart';
 /// and request body.
 ///
 /// [requestOptions] The [RequestOptions] from which to generate the cURL command.
-/// [shouldConvertFormData] Whether to convert FormData to JSON in the cURL output.
 /// Returns a [String] representing the cURL command.
-String? genCurl(RequestOptions options, [bool convertFormData = true]) {
+String? genCurl(RequestOptions options) {
   try {
     return Helpers.generateCurlFromRequestOptions(
       options,
-      convertFormData: convertFormData,
     );
   } catch (e) {
     ColoredLogger.info(
@@ -140,13 +138,11 @@ class CurlUtils {
   /// apply ANSI colors to the output.
   ///
   /// [requestOptions] The [RequestOptions] from which to generate the cURL command.
-  /// [shouldConvertFormData] Whether to convert FormData to JSON in the cURL output.
   /// [prefix] A prefix to add to the logged cURL command.
   /// [ansi] An optional [Ansi] object to apply colors to the output.
   /// [printer] An optional custom printer function to use for logging.
   static void logCurl(
     RequestOptions requestOptions, {
-    bool shouldConvertFormData = true,
     String prefix = kPrefix,
     Ansi? ansi,
     Printer? printer,
@@ -155,7 +151,6 @@ class CurlUtils {
       String curl = prefix +
           Helpers.generateCurlFromRequestOptions(
             requestOptions,
-            convertFormData: shouldConvertFormData,
           );
 
       // decorate
@@ -191,7 +186,7 @@ class CurlUtils {
   }) {
     if (curlOptions.requestVisible &&
         curlOptions.behavior == CurlBehavior.chronological) {
-      final String? curl = genCurl(options, curlOptions.convertFormData);
+      final String? curl = genCurl(options);
       final String tag = _tagCurrentTime();
 
       if (curlOptions.responseTime) CurlUtils.addXClientTime(options);
@@ -264,7 +259,7 @@ void _handleOn({
   List<WebhookInspectorBase>? webhookInspectors,
 }) {
   final bool isError = err != null;
-  final String? curl = genCurl(requestOptions, curlOptions.convertFormData);
+  final String? curl = genCurl(requestOptions);
 
   String errType = '';
   if (err != null) {

@@ -15,7 +15,6 @@ void main() async {
     curlOptions: CurlOptions(
       status: true,
       responseTime: true,
-      convertFormData: true,
       onRequest: RequestDetails(visible: true),
       onResponse: ResponseDetails(
         visible: true,
@@ -36,7 +35,6 @@ void main() async {
     curlOptions: CurlOptions(
       status: true,
       responseTime: true,
-      convertFormData: true,
       onRequest: RequestDetails(visible: true),
       onResponse: ResponseDetails(visible: true, responseBody: true),
       onError: ErrorDetails(visible: true, responseBody: true),
@@ -129,7 +127,6 @@ void main() async {
     curlOptions: CurlOptions(
       status: true, // Show status codes + name in logs
       responseTime: true, // Show response timing
-      convertFormData: true, // Convert FormData to JSON in cURL output
       behavior: CurlBehavior.chronological,
       onRequest: RequestDetails(
         visible: true,

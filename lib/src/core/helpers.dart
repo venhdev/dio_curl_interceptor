@@ -42,17 +42,11 @@ class Helpers {
   // }
 
   static String generateCurlFromRequestOptions(
-    RequestOptions originRequestOptions, {
-    bool convertFormData = true,
-  }) {
+    RequestOptions originRequestOptions,
+  ) {
     // make a new instance of options to avoid mutating the original object
     final options = originRequestOptions.copyWith();
 
-    if (options.data is FormData && convertFormData == false) {
-      final msg =
-          '[CurlInterceptor] FormData cannot be converted to cURL. Set CurlOptions.convertFormData to `true` to convert it to JSON for request: ${options.uri.toString()}';
-      return msg;
-    }
 
     List<String> components = ['curl -i'];
     components.add('-X ${options.method}');
@@ -65,8 +59,31 @@ class Helpers {
 
     if (options.data != null) {
       // FormData can't be JSON-serialized, so keep only their fields attributes
-      if (options.data is FormData && convertFormData == true) {
-        options.data = Map.fromEntries(options.data.fields);
+      if (options.data is FormData) {
+        final formData = options.data as FormData;
+        final Map<String, dynamic> dataMap = Map.fromEntries(formData.fields);
+        
+        // Handle file attachments - group files by field name and use filenames as values
+        final Map<String, List<String>> fileGroups = {};
+        for (final fileEntry in formData.files) {
+          final fieldName = fileEntry.key;
+          final fileName = fileEntry.value.filename ?? 'unknown_file';
+          
+          fileGroups.putIfAbsent(fieldName, () => []).add(fileName);
+        }
+        
+        // Add file information to the data map
+        // For single files, use the filename directly
+        // For multiple files with the same field name, use an array of filenames
+        fileGroups.forEach((fieldName, fileNames) {
+          if (fileNames.length == 1) {
+            dataMap[fieldName] = fileNames.first;
+          } else {
+            dataMap[fieldName] = fileNames;
+          }
+        });
+        
+        options.data = dataMap;
       }
 
       final data = json.encode(options.data).replaceAll('"', '\\"');

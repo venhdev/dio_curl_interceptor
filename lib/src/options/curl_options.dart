@@ -8,7 +8,6 @@ class CurlOptions {
   const CurlOptions({
     this.status = true,
     this.responseTime = true,
-    this.convertFormData = true,
     this.onRequest = const RequestDetails(),
     this.onResponse = const ResponseDetails(),
     this.onError = const ErrorDetails(),
@@ -20,7 +19,6 @@ class CurlOptions {
   factory CurlOptions.allEnabled() => const CurlOptions(
         status: true,
         responseTime: true,
-        convertFormData: true,
         onRequest: RequestDetails(visible: true),
         onResponse: ResponseDetails(
           visible: true,
@@ -49,9 +47,6 @@ class CurlOptions {
 
   /// Show response time
   final bool responseTime;
-
-  /// Convert FormData to JSON
-  final bool convertFormData;
 
   /// Define behavior of curl how it's printed
   final CurlBehavior? behavior;
@@ -102,7 +97,6 @@ class CurlOptions {
   CurlOptions copyWith({
     bool? status,
     bool? responseTime,
-    bool? convertFormData,
     CurlBehavior? behavior,
     Printer? printer,
     PrettyConfig? prettyConfig,
@@ -113,7 +107,6 @@ class CurlOptions {
     return CurlOptions(
       status: status ?? this.status,
       responseTime: responseTime ?? this.responseTime,
-      convertFormData: convertFormData ?? this.convertFormData,
       behavior: behavior ?? this.behavior,
       printer: printer ?? this.printer,
       prettyConfig: prettyConfig ?? this.prettyConfig,
@@ -124,19 +117,12 @@ class CurlOptions {
   }
 
   // getters base on type
-  bool requestHeadersOf(bool isError) =>
-      (isError ? onError?.requestHeaders : onResponse?.requestHeaders) ?? false;
-  bool requestBodyOf(bool isError) =>
-      (isError ? onError?.requestBody : onResponse?.requestBody) ?? false;
-  bool responseBodyOf(bool isError) =>
-      (isError ? onError?.responseBody : onResponse?.responseBody) ?? false;
-  bool responseHeadersOf(bool isError) =>
-      (isError ? onError?.responseHeaders : onResponse?.responseHeaders) ??
-      false;
-  int? limitResponseBodyOf(bool isError) =>
-      isError ? onError?.limitResponseBody : onResponse?.limitResponseBody;
-  int? limitResponseFieldOf(bool isError) =>
-      isError ? onError?.limitResponseField : onResponse?.limitResponseField;
+  bool requestHeadersOf(bool isError) => (isError ? onError?.requestHeaders : onResponse?.requestHeaders) ?? false;
+  bool requestBodyOf(bool isError) => (isError ? onError?.requestBody : onResponse?.requestBody) ?? false;
+  bool responseBodyOf(bool isError) => (isError ? onError?.responseBody : onResponse?.responseBody) ?? false;
+  bool responseHeadersOf(bool isError) => (isError ? onError?.responseHeaders : onResponse?.responseHeaders) ?? false;
+  int? limitResponseBodyOf(bool isError) => isError ? onError?.limitResponseBody : onResponse?.limitResponseBody;
+  int? limitResponseFieldOf(bool isError) => isError ? onError?.limitResponseField : onResponse?.limitResponseField;
 }
 
 /// see [Ansi] for more colors and styles

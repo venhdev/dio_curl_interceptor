@@ -51,7 +51,6 @@ dio.interceptors.add(CurlInterceptor(
   curlOptions: CurlOptions(
     status: true, // Show status codes + name in logs
     responseTime: true, // Show response timing
-    convertFormData: true, // Convert FormData to JSON in cURL output
     behavior: CurlBehavior.chronological,
     onRequest: RequestDetails(
       visible: true,
@@ -98,7 +97,7 @@ dio.interceptors.add(CurlInterceptor(
       excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
     ),
     TelegramInspector(
-      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
       includeUrls: const ['/api/v1/users', 'https://example.com/data'],
       excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
@@ -120,7 +119,7 @@ class YourInterceptor extends Interceptor {
       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
     ),
     TelegramInspector(
-      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
     ),
   ];
@@ -165,7 +164,7 @@ final webhookInspectors = [
     includeUrls: ['api.example.com'],
   ),
   TelegramInspector(
-    webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+    webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
     inspectionStatus: [ResponseStatus.serverError], // Only server errors to Telegram
     includeUrls: ['api.example.com'],
   ),
@@ -182,6 +181,25 @@ dio.interceptors.add(CurlInterceptor(
 
 You can use webhook integration to send cURL logs to Discord channels or Telegram chats for remote logging and team collaboration:
 
+#### Setting up Telegram Webhooks
+
+For Telegram integration, you need to:
+
+1. **Create a Telegram Bot:**
+   - Message [@BotFather](https://t.me/botfather) on Telegram
+   - Use `/newbot` command and follow the instructions
+   - Save your bot token
+
+2. **Get your Chat ID:**
+   - Start a conversation with your bot
+   - Send any message to the bot
+   - Visit `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+   - Find your chat ID in the response (it's a number, can be negative for groups)
+
+3. **Configure the webhook URL:**
+   - Use format: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage?chat_id=<YOUR_CHAT_ID>`
+   - Example: `https://api.telegram.org/bot123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11/sendMessage?chat_id=123456789`
+
 ```dart
 // Using factory constructors for convenience
 dio.interceptors.add(CurlInterceptor.withDiscordInspector(
@@ -192,7 +210,7 @@ dio.interceptors.add(CurlInterceptor.withDiscordInspector(
 ));
 
 dio.interceptors.add(CurlInterceptor.withTelegramInspector(
-  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
   includeUrls: ['api.example.com'],
   inspectionStatus: [ResponseStatus.serverError], // Only server errors
 ));
@@ -203,7 +221,7 @@ final discordInspector = DiscordInspector(
 );
 
 final telegramInspector = TelegramInspector(
-  webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+  webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
 );
 
 // Send messages
@@ -249,7 +267,7 @@ dio.interceptors.add(CurlInterceptor.withDiscordInspector(
 
 // Telegram-only setup
 dio.interceptors.add(CurlInterceptor.withTelegramInspector(
-  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
   includeUrls: ['api.example.com'],
   inspectionStatus: [ResponseStatus.serverError],
 ));
@@ -258,7 +276,7 @@ dio.interceptors.add(CurlInterceptor.withTelegramInspector(
 dio.interceptors.add(CurlInterceptor.allEnabled(
   webhookInspectors: [
     DiscordInspector(webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url']),
-    TelegramInspector(webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage']),
+    TelegramInspector(webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID']),
   ],
 ));
 ```

@@ -27,7 +27,7 @@ dependencies:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
   share_plus: ^11.0.0
-  type_caster: ^0.1.0
+  type_caster: ^0.1.2
 
 dev_dependencies:
   http_parser: ^4.0.2

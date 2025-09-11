@@ -68,7 +68,6 @@
 //       curlOptions: CurlOptions(
 //         status: true, // Show status codes in logs
 //         responseTime: true, // Show response timing
-//         convertFormData: true, // Convert FormData to JSON in cURL output
 //         onRequest: RequestDetails(visible: true),
 //         onResponse: ResponseDetails(visible: true, responseBody: true),
 //         onError: ErrorDetails(visible: true, responseBody: true),
@@ -89,7 +88,6 @@
 //     final dio = Dio();
 //     dio.interceptors.add(CurlInterceptor(
 //       curlOptions: CurlOptions(
-//         convertFormData: true,
 //         onRequest: RequestDetails(visible: false),
 //       ),
 //     ));
@@ -106,7 +104,6 @@
 //     final dio = Dio();
 //     dio.interceptors.add(CurlInterceptor(
 //       curlOptions: const CurlOptions(
-//         convertFormData: true,
 //       ),
 //     ));
 
@@ -133,7 +130,6 @@
 //     final dio = Dio();
 //     dio.interceptors.add(CurlInterceptor(
 //       curlOptions: const CurlOptions(
-//         convertFormData: false,
 //       ),
 //     ));
 
@@ -161,7 +157,6 @@
 //     final dio = Dio();
 //     dio.interceptors.add(CurlInterceptor(
 //       curlOptions: const CurlOptions(
-//         convertFormData: true,
 //       ),
 //     ));
 
