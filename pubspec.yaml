@@ -1,6 +1,6 @@
 name: dio_curl_interceptor
 description: A powerful Dio interceptor that converts HTTP requests to cURL commands, with modern UI for debugging, caching, filtering, and webhook integration.
-version: 3.3.3-alpha
+version: 3.3.3-alpha2
 homepage: https://github.com/venhdev/dio_curl_interceptor
 repository: https://github.com/venhdev/dio_curl_interceptor
 
