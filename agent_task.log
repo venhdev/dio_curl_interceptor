@@ -25,3 +25,7 @@ Updated HttpStatusGroup enum to use correct HTTP terminology: changed 'pending' 
 Added support for 1xx Informational status codes to complete HTTP status code coverage (1xx-5xx)
 Completed major refactoring: Created UiHelper class with comprehensive color system, updated CurlViewer to use new colors, and deleted old emoji.dart file
 Completed migration of all remaining emoji references from ui/emoji.dart to new UiHelper system in curl_utils.dart
+Removed ScaffoldMessenger from curl_viewer.dart - replaced with print statement for error logging
+Updated _shareCurlCommand to remove response body - keeping share clean and focused on cURL command
+Repositioned DropdownMenu to separate row below search bar to prevent overlap issues
+Moved status filter dropdown into leading position of summary controls row for better layout

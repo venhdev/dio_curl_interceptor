@@ -340,19 +340,8 @@ class _CurlViewerState extends State<CurlViewer> {
         ),
       );
     } catch (e) {
-      // Show error message if sharing fails
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to share: $e'),
-            backgroundColor: UiHelper.getStatusColor(500),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      // Log error if sharing fails
+      print('Failed to share: $e');
     }
   }
 
@@ -362,23 +351,16 @@ class _CurlViewerState extends State<CurlViewer> {
     
     // Add header with metadata
     buffer.writeln('=== cURL Command ===');
-    buffer.writeln('Method: ${entry.method ?? 'N/A'}');
-    buffer.writeln('URL: ${entry.url ?? 'N/A'}');
-    buffer.writeln('Status: ${entry.statusCode ?? 'N/A'}');
-    buffer.writeln('Duration: ${entry.duration ?? 'N/A'} ms');
+    buffer.writeln('Method: ${entry.method ?? kNA}');
+    buffer.writeln('URL: ${entry.url ?? kNA}');
+    buffer.writeln('Status: ${entry.statusCode ?? kNA}');
+    buffer.writeln('Duration: ${entry.duration ?? kNA} ms');
     buffer.writeln('Timestamp: ${_formatDateTime(entry.timestamp.toLocal(), includeTime: true)}');
     buffer.writeln();
     
     // Add the actual cURL command
     buffer.writeln('Command:');
     buffer.writeln(entry.curlCommand);
-    
-    // Add response body if available
-    if (entry.responseBody != null && entry.responseBody!.isNotEmpty) {
-      buffer.writeln();
-      buffer.writeln('=== Response Body ===');
-      buffer.writeln(entry.responseBody);
-    }
     
     return buffer.toString();
   }
@@ -599,54 +581,65 @@ class _CurlViewerState extends State<CurlViewer> {
                     ),
                   ],
                 ),
-                child: IntrinsicHeight(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search by status, cURL, response, URL...',
+                    hintStyle: TextStyle(fontSize: 14, color: colors.onSurfaceTertiary, fontWeight: FontWeight.w400),
+                    prefixIcon: Container(
+                      margin: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: UiHelper.getMethodColorPalette('GET').background,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.search, color: UiHelper.getMethodColor('GET'), size: 18),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? Container(
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: UiHelper.getStatusColorPalette(400).lighter,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.clear, color: UiHelper.getStatusColor(400), size: 16),
+                              onPressed: () {
+                                _searchController.clear();
+                                _performSearch();
+                              },
+                            ),
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  ),
+                  onChanged: _onSearchChanged,
+                  onSubmitted: (_) => _performSearch(),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+              // Enhanced summary and controls with modern design
+              Container(
+                padding: const EdgeInsets.all(8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: 'Search by status, cURL, response, URL...',
-                            hintStyle: TextStyle(fontSize: 14, color: colors.onSurfaceTertiary, fontWeight: FontWeight.w400),
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.all(8),
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: UiHelper.getMethodColorPalette('GET').background,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(Icons.search, color: UiHelper.getMethodColor('GET'), size: 18),
-                            ),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? Container(
-                                    margin: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: UiHelper.getStatusColorPalette(400).lighter,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: IconButton(
-                                      icon: Icon(Icons.clear, color: UiHelper.getStatusColor(400), size: 16),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        _performSearch();
-                                      },
-                                    ),
-                                  )
-                                : null,
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          ),
-                          onChanged: _onSearchChanged,
-                          onSubmitted: (_) => _performSearch(),
-                        ),
-                      ),
+                      // Status filter dropdown - positioned in summary row
                       Container(
-                        height: 48,
-                        margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: colors.surface,
+                          gradient: LinearGradient(
+                            colors: [
+                              colors.surface,
+                              colors.surfaceContainer,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: colors.outlineLight),
+                          border: Border.all(color: colors.outlineLight, width: 1.5),
                           boxShadow: [
                             BoxShadow(
                               color: colors.shadowLight,
@@ -666,7 +659,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                           ? 3
                                           : (_statusGroup == HttpStatusGroup.clientError ? 4 : 5)))),
                           onSelected: _onStatusChanged,
-                          width: 120,
+                          // width: 160,
                           inputDecorationTheme: InputDecorationTheme(
                             isCollapsed: true,
                             isDense: true,
@@ -685,19 +678,7 @@ class _CurlViewerState extends State<CurlViewer> {
                           hintText: 'Filter',
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-              // Enhanced summary and controls with modern design
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
+                      const SizedBox(width: 12),
                       // Enhanced summary count with animations using optimized counting
                       Builder(
                         builder: (context) {
@@ -788,7 +769,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                         Icon(Icons.date_range, size: 18, color: UiHelper.getMethodColor('GET')),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'Pick Date Range',
+                                          'Date Range',
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: UiHelper.getMethodColor('GET'),
@@ -1052,7 +1033,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                     ],
                                   ),
                                   child: Text(
-                                    '${entry.statusCode ?? 'N/A'}',
+                                    '${entry.statusCode ?? kNA}',
                                     style: TextStyle(
                                       color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).dark,
                                       fontWeight: FontWeight.w700,
@@ -1087,7 +1068,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                     ],
                                   ),
                                   child: Text(
-                                    entry.method ?? 'N/A',
+                                    entry.method ?? kNA,
                                     style: TextStyle(
                                       color: UiHelper.getMethodColorPalette(entry.method ?? 'GET').dark,
                                       fontSize: 11,
@@ -1136,7 +1117,7 @@ class _CurlViewerState extends State<CurlViewer> {
                             subtitle: Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: Text(
-                                entry.url ?? 'N/A',
+                                entry.url ?? kNA,
                                 style: TextStyle(fontSize: 12, color: colors.onSurfaceSecondary),
                               ),
                             ),
