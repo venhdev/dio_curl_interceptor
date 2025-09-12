@@ -155,6 +155,77 @@ class CachedCurlStorage {
     ).length;
   }
 
+  /// Returns counts for all status groups in a single iteration.
+  /// Much more efficient than calling countFiltered multiple times.
+  static Map<HttpStatusGroup, int> countByStatusGroup({
+    String search = '',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    if (!_isInitialized()) {
+      return {
+        HttpStatusGroup.informational: 0,
+        HttpStatusGroup.success: 0,
+        HttpStatusGroup.redirection: 0,
+        HttpStatusGroup.clientError: 0,
+        HttpStatusGroup.serverError: 0,
+      };
+    }
+
+    final box = Hive.box<CachedCurlEntry>(_boxName);
+    Iterable<CachedCurlEntry> entries = box.values.toList().reversed;
+
+    // Apply filters first (same logic as _getFilteredEntries)
+    if (search.isNotEmpty) {
+      final lower = search.toLowerCase();
+      entries = entries.where((entry) =>
+          entry.curlCommand.toLowerCase().contains(lower) ||
+          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+          entry.statusCode.toString().contains(lower) ||
+          (entry.url ?? '').toLowerCase().contains(lower));
+    }
+
+    if (startDate != null) {
+      entries = entries.where((entry) => entry.timestamp
+          .isAfter(startDate.subtract(const Duration(seconds: 1))));
+    }
+
+    if (endDate != null) {
+      entries = entries.where((entry) =>
+          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+    }
+
+    // Count all groups in a single iteration
+    int informationalCount = 0;
+    int successCount = 0;
+    int redirectionCount = 0;
+    int clientErrorCount = 0;
+    int serverErrorCount = 0;
+
+    for (final entry in entries) {
+      final statusCode = entry.statusCode ?? 0;
+      if (statusCode >= 100 && statusCode < 200) {
+        informationalCount++;
+      } else if (statusCode >= 200 && statusCode < 300) {
+        successCount++;
+      } else if (statusCode >= 300 && statusCode < 400) {
+        redirectionCount++;
+      } else if (statusCode >= 400 && statusCode < 500) {
+        clientErrorCount++;
+      } else if (statusCode >= 500 && statusCode < 600) {
+        serverErrorCount++;
+      }
+    }
+
+    return {
+      HttpStatusGroup.informational: informationalCount,
+      HttpStatusGroup.success: successCount,
+      HttpStatusGroup.redirection: redirectionCount,
+      HttpStatusGroup.clientError: clientErrorCount,
+      HttpStatusGroup.serverError: serverErrorCount,
+    };
+  }
+
   static Iterable<CachedCurlEntry> _getFilteredEntries({
     String search = '',
     DateTime? startDate,
@@ -187,8 +258,12 @@ class CachedCurlStorage {
       entries = entries.where((entry) {
         final statusCode = entry.statusCode ?? 0;
         switch (statusGroup) {
+          case HttpStatusGroup.informational:
+            return statusCode >= 100 && statusCode < 200;
           case HttpStatusGroup.success:
             return statusCode >= 200 && statusCode < 300;
+          case HttpStatusGroup.redirection:
+            return statusCode >= 300 && statusCode < 400;
           case HttpStatusGroup.clientError:
             return statusCode >= 400 && statusCode < 500;
           case HttpStatusGroup.serverError:
@@ -201,7 +276,9 @@ class CachedCurlStorage {
 }
 
 enum HttpStatusGroup {
+  informational,
   success,
+  redirection,
   clientError,
   serverError,
 }

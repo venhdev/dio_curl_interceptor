@@ -1,0 +1,27 @@
+Updated global Cursor rules with common project standards and empty sections for customization
+Simplified global rules to focus on tech/pattern/project structure sections only
+Confirmed Cursor rules should use hyphens (-) not underscores (_) for file naming
+Explained why Cursor CLI commands get stuck and provided solutions for non-interactive execution
+Updated tech-stack.mdc with Flutter/Dart architecture rules
+Created comprehensive environment system for Cursor rules with OS detection, manual overrides, and platform-specific configurations
+Reverted all environment-related files and restored original globals.mdc
+Generated 5 Cursor rules with short descriptions for Flutter/Dart project
+Found all JSON indent usage locations for migration to type_caster indentJson
+Added share_plus functionality to CurlViewer with individual and bulk sharing capabilities
+Changed AppBar from primary color to black-white blur theme while preserving HTTP status colors
+Enhanced AppBar gradient with sophisticated black-grey gradient, improved shadows, and polished UI elements
+Updated Enhanced summary count section from primary color gradient to black-white theme
+Removed container styling and implemented tappable status chips for filtering with visual selection states
+Codebase analysis completed - Success/Failed/Status patterns analyzed
+Analysis completed: CachedCurlStorage status group counting and performance analysis
+Created enhanced_curl_response_cache.md with performance optimization recommendations
+Updated enhanced_curl_response_cache.md to include Isolate-based optimizations
+Updated database optimizations to keep statusCode nullable
+Summarized Flutter isolates documentation and explained platform plugin usage in background isolates
+Analyzed CurlResponseCache and recommended against using isolates due to minimal performance benefit vs complexity
+Added optimized countByStatusGroup method to avoid multiple iterations and improve performance
+Updated CurlViewer to use optimized countByStatusGroup method and fixed performance issues with status counting
+Updated HttpStatusGroup enum to use correct HTTP terminology: changed 'pending' to 'redirection' for 3xx status codes
+Added support for 1xx Informational status codes to complete HTTP status code coverage (1xx-5xx)
+Completed major refactoring: Created UiHelper class with comprehensive color system, updated CurlViewer to use new colors, and deleted old emoji.dart file
+Completed migration of all remaining emoji references from ui/emoji.dart to new UiHelper system in curl_utils.dart

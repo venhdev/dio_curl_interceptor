@@ -1,6 +1,7 @@
 # Miscellaneous
 *.class
 *.log
+!agent_task.log
 *.pyc
 *.swp
 .DS_Store

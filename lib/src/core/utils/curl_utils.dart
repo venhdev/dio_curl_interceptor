@@ -5,7 +5,6 @@ import 'package:type_caster/type_caster.dart';
 import '../../data/curl_response_cache.dart';
 import '../../inspector/webhook_inspector_base.dart';
 import '../../options/curl_options.dart';
-import '../../ui/emoji.dart';
 import '../constants.dart';
 import '../extensions.dart';
 import '../helpers.dart';
@@ -300,12 +299,12 @@ void _handleOn({
     }
   }
 
-  final EmojiC emj = EmojiC(curlOptions.emojiEnabled);
+  final String clockEmoji = curlOptions.emojiEnabled ? Emojis.clock : '';
   final String statusEmoji =
-      !curlOptions.emojiEnabled ? '' : Helpers.getStatusEmoji(statusCode);
+      !curlOptions.emojiEnabled ? '' : UiHelper.getStatusEmoji(statusCode);
   final String statusName = Helpers.getStatusName(statusCode);
   final String summary =
-      ' $statusEmoji$errType $methodColored [$statusCode $statusName] [${emj.clock} $responseTimeStr] $uri';
+      ' $statusEmoji$errType $methodColored [$statusCode $statusName] [$clockEmoji $responseTimeStr] $uri';
 
   //? With CurlBehavior.chronological it already print the curl when request was sent.
   String result = '';
@@ -333,7 +332,7 @@ void _handleOn({
   ap(summary, startLine: true, startTitle: 'Summary');
 
   if (curl != null && curlOptions.behavior == CurlBehavior.simultaneous) {
-    ap(curl, midLineTop: true, midTitleTop: '${emj.curl} Curl');
+    ap(curl, midLineTop: true, midTitleTop: '${curlOptions.emojiEnabled ? Emojis.link : ''} Curl');
   }
 
   if (curlOptions.requestHeadersOf(isError) && requestHeaders.isNotEmpty) {
@@ -344,7 +343,7 @@ void _handleOn({
         maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
-      midTitleTop: '${emj.requestHeaders} Request Headers',
+      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.requestHeaders : ''} Request Headers',
     );
   }
 
@@ -358,7 +357,7 @@ void _handleOn({
         maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
-      midTitleTop: '${emj.requestBody} Request Body',
+      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.requestBody : ''} Request Body',
     );
   }
 
@@ -370,7 +369,7 @@ void _handleOn({
         maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
-      midTitleTop: '${emj.responseHeaders} Response Headers',
+      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.responseHeaders : ''} Response Headers',
     );
   }
 
@@ -385,7 +384,7 @@ void _handleOn({
     ap(
       bodyFormatted,
       midLineTop: true,
-      midTitleTop: '${emj.responseBody} Response Body',
+      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.responseBody : ''} Response Body',
     );
   }
   ap_(pretty.lineEnd());
