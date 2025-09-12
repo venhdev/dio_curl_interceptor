@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:type_caster/type_caster.dart';
 
 /// Formats a value for embedding in webhook messages.
@@ -15,7 +13,7 @@ String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) {
   if (rawValue is Map || rawValue is List) {
     // Use proper JSON formatting for structured data
     try {
-      formatted = JsonEncoder.withIndent('  ').convert(rawValue);
+      formatted = indentJson(rawValue, indent: '  ');
     } catch (e) {
       // Fallback to stringify if JSON encoding fails
       formatted = stringify(rawValue, maxLen: len, replacements: _replacementsEmbedField);

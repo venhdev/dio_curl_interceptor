@@ -3,6 +3,7 @@ import 'dart:async';
 // import 'package:codekit/codekit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:type_caster/type_caster.dart';
 
 import '../core/constants.dart';
@@ -333,6 +334,61 @@ class _CurlViewerState extends State<CurlViewer> {
     }
     return '$year-$month-$day';
   }
+
+  /// Shares the cURL command using the device's native sharing capabilities
+  Future<void> _shareCurlCommand(CachedCurlEntry entry) async {
+    try {
+      final shareText = _buildShareableText(entry);
+      await SharePlus.instance.share(
+        ShareParams(
+          text: shareText,
+          subject: 'cURL Command - ${entry.method} ${entry.url}',
+        ),
+      );
+    } catch (e) {
+      // Show error message if sharing fails
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to share: $e'),
+            backgroundColor: CurlViewerColors.error.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Builds a formatted, shareable text containing the cURL command and metadata
+  String _buildShareableText(CachedCurlEntry entry) {
+    final buffer = StringBuffer();
+    
+    // Add header with metadata
+    buffer.writeln('=== cURL Command ===');
+    buffer.writeln('Method: ${entry.method ?? 'N/A'}');
+    buffer.writeln('URL: ${entry.url ?? 'N/A'}');
+    buffer.writeln('Status: ${entry.statusCode ?? 'N/A'}');
+    buffer.writeln('Duration: ${entry.duration ?? 'N/A'} ms');
+    buffer.writeln('Timestamp: ${_formatDateTime(entry.timestamp.toLocal(), includeTime: true)}');
+    buffer.writeln();
+    
+    // Add the actual cURL command
+    buffer.writeln('Command:');
+    buffer.writeln(entry.curlCommand);
+    
+    // Add response body if available
+    if (entry.responseBody != null && entry.responseBody!.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('=== Response Body ===');
+      buffer.writeln(entry.responseBody);
+    }
+    
+    return buffer.toString();
+  }
+
 
   Widget _buildStatusChip(String text, Color color) {
     return AnimatedContainer(
@@ -1044,12 +1100,38 @@ class _CurlViewerState extends State<CurlViewer> {
                                 children: [
                                   const Text('cURL:', style: TextStyle(fontWeight: FontWeight.bold)),
                                   const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: const Icon(Icons.copy, size: 18),
-                                    tooltip: 'Copy cURL',
-                                    onPressed: () async {
-                                      await Clipboard.setData(ClipboardData(text: entry.curlCommand));
-                                    },
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: CurlViewerColors.interactive.lighter,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: CurlViewerColors.interactive.border,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: IconButton(
+                                      icon: Icon(Icons.copy, size: 18, color: CurlViewerColors.interactive.primary),
+                                      tooltip: 'Copy cURL',
+                                      onPressed: () async {
+                                        await Clipboard.setData(ClipboardData(text: entry.curlCommand));
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: CurlViewerColors.success.lighter,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: CurlViewerColors.success.border,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: IconButton(
+                                      icon: Icon(Icons.share, size: 18, color: CurlViewerColors.success.primary),
+                                      tooltip: 'Share cURL',
+                                      onPressed: () => _shareCurlCommand(entry),
+                                    ),
                                   ),
                                 ],
                               ),
