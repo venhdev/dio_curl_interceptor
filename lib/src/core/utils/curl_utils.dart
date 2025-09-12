@@ -332,7 +332,9 @@ void _handleOn({
   ap(summary, startLine: true, startTitle: 'Summary');
 
   if (curl != null && curlOptions.behavior == CurlBehavior.simultaneous) {
-    ap(curl, midLineTop: true, midTitleTop: '${curlOptions.emojiEnabled ? Emojis.link : ''} Curl');
+    ap(curl,
+        midLineTop: true,
+        midTitleTop: '${curlOptions.emojiEnabled ? Emojis.link : ''} Curl');
   }
 
   if (curlOptions.requestHeadersOf(isError) && requestHeaders.isNotEmpty) {
@@ -343,7 +345,8 @@ void _handleOn({
         maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
-      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.requestHeaders : ''} Request Headers',
+      midTitleTop:
+          '${curlOptions.emojiEnabled ? Emojis.requestHeaders : ''} Request Headers',
     );
   }
 
@@ -357,7 +360,8 @@ void _handleOn({
         maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
-      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.requestBody : ''} Request Body',
+      midTitleTop:
+          '${curlOptions.emojiEnabled ? Emojis.requestBody : ''} Request Body',
     );
   }
 
@@ -369,7 +373,8 @@ void _handleOn({
         maxStringLength: curlOptions.limitResponseBodyOf(isError),
       ),
       midLineTop: true,
-      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.responseHeaders : ''} Response Headers',
+      midTitleTop:
+          '${curlOptions.emojiEnabled ? Emojis.responseHeaders : ''} Response Headers',
     );
   }
 
@@ -384,7 +389,8 @@ void _handleOn({
     ap(
       bodyFormatted,
       midLineTop: true,
-      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.responseBody : ''} Response Body',
+      midTitleTop:
+          '${curlOptions.emojiEnabled ? Emojis.responseBody : ''} Response Body',
     );
   }
   ap_(pretty.lineEnd());

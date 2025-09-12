@@ -11,7 +11,7 @@ import '../core/helpers.dart';
 import '../data/curl_response_cache.dart';
 
 /// Reusable color palette for CurlViewer component
-/// 
+///
 /// This class provides a centralized way to manage all colors used in the CurlViewer.
 /// Colors are organized by semantic meaning to make them easy to understand and maintain.
 class CurlViewerColors {
@@ -21,30 +21,29 @@ class CurlViewerColors {
   // ============================================================================
   // FUNCTIONAL COLORS - UI elements and interactions
   // ============================================================================
-  
+
   /// Interactive elements (buttons, links, search)
   static const interactive = _InteractiveColors();
-  
+
   /// Neutral elements (metadata, timestamps, close buttons)
   static const neutral = _NeutralColors();
-  
+
   /// Warning elements (confirmation dialogs, alerts)
   static const warning = _WarningColors();
 
   // ============================================================================
   // THEME-AWARE COLORS - Adapt to light/dark themes
   // ============================================================================
-  
+
   /// Get theme-aware colors for the given context
-  static CurlViewerThemeColors theme(BuildContext context) => 
+  static CurlViewerThemeColors theme(BuildContext context) =>
       CurlViewerThemeColors(context);
 }
-
 
 /// Interactive elements colors (blue palette)
 class _InteractiveColors {
   const _InteractiveColors();
-  
+
   Color get primary => Colors.blue[600]!;
   Color get secondary => Colors.blue[400]!;
   Color get light => Colors.blue[100]!;
@@ -59,7 +58,7 @@ class _InteractiveColors {
 /// Neutral elements colors (grey palette)
 class _NeutralColors {
   const _NeutralColors();
-  
+
   Color get primary => Colors.grey[600]!;
   Color get secondary => Colors.grey[400]!;
   Color get light => Colors.grey[100]!;
@@ -74,7 +73,7 @@ class _NeutralColors {
 /// Warning elements colors (orange palette)
 class _WarningColors {
   const _WarningColors();
-  
+
   Color get primary => Colors.orange[600]!;
   Color get secondary => Colors.orange[400]!;
   Color get light => Colors.orange[100]!;
@@ -88,32 +87,32 @@ class _WarningColors {
 /// Theme-aware colors that adapt to light/dark themes
 class CurlViewerThemeColors {
   final BuildContext _context;
-  
+
   CurlViewerThemeColors(this._context);
-  
+
   ColorScheme get _scheme => Theme.of(_context).colorScheme;
-  
+
   // Background colors
   Color get surface => _scheme.surface;
   Color get surfaceContainer => _scheme.surfaceContainerHighest;
-  
+
   // Text colors
   Color get onSurface => _scheme.onSurface;
   Color get onSurfaceVariant => _scheme.onSurfaceVariant;
   Color get onSurfaceSecondary => _scheme.onSurface.withValues(alpha: 0.7);
   Color get onSurfaceTertiary => _scheme.onSurface.withValues(alpha: 0.6);
-  
+
   // Border and outline colors
   Color get outline => _scheme.outline;
   Color get outlineLight => _scheme.outline.withValues(alpha: 0.3);
   Color get outlineStrong => _scheme.outline.withValues(alpha: 0.5);
-  
+
   // Shadow colors
   Color get shadow => _scheme.shadow;
   Color get shadowLight => _scheme.shadow.withValues(alpha: 0.05);
   Color get shadowMedium => _scheme.shadow.withValues(alpha: 0.1);
   Color get shadowStrong => _scheme.shadow.withValues(alpha: 0.3);
-  
+
   // Primary theme colors
   Color get primary => _scheme.primary;
   Color get primaryContainer => _scheme.primaryContainer;
@@ -237,7 +236,8 @@ class _CurlViewerState extends State<CurlViewer> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (loadedCount < totalCount && !isLoadingMore) {
         _loadEntries();
       }
@@ -348,25 +348,26 @@ class _CurlViewerState extends State<CurlViewer> {
   /// Builds a formatted, shareable text containing the cURL command and metadata
   String _buildShareableText(CachedCurlEntry entry) {
     final buffer = StringBuffer();
-    
+
     // Add header with metadata
     buffer.writeln('=== cURL Command ===');
     buffer.writeln('Method: ${entry.method ?? kNA}');
     buffer.writeln('URL: ${entry.url ?? kNA}');
     buffer.writeln('Status: ${entry.statusCode ?? kNA}');
     buffer.writeln('Duration: ${entry.duration ?? kNA} ms');
-    buffer.writeln('Timestamp: ${_formatDateTime(entry.timestamp.toLocal(), includeTime: true)}');
+    buffer.writeln(
+        'Timestamp: ${_formatDateTime(entry.timestamp.toLocal(), includeTime: true)}');
     buffer.writeln();
-    
+
     // Add the actual cURL command
     buffer.writeln('Command:');
     buffer.writeln(entry.curlCommand);
-    
+
     return buffer.toString();
   }
 
-
-  Widget _buildStatusChip(String text, Color color, {VoidCallback? onTap, bool isSelected = false}) {
+  Widget _buildStatusChip(String text, Color color,
+      {VoidCallback? onTap, bool isSelected = false}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -391,9 +392,9 @@ class _CurlViewerState extends State<CurlViewer> {
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected 
-                  ? color.withValues(alpha: 0.5) 
-                  : color.withValues(alpha: 0.3), 
+              color: isSelected
+                  ? color.withValues(alpha: 0.5)
+                  : color.withValues(alpha: 0.3),
               width: isSelected ? 2.0 : 1.5,
             ),
             boxShadow: [
@@ -437,7 +438,9 @@ class _CurlViewerState extends State<CurlViewer> {
               ],
             ),
             borderRadius: BorderRadius.vertical(
-              top: widget.displayType == CurlViewerDisplayType.dialog ? const Radius.circular(20) : Radius.zero,
+              top: widget.displayType == CurlViewerDisplayType.dialog
+                  ? const Radius.circular(20)
+                  : Radius.zero,
             ),
             boxShadow: [
               BoxShadow(
@@ -473,7 +476,8 @@ class _CurlViewerState extends State<CurlViewer> {
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.4), width: 1.5),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.2),
@@ -503,7 +507,8 @@ class _CurlViewerState extends State<CurlViewer> {
                 const Spacer(),
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -515,7 +520,8 @@ class _CurlViewerState extends State<CurlViewer> {
                       ],
                     ),
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.5), width: 1.5),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.3),
@@ -548,7 +554,8 @@ class _CurlViewerState extends State<CurlViewer> {
                 ),
               ],
             ),
-            automaticallyImplyLeading: widget.displayType == CurlViewerDisplayType.fullScreen,
+            automaticallyImplyLeading:
+                widget.displayType == CurlViewerDisplayType.fullScreen,
             backgroundColor: Colors.transparent,
             foregroundColor: Colors.white,
             elevation: 0,
@@ -585,7 +592,10 @@ class _CurlViewerState extends State<CurlViewer> {
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Search by status, cURL, response, URL...',
-                    hintStyle: TextStyle(fontSize: 14, color: colors.onSurfaceTertiary, fontWeight: FontWeight.w400),
+                    hintStyle: TextStyle(
+                        fontSize: 14,
+                        color: colors.onSurfaceTertiary,
+                        fontWeight: FontWeight.w400),
                     prefixIcon: Container(
                       margin: const EdgeInsets.all(8),
                       padding: const EdgeInsets.all(8),
@@ -593,17 +603,21 @@ class _CurlViewerState extends State<CurlViewer> {
                         color: UiHelper.getMethodColorPalette('GET').background,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(Icons.search, color: UiHelper.getMethodColor('GET'), size: 18),
+                      child: Icon(Icons.search,
+                          color: UiHelper.getMethodColor('GET'), size: 18),
                     ),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? Container(
                             margin: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: UiHelper.getStatusColorPalette(400).lighter,
+                              color:
+                                  UiHelper.getStatusColorPalette(400).lighter,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: IconButton(
-                              icon: Icon(Icons.clear, color: UiHelper.getStatusColor(400), size: 16),
+                              icon: Icon(Icons.clear,
+                                  color: UiHelper.getStatusColor(400),
+                                  size: 16),
                               onPressed: () {
                                 _searchController.clear();
                                 _performSearch();
@@ -612,7 +626,8 @@ class _CurlViewerState extends State<CurlViewer> {
                           )
                         : null,
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                   ),
                   onChanged: _onSearchChanged,
                   onSubmitted: (_) => _performSearch(),
@@ -639,7 +654,8 @@ class _CurlViewerState extends State<CurlViewer> {
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: colors.outlineLight, width: 1.5),
+                          border: Border.all(
+                              color: colors.outlineLight, width: 1.5),
                           boxShadow: [
                             BoxShadow(
                               color: colors.shadowLight,
@@ -655,25 +671,34 @@ class _CurlViewerState extends State<CurlViewer> {
                                   ? 1
                                   : (_statusGroup == HttpStatusGroup.success
                                       ? 2
-                                      : (_statusGroup == HttpStatusGroup.redirection
+                                      : (_statusGroup ==
+                                              HttpStatusGroup.redirection
                                           ? 3
-                                          : (_statusGroup == HttpStatusGroup.clientError ? 4 : 5)))),
+                                          : (_statusGroup ==
+                                                  HttpStatusGroup.clientError
+                                              ? 4
+                                              : 5)))),
                           onSelected: _onStatusChanged,
                           // width: 160,
                           inputDecorationTheme: InputDecorationTheme(
                             isCollapsed: true,
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
                             border: InputBorder.none,
                             filled: false,
                           ),
                           dropdownMenuEntries: const [
                             DropdownMenuEntry(value: null, label: 'All Status'),
-                            DropdownMenuEntry(value: 1, label: '1xx Informational'),
+                            DropdownMenuEntry(
+                                value: 1, label: '1xx Informational'),
                             DropdownMenuEntry(value: 2, label: '2xx Success'),
-                            DropdownMenuEntry(value: 3, label: '3xx Redirection'),
-                            DropdownMenuEntry(value: 4, label: '4xx Client Error'),
-                            DropdownMenuEntry(value: 5, label: '5xx Server Error'),
+                            DropdownMenuEntry(
+                                value: 3, label: '3xx Redirection'),
+                            DropdownMenuEntry(
+                                value: 4, label: '4xx Client Error'),
+                            DropdownMenuEntry(
+                                value: 5, label: '5xx Server Error'),
                           ],
                           hintText: 'Filter',
                         ),
@@ -688,35 +713,41 @@ class _CurlViewerState extends State<CurlViewer> {
                             startDate: _startDate,
                             endDate: _endDate,
                           );
-                          
-                          final informational = counts[HttpStatusGroup.informational]!;
+
+                          final informational =
+                              counts[HttpStatusGroup.informational]!;
                           final done = counts[HttpStatusGroup.success]!;
-                          final fail = counts[HttpStatusGroup.clientError]! + counts[HttpStatusGroup.serverError]!;
-                          final redirection = counts[HttpStatusGroup.redirection]!;
-                          
+                          final fail = counts[HttpStatusGroup.clientError]! +
+                              counts[HttpStatusGroup.serverError]!;
+                          final redirection =
+                              counts[HttpStatusGroup.redirection]!;
+
                           return AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             child: Row(
-                              key: ValueKey('$informational-$done-$fail-$redirection'),
+                              key: ValueKey(
+                                  '$informational-$done-$fail-$redirection'),
                               children: [
                                 if (informational > 0) ...[
                                   _buildStatusChip(
-                                    '${UiHelper.getStatusEmoji(100)} $informational', 
+                                    '${UiHelper.getStatusEmoji(100)} $informational',
                                     UiHelper.getStatusColor(100),
-                                    onTap: () => _onStatusChipTapped('informational'),
-                                    isSelected: _selectedStatusChip == 'informational',
+                                    onTap: () =>
+                                        _onStatusChipTapped('informational'),
+                                    isSelected:
+                                        _selectedStatusChip == 'informational',
                                   ),
                                   const SizedBox(width: 12),
                                 ],
                                 _buildStatusChip(
-                                  '${UiHelper.getStatusEmoji(200)} $done', 
+                                  '${UiHelper.getStatusEmoji(200)} $done',
                                   UiHelper.getStatusColor(200),
                                   onTap: () => _onStatusChipTapped('success'),
                                   isSelected: _selectedStatusChip == 'success',
                                 ),
                                 const SizedBox(width: 12),
                                 _buildStatusChip(
-                                  '${UiHelper.getStatusEmoji(400)} $fail', 
+                                  '${UiHelper.getStatusEmoji(400)} $fail',
                                   UiHelper.getStatusColor(400),
                                   onTap: () => _onStatusChipTapped('error'),
                                   isSelected: _selectedStatusChip == 'error',
@@ -724,10 +755,12 @@ class _CurlViewerState extends State<CurlViewer> {
                                 if (redirection > 0) ...[
                                   const SizedBox(width: 12),
                                   _buildStatusChip(
-                                    '${UiHelper.getStatusEmoji(300)} $redirection', 
+                                    '${UiHelper.getStatusEmoji(300)} $redirection',
                                     UiHelper.getStatusColor(300),
-                                    onTap: () => _onStatusChipTapped('redirection'),
-                                    isSelected: _selectedStatusChip == 'redirection',
+                                    onTap: () =>
+                                        _onStatusChipTapped('redirection'),
+                                    isSelected:
+                                        _selectedStatusChip == 'redirection',
                                   ),
                                 ],
                               ],
@@ -746,7 +779,8 @@ class _CurlViewerState extends State<CurlViewer> {
                             ],
                           ),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: colors.outlineLight, width: 1.5),
+                          border: Border.all(
+                              color: colors.outlineLight, width: 1.5),
                           boxShadow: [
                             BoxShadow(
                               color: colors.shadowLight,
@@ -766,13 +800,17 @@ class _CurlViewerState extends State<CurlViewer> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.date_range, size: 18, color: UiHelper.getMethodColor('GET')),
+                                        Icon(Icons.date_range,
+                                            size: 18,
+                                            color:
+                                                UiHelper.getMethodColor('GET')),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Date Range',
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: UiHelper.getMethodColor('GET'),
+                                            color:
+                                                UiHelper.getMethodColor('GET'),
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -791,13 +829,17 @@ class _CurlViewerState extends State<CurlViewer> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.date_range, size: 16, color: UiHelper.getMethodColor('GET')),
+                                        Icon(Icons.date_range,
+                                            size: 16,
+                                            color:
+                                                UiHelper.getMethodColor('GET')),
                                         const SizedBox(width: 8),
                                         Text(
                                           '${_startDate != null ? _formatDateTime(_startDate!) : ''} ~ ${_endDate != null ? _formatDateTime(_endDate!) : ''}',
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: UiHelper.getMethodColor('GET'),
+                                            color:
+                                                UiHelper.getMethodColor('GET'),
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -932,11 +974,14 @@ class _CurlViewerState extends State<CurlViewer> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: UiHelper.getMethodColorPalette('GET').lighter,
+                                  color: UiHelper.getMethodColorPalette('GET')
+                                      .lighter,
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: UiHelper.getMethodColorPalette('GET').shadow,
+                                      color:
+                                          UiHelper.getMethodColorPalette('GET')
+                                              .shadow,
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
@@ -963,10 +1008,13 @@ class _CurlViewerState extends State<CurlViewer> {
                         );
                       }
                       final entry = entries[index];
-                      final formattedTime = _formatDateTime(entry.timestamp.toLocal(), includeTime: true);
+                      final formattedTime = _formatDateTime(
+                          entry.timestamp.toLocal(),
+                          includeTime: true);
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 3),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -978,12 +1026,16 @@ class _CurlViewerState extends State<CurlViewer> {
                           ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).border,
+                            color: UiHelper.getStatusColorPalette(
+                                    entry.statusCode ?? 200)
+                                .border,
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).shadow,
+                              color: UiHelper.getStatusColorPalette(
+                                      entry.statusCode ?? 200)
+                                  .shadow,
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -1000,33 +1052,49 @@ class _CurlViewerState extends State<CurlViewer> {
                           ),
                           child: ExpansionTile(
                             dense: true,
-                            tilePadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            childrenPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                            iconColor: UiHelper.getStatusColor(entry.statusCode ?? 200),
-                            collapsedIconColor: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).secondary,
+                            tilePadding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            collapsedShape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            childrenPadding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 6),
+                            iconColor: UiHelper.getStatusColor(
+                                entry.statusCode ?? 200),
+                            collapsedIconColor: UiHelper.getStatusColorPalette(
+                                    entry.statusCode ?? 200)
+                                .secondary,
                             title: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 3),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        UiHelper.getStatusColorPalette(entry.statusCode ?? 200).background,
-                                        UiHelper.getStatusColorPalette(entry.statusCode ?? 200).backgroundLight,
+                                        UiHelper.getStatusColorPalette(
+                                                entry.statusCode ?? 200)
+                                            .background,
+                                        UiHelper.getStatusColorPalette(
+                                                entry.statusCode ?? 200)
+                                            .backgroundLight,
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).borderStrong,
+                                      color: UiHelper.getStatusColorPalette(
+                                              entry.statusCode ?? 200)
+                                          .borderStrong,
                                       width: 1.5,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).shadow,
+                                        color: UiHelper.getStatusColorPalette(
+                                                entry.statusCode ?? 200)
+                                            .shadow,
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -1035,7 +1103,9 @@ class _CurlViewerState extends State<CurlViewer> {
                                   child: Text(
                                     '${entry.statusCode ?? kNA}',
                                     style: TextStyle(
-                                      color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).dark,
+                                      color: UiHelper.getStatusColorPalette(
+                                              entry.statusCode ?? 200)
+                                          .dark,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 11,
                                       letterSpacing: 0.5,
@@ -1044,24 +1114,33 @@ class _CurlViewerState extends State<CurlViewer> {
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 3),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        UiHelper.getMethodColorPalette(entry.method ?? 'GET').light,
-                                        UiHelper.getMethodColorPalette(entry.method ?? 'GET').lighter,
+                                        UiHelper.getMethodColorPalette(
+                                                entry.method ?? 'GET')
+                                            .light,
+                                        UiHelper.getMethodColorPalette(
+                                                entry.method ?? 'GET')
+                                            .lighter,
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: UiHelper.getMethodColorPalette(entry.method ?? 'GET').border,
+                                      color: UiHelper.getMethodColorPalette(
+                                              entry.method ?? 'GET')
+                                          .border,
                                       width: 1.5,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: UiHelper.getMethodColorPalette(entry.method ?? 'GET').shadow,
+                                        color: UiHelper.getMethodColorPalette(
+                                                entry.method ?? 'GET')
+                                            .shadow,
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -1070,7 +1149,9 @@ class _CurlViewerState extends State<CurlViewer> {
                                   child: Text(
                                     entry.method ?? kNA,
                                     style: TextStyle(
-                                      color: UiHelper.getMethodColorPalette(entry.method ?? 'GET').dark,
+                                      color: UiHelper.getMethodColorPalette(
+                                              entry.method ?? 'GET')
+                                          .dark,
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.3,
@@ -1079,7 +1160,8 @@ class _CurlViewerState extends State<CurlViewer> {
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 3),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
@@ -1118,25 +1200,31 @@ class _CurlViewerState extends State<CurlViewer> {
                               padding: const EdgeInsets.only(top: 2),
                               child: Text(
                                 entry.url ?? kNA,
-                                style: TextStyle(fontSize: 12, color: colors.onSurfaceSecondary),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: colors.onSurfaceSecondary),
                               ),
                             ),
                             expandedAlignment: Alignment.centerLeft,
                             children: [
                               if (entry.url != null)
                                 Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     RichText(
                                       text: TextSpan(
-                                        style: DefaultTextStyle.of(context).style,
+                                        style:
+                                            DefaultTextStyle.of(context).style,
                                         children: [
                                           TextSpan(
                                             text: entry.method ?? kNA,
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
                                           ),
                                           TextSpan(
-                                            text: ' - [${entry.duration ?? kNA} ms]',
+                                            text:
+                                                ' - [${entry.duration ?? kNA} ms]',
                                           ),
                                         ],
                                       ),
@@ -1147,37 +1235,52 @@ class _CurlViewerState extends State<CurlViewer> {
                                 ),
                               Row(
                                 children: [
-                                  const Text('cURL:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  const Text('cURL:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
                                   const SizedBox(width: 8),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: UiHelper.getMethodColorPalette('GET').lighter,
+                                      color:
+                                          UiHelper.getMethodColorPalette('GET')
+                                              .lighter,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: UiHelper.getMethodColorPalette('GET').border,
+                                        color: UiHelper.getMethodColorPalette(
+                                                'GET')
+                                            .border,
                                         width: 1,
                                       ),
                                     ),
                                     child: IconButton(
-                                      icon: Icon(Icons.copy, size: 18, color: UiHelper.getMethodColor('GET')),
+                                      icon: Icon(Icons.copy,
+                                          size: 18,
+                                          color:
+                                              UiHelper.getMethodColor('GET')),
                                       tooltip: 'Copy cURL',
                                       onPressed: () async {
-                                        await Clipboard.setData(ClipboardData(text: entry.curlCommand));
+                                        await Clipboard.setData(ClipboardData(
+                                            text: entry.curlCommand));
                                       },
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: UiHelper.getStatusColorPalette(200).lighter,
+                                      color: UiHelper.getStatusColorPalette(200)
+                                          .lighter,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: UiHelper.getStatusColorPalette(200).border,
+                                        color:
+                                            UiHelper.getStatusColorPalette(200)
+                                                .border,
                                         width: 1,
                                       ),
                                     ),
                                     child: IconButton(
-                                      icon: Icon(Icons.share, size: 18, color: UiHelper.getStatusColor(200)),
+                                      icon: Icon(Icons.share,
+                                          size: 18,
+                                          color: UiHelper.getStatusColor(200)),
                                       tooltip: 'Share cURL',
                                       onPressed: () => _shareCurlCommand(entry),
                                     ),
@@ -1186,20 +1289,27 @@ class _CurlViewerState extends State<CurlViewer> {
                               ),
                               SelectableText(entry.curlCommand),
                               const SizedBox(height: 4),
-                              if (entry.responseHeaders != null && entry.responseHeaders!.isNotEmpty)
+                              if (entry.responseHeaders != null &&
+                                  entry.responseHeaders!.isNotEmpty)
                                 ExpansionTile(
                                   tilePadding: EdgeInsets.zero,
                                   dense: true,
-                                  title: const Text('Response Headers:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  title: const Text('Response Headers:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
                                   children: [
                                     Align(
                                       alignment: Alignment.centerLeft,
-                                      child: SelectableText(stringify(entry.responseHeaders, indent: '  ')),
+                                      child: SelectableText(stringify(
+                                          entry.responseHeaders,
+                                          indent: '  ')),
                                     ),
                                   ],
                                 ),
                               const SizedBox(height: 4),
-                              const Text('Response Body:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text('Response Body:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                               SelectableText(entry.responseBody ?? '<no body>'),
                             ],
                           ),
@@ -1236,12 +1346,17 @@ class _CurlViewerState extends State<CurlViewer> {
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: UiHelper.getStatusColor(500),
-                            side: BorderSide(color: UiHelper.getStatusColorPalette(500).secondary, width: 1.5),
-                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            side: BorderSide(
+                                color: UiHelper.getStatusColorPalette(500)
+                                    .secondary,
+                                width: 1.5),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            backgroundColor: UiHelper.getStatusColorPalette(500).lighter,
+                            backgroundColor:
+                                UiHelper.getStatusColorPalette(500).lighter,
                           ),
                           onPressed: () async {
                             final confirmed = await showDialog(
@@ -1255,10 +1370,14 @@ class _CurlViewerState extends State<CurlViewer> {
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: UiHelper.getStatusColorPalette(400).background,
+                                        color:
+                                            UiHelper.getStatusColorPalette(400)
+                                                .background,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: Icon(Icons.warning, color: UiHelper.getStatusColor(400), size: 20),
+                                      child: Icon(Icons.warning,
+                                          color: UiHelper.getStatusColor(400),
+                                          size: 20),
                                     ),
                                     const SizedBox(width: 12),
                                     const Text(
@@ -1276,24 +1395,29 @@ class _CurlViewerState extends State<CurlViewer> {
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
                                     child: const Text(
                                       'Cancel',
-                                      style: TextStyle(fontWeight: FontWeight.w600),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600),
                                     ),
                                   ),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: UiHelper.getStatusColor(500),
+                                      backgroundColor:
+                                          UiHelper.getStatusColor(500),
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                    onPressed: () => Navigator.pop(context, true),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
                                     child: const Text(
                                       'Clear All',
-                                      style: TextStyle(fontWeight: FontWeight.w600),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600),
                                     ),
                                   ),
                                 ],
@@ -1317,7 +1441,8 @@ class _CurlViewerState extends State<CurlViewer> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: CurlViewerColors.neutral.primary,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

@@ -47,7 +47,6 @@ class Helpers {
     // make a new instance of options to avoid mutating the original object
     final options = originRequestOptions.copyWith();
 
-
     List<String> components = ['curl -i'];
     components.add('-X ${options.method}');
 
@@ -62,16 +61,16 @@ class Helpers {
       if (options.data is FormData) {
         final formData = options.data as FormData;
         final Map<String, dynamic> dataMap = Map.fromEntries(formData.fields);
-        
+
         // Handle file attachments - group files by field name and use filenames as values
         final Map<String, List<String>> fileGroups = {};
         for (final fileEntry in formData.files) {
           final fieldName = fileEntry.key;
           final fileName = fileEntry.value.filename ?? 'unknown_file';
-          
+
           fileGroups.putIfAbsent(fieldName, () => []).add(fileName);
         }
-        
+
         // Add file information to the data map
         // For single files, use the filename directly
         // For multiple files with the same field name, use an array of filenames
@@ -82,7 +81,7 @@ class Helpers {
             dataMap[fieldName] = fileNames;
           }
         });
-        
+
         options.data = dataMap;
       }
 
@@ -372,7 +371,7 @@ class UiHelper {
   // ============================================================================
   // HTTP STATUS CODE COLORS
   // ============================================================================
-  
+
   /// Get color for HTTP status code based on category
   static Color getStatusColor(int statusCode) {
     if (statusCode >= 100 && statusCode < 200) {
@@ -380,7 +379,8 @@ class UiHelper {
     } else if (statusCode >= 200 && statusCode < 300) {
       return _StatusColors.success.primary; // 2xx Success - Green
     } else if (statusCode >= 300 && statusCode < 400) {
-      return _StatusColors.redirection.primary; // 3xx Redirection - Light Blue/Cyan
+      return _StatusColors
+          .redirection.primary; // 3xx Redirection - Light Blue/Cyan
     } else if (statusCode >= 400 && statusCode < 500) {
       return _StatusColors.clientError.primary; // 4xx Client Error - Orange
     } else if (statusCode >= 500 && statusCode < 600) {
@@ -410,7 +410,7 @@ class UiHelper {
   // ============================================================================
   // HTTP METHOD COLORS
   // ============================================================================
-  
+
   /// Get color for HTTP method based on standard conventions
   static Color getMethodColor(String method) {
     switch (method.toUpperCase()) {
@@ -454,7 +454,7 @@ class UiHelper {
   // ============================================================================
   // EMOJIS
   // ============================================================================
-  
+
   /// Get emoji for HTTP status code
   static String getStatusEmoji(int statusCode) {
     if (statusCode == 418) {
@@ -503,7 +503,7 @@ class UiHelper {
 
 class _StatusColors {
   const _StatusColors._();
-  
+
   static const informational = StatusColorPalette(
     primary: Color(0xFF2196F3), // Blue
     secondary: Color(0xFF64B5F6),
@@ -516,7 +516,7 @@ class _StatusColors {
     borderStrong: Color(0x662196F3),
     shadow: Color(0x1A2196F3),
   );
-  
+
   static const success = StatusColorPalette(
     primary: Color(0xFF4CAF50), // Green
     secondary: Color(0xFF81C784),
@@ -529,7 +529,7 @@ class _StatusColors {
     borderStrong: Color(0x664CAF50),
     shadow: Color(0x1A4CAF50),
   );
-  
+
   static const redirection = StatusColorPalette(
     primary: Color(0xFF00BCD4), // Light Blue/Cyan
     secondary: Color(0xFF4DD0E1),
@@ -542,7 +542,7 @@ class _StatusColors {
     borderStrong: Color(0x6600BCD4),
     shadow: Color(0x1A00BCD4),
   );
-  
+
   static const clientError = StatusColorPalette(
     primary: Color(0xFFFF9800), // Orange
     secondary: Color(0xFFFFB74D),
@@ -555,7 +555,7 @@ class _StatusColors {
     borderStrong: Color(0x66FF9800),
     shadow: Color(0x1AFF9800),
   );
-  
+
   static const serverError = StatusColorPalette(
     primary: Color(0xFFF44336), // Red
     secondary: Color(0xFFE57373),
@@ -568,7 +568,7 @@ class _StatusColors {
     borderStrong: Color(0x66F44336),
     shadow: Color(0x1AF44336),
   );
-  
+
   static const unknown = StatusColorPalette(
     primary: Color(0xFF9E9E9E), // Grey
     secondary: Color(0xFFBDBDBD),
@@ -615,7 +615,7 @@ class StatusColorPalette {
 
 class _MethodColors {
   const _MethodColors._();
-  
+
   static const get = MethodColorPalette(
     primary: Color(0xFF2196F3), // Blue
     secondary: Color(0xFF64B5F6),
@@ -626,7 +626,7 @@ class _MethodColors {
     border: Color(0x4D2196F3),
     shadow: Color(0x1A2196F3),
   );
-  
+
   static const post = MethodColorPalette(
     primary: Color(0xFF4CAF50), // Green
     secondary: Color(0xFF81C784),
@@ -637,7 +637,7 @@ class _MethodColors {
     border: Color(0x4D4CAF50),
     shadow: Color(0x1A4CAF50),
   );
-  
+
   static const put = MethodColorPalette(
     primary: Color(0xFFFF9800), // Orange
     secondary: Color(0xFFFFB74D),
@@ -648,7 +648,7 @@ class _MethodColors {
     border: Color(0x4DFF9800),
     shadow: Color(0x1AFF9800),
   );
-  
+
   static const patch = MethodColorPalette(
     primary: Color(0xFFFF9800), // Orange (same as PUT)
     secondary: Color(0xFFFFB74D),
@@ -659,7 +659,7 @@ class _MethodColors {
     border: Color(0x4DFF9800),
     shadow: Color(0x1AFF9800),
   );
-  
+
   static const delete = MethodColorPalette(
     primary: Color(0xFFF44336), // Red
     secondary: Color(0xFFE57373),
@@ -670,7 +670,7 @@ class _MethodColors {
     border: Color(0x4DF44336),
     shadow: Color(0x1AF44336),
   );
-  
+
   static const head = MethodColorPalette(
     primary: Color(0xFF795548), // Brown
     secondary: Color(0xFFA1887F),
@@ -681,7 +681,7 @@ class _MethodColors {
     border: Color(0x4D795548),
     shadow: Color(0x1A795548),
   );
-  
+
   static const unknown = MethodColorPalette(
     primary: Color(0xFF9E9E9E), // Grey
     secondary: Color(0xFFBDBDBD),

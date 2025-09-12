@@ -167,12 +167,14 @@ class TelegramWebhookSender extends WebhookSenderBase {
         // Extract chat_id from the webhook URL
         final chatId = _extractChatIdFromUrl(hookUrl);
         if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl', name: 'TelegramWebhookSender');
+          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
+              name: 'TelegramWebhookSender');
           continue;
         }
 
         final telegramMessage = {
-          'chat_id': chatId.startsWith('@') ? chatId.trim() : _parseChatId(chatId),
+          'chat_id':
+              chatId.startsWith('@') ? chatId.trim() : _parseChatId(chatId),
           'text': message,
           'parse_mode': 'HTML',
         };
@@ -189,7 +191,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         );
         responses.add(response);
       } catch (e) {
-        log('Error sending cURL log to Telegram webhook $hookUrl: $e', name: 'TelegramWebhookSender');
+        log('Error sending cURL log to Telegram webhook $hookUrl: $e',
+            name: 'TelegramWebhookSender');
       }
     }
 
@@ -227,7 +230,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         // Extract chat_id from the webhook URL
         final chatId = _extractChatIdFromUrl(hookUrl);
         if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl', name: 'TelegramWebhookSender');
+          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
+              name: 'TelegramWebhookSender');
           continue;
         }
 
@@ -249,7 +253,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         );
         responses.add(response);
       } catch (e) {
-        log('Error sending bug report to Telegram webhook $hookUrl: $e', name: 'TelegramWebhookSender');
+        log('Error sending bug report to Telegram webhook $hookUrl: $e',
+            name: 'TelegramWebhookSender');
       }
     }
 
@@ -271,7 +276,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         // Extract chat_id from the webhook URL or use a default
         final chatId = _extractChatIdFromUrl(hookUrl);
         if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl', name: 'TelegramWebhookSender');
+          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
+              name: 'TelegramWebhookSender');
           continue;
         }
 
@@ -293,7 +299,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         );
         responses.add(response);
       } catch (e) {
-        log('Error sending message to Telegram webhook $hookUrl: $e', name: 'TelegramWebhookSender');
+        log('Error sending message to Telegram webhook $hookUrl: $e',
+            name: 'TelegramWebhookSender');
       }
     }
 
@@ -319,7 +326,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         final size = await file.length();
         buffer.writeln('• <code>${path.split('/').last}</code> ($size bytes)');
       } else {
-        buffer.writeln('• <code>${path.split('/').last}</code> (file not found)');
+        buffer
+            .writeln('• <code>${path.split('/').last}</code> (file not found)');
       }
     }
 
@@ -336,7 +344,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         // Extract chat_id from the webhook URL
         final chatId = _extractChatIdFromUrl(hookUrl);
         if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl', name: 'TelegramWebhookSender');
+          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
+              name: 'TelegramWebhookSender');
           continue;
         }
 
@@ -358,7 +367,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         );
         responses.add(response);
       } catch (e) {
-        log('Error sending files info to Telegram webhook $hookUrl: $e', name: 'TelegramWebhookSender');
+        log('Error sending files info to Telegram webhook $hookUrl: $e',
+            name: 'TelegramWebhookSender');
       }
     }
 
@@ -411,7 +421,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
     }
 
     buffer.writeln('');
-    buffer.writeln('<i>Timestamp: ${DateTime.now().toUtc().toIso8601String()}</i>');
+    buffer.writeln(
+        '<i>Timestamp: ${DateTime.now().toUtc().toIso8601String()}</i>');
 
     return buffer.toString();
   }
@@ -450,7 +461,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
     }
 
     buffer.writeln('');
-    buffer.writeln('<i>Timestamp: ${DateTime.now().toUtc().toIso8601String()}</i>');
+    buffer.writeln(
+        '<i>Timestamp: ${DateTime.now().toUtc().toIso8601String()}</i>');
 
     return buffer.toString();
   }
@@ -485,15 +497,19 @@ class TelegramWebhookSender extends WebhookSenderBase {
       }
 
       // Check fragment (hash) parameters
-      final fragmentParams = uri.fragment.split('&').where((param) => param.startsWith('chat_id='));
-      final chatIdFromFragment = fragmentParams.isNotEmpty ? fragmentParams.first.split('=')[1] : null;
+      final fragmentParams = uri.fragment
+          .split('&')
+          .where((param) => param.startsWith('chat_id='));
+      final chatIdFromFragment =
+          fragmentParams.isNotEmpty ? fragmentParams.first.split('=')[1] : null;
       if (chatIdFromFragment != null && chatIdFromFragment.isNotEmpty) {
         return chatIdFromFragment;
       }
 
       return null;
     } catch (e) {
-      log('Error parsing Telegram webhook URL: $e', name: 'TelegramWebhookSender');
+      log('Error parsing Telegram webhook URL: $e',
+          name: 'TelegramWebhookSender');
       return null;
     }
   }
@@ -530,7 +546,8 @@ class TelegramWebhookSender extends WebhookSenderBase {
         path: uri.path,
       ).toString();
     } catch (e) {
-      log('Error constructing Telegram API URL: $e', name: 'TelegramWebhookSender');
+      log('Error constructing Telegram API URL: $e',
+          name: 'TelegramWebhookSender');
       return webhookUrl; // Return original URL as fallback
     }
   }

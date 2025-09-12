@@ -17,7 +17,9 @@ void main() async {
   // Note: For Telegram, you need to include the chat_id in the webhook URL
   // Format: https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage?chat_id=<CHAT_ID>
   final telegramInspector = TelegramInspector(
-    webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+    webhookUrls: [
+      'https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'
+    ],
     includeUrls: ['api.example.com'],
     excludeUrls: ['api.example.com/health'],
     inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
