@@ -75,14 +75,4 @@ void main() async {
     content: 'Hello from Telegram webhook!',
   );
 
-  // Example 6: Sending files
-  await discordInspector.sendFiles(
-    paths: ['/path/to/logfile.txt'],
-    payload: {'message': 'Log file attached'},
-  );
-
-  await telegramInspector.sendFiles(
-    paths: ['/path/to/logfile.txt'],
-    payload: {'caption': 'Log file attached'},
-  );
 }

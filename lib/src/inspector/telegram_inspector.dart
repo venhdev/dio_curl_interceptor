@@ -1,10 +1,10 @@
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 
 import '../core/constants.dart';
 import '../core/types.dart';
+import '../data/models/sender_info.dart';
 import '../core/utils/webhook_utils.dart';
 import '../interceptors/dio_curl_interceptor_base.dart';
 import 'webhook_inspector_base.dart';
@@ -81,18 +81,6 @@ class TelegramInspector extends WebhookInspectorBase {
     );
   }
 
-  @override
-  Future<List<Response>> sendFiles({
-    required List<String> paths,
-    Map<String, dynamic>? payload,
-    SenderInfo? senderInfo,
-  }) async {
-    return S.sendFiles(
-      paths: paths,
-      payload: payload,
-      senderInfo: senderInfo ?? this.senderInfo,
-    );
-  }
 
   @override
   Future<List<Response>> sendMessage({
@@ -307,73 +295,6 @@ class TelegramWebhookSender extends WebhookSenderBase {
     return responses;
   }
 
-  @override
-  Future<List<Response>> sendFiles({
-    required List<String> paths,
-    Map<String, dynamic>? payload,
-    SenderInfo? senderInfo,
-  }) async {
-    // Note: Telegram Bot API doesn't support direct file uploads via webhooks
-    // This method sends a message with file information instead
-    final buffer = StringBuffer();
-    buffer.writeln('📎 <b>Files to be uploaded:</b>');
-    buffer.writeln('');
-
-    for (var i = 0; i < paths.length; i++) {
-      final path = paths[i];
-      final file = File(path);
-      if (await file.exists()) {
-        final size = await file.length();
-        buffer.writeln('• <code>${path.split('/').last}</code> ($size bytes)');
-      } else {
-        buffer
-            .writeln('• <code>${path.split('/').last}</code> (file not found)');
-      }
-    }
-
-    if (payload != null && payload.containsKey('caption')) {
-      buffer.writeln('');
-      buffer.writeln('<b>Caption:</b> ${payload['caption']}');
-    }
-
-    final content = buffer.toString();
-    final List<Response> responses = [];
-
-    for (final String hookUrl in hookUrls) {
-      try {
-        // Extract chat_id from the webhook URL
-        final chatId = _extractChatIdFromUrl(hookUrl);
-        if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
-              name: 'TelegramWebhookSender');
-          continue;
-        }
-
-        final telegramMessage = {
-          'chat_id': chatId,
-          'text': content,
-          'parse_mode': 'HTML',
-        };
-
-        // Construct the proper Telegram API URL
-        final apiUrl = _constructTelegramApiUrl(hookUrl);
-
-        final response = await _dio.post(
-          apiUrl,
-          data: telegramMessage,
-          options: Options(
-            headers: {'Content-Type': 'application/json'},
-          ),
-        );
-        responses.add(response);
-      } catch (e) {
-        log('Error sending files info to Telegram webhook $hookUrl: $e',
-            name: 'TelegramWebhookSender');
-      }
-    }
-
-    return responses;
-  }
 
   /// Creates a formatted cURL message for Telegram.
   String _createCurlMessage({

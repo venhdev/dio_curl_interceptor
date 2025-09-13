@@ -8,6 +8,7 @@ import 'package:type_caster/type_caster.dart';
 
 import '../core/constants.dart';
 import '../core/helpers.dart';
+import '../core/types.dart';
 import '../data/curl_response_cache.dart';
 
 /// Reusable color palette for CurlViewer component
@@ -182,7 +183,7 @@ class _CurlViewerState extends State<CurlViewer> {
   String _searchQuery = '';
   DateTime? _startDate;
   DateTime? _endDate;
-  HttpStatusGroup? _statusGroup;
+  ResponseStatus? _statusGroup;
   String? _selectedStatusChip;
 
   @override
@@ -262,15 +263,15 @@ class _CurlViewerState extends State<CurlViewer> {
     if (val == null) {
       _statusGroup = null;
     } else if (val == 1) {
-      _statusGroup = HttpStatusGroup.informational;
+      _statusGroup = ResponseStatus.informational;
     } else if (val == 2) {
-      _statusGroup = HttpStatusGroup.success;
+      _statusGroup = ResponseStatus.success;
     } else if (val == 3) {
-      _statusGroup = HttpStatusGroup.redirection;
+      _statusGroup = ResponseStatus.redirection;
     } else if (val == 4) {
-      _statusGroup = HttpStatusGroup.clientError;
+      _statusGroup = ResponseStatus.clientError;
     } else if (val == 5) {
-      _statusGroup = HttpStatusGroup.serverError;
+      _statusGroup = ResponseStatus.serverError;
     }
     _loadEntries(reset: true);
   }
@@ -286,16 +287,16 @@ class _CurlViewerState extends State<CurlViewer> {
         _selectedStatusChip = statusType;
         switch (statusType) {
           case 'informational':
-            _statusGroup = HttpStatusGroup.informational;
+            _statusGroup = ResponseStatus.informational;
             break;
           case 'success':
-            _statusGroup = HttpStatusGroup.success;
+            _statusGroup = ResponseStatus.success;
             break;
           case 'error':
-            _statusGroup = HttpStatusGroup.clientError;
+            _statusGroup = ResponseStatus.clientError;
             break;
           case 'redirection':
-            _statusGroup = HttpStatusGroup.redirection;
+            _statusGroup = ResponseStatus.redirection;
             break;
         }
       }
@@ -667,15 +668,15 @@ class _CurlViewerState extends State<CurlViewer> {
                         child: DropdownMenu<int?>(
                           initialSelection: _statusGroup == null
                               ? null
-                              : (_statusGroup == HttpStatusGroup.informational
+                              : (_statusGroup == ResponseStatus.informational
                                   ? 1
-                                  : (_statusGroup == HttpStatusGroup.success
+                                  : (_statusGroup == ResponseStatus.success
                                       ? 2
                                       : (_statusGroup ==
-                                              HttpStatusGroup.redirection
+                                              ResponseStatus.redirection
                                           ? 3
                                           : (_statusGroup ==
-                                                  HttpStatusGroup.clientError
+                                                  ResponseStatus.clientError
                                               ? 4
                                               : 5)))),
                           onSelected: _onStatusChanged,
@@ -715,12 +716,12 @@ class _CurlViewerState extends State<CurlViewer> {
                           );
 
                           final informational =
-                              counts[HttpStatusGroup.informational]!;
-                          final done = counts[HttpStatusGroup.success]!;
-                          final fail = counts[HttpStatusGroup.clientError]! +
-                              counts[HttpStatusGroup.serverError]!;
+                              counts[ResponseStatus.informational]!;
+                          final done = counts[ResponseStatus.success]!;
+                          final fail = counts[ResponseStatus.clientError]! +
+                              counts[ResponseStatus.serverError]!;
                           final redirection =
-                              counts[HttpStatusGroup.redirection]!;
+                              counts[ResponseStatus.redirection]!;
 
                           return AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),

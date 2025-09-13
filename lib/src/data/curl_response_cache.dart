@@ -6,6 +6,8 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../core/types.dart';
+
 part 'curl_response_cache.g.dart';
 
 const _boxName = 'cachedCurlBox';
@@ -121,7 +123,7 @@ class CachedCurlStorage {
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
-    HttpStatusGroup? statusGroup,
+    ResponseStatus? statusGroup,
     int offset = 0,
     int limit = 50,
   }) {
@@ -142,7 +144,7 @@ class CachedCurlStorage {
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
-    HttpStatusGroup? statusGroup,
+    ResponseStatus? statusGroup,
   }) {
     if (!_isInitialized()) {
       return 0;
@@ -157,18 +159,18 @@ class CachedCurlStorage {
 
   /// Returns counts for all status groups in a single iteration.
   /// Much more efficient than calling countFiltered multiple times.
-  static Map<HttpStatusGroup, int> countByStatusGroup({
+  static Map<ResponseStatus, int> countByStatusGroup({
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
   }) {
     if (!_isInitialized()) {
       return {
-        HttpStatusGroup.informational: 0,
-        HttpStatusGroup.success: 0,
-        HttpStatusGroup.redirection: 0,
-        HttpStatusGroup.clientError: 0,
-        HttpStatusGroup.serverError: 0,
+        ResponseStatus.informational: 0,
+        ResponseStatus.success: 0,
+        ResponseStatus.redirection: 0,
+        ResponseStatus.clientError: 0,
+        ResponseStatus.serverError: 0,
       };
     }
 
@@ -218,11 +220,11 @@ class CachedCurlStorage {
     }
 
     return {
-      HttpStatusGroup.informational: informationalCount,
-      HttpStatusGroup.success: successCount,
-      HttpStatusGroup.redirection: redirectionCount,
-      HttpStatusGroup.clientError: clientErrorCount,
-      HttpStatusGroup.serverError: serverErrorCount,
+      ResponseStatus.informational: informationalCount,
+      ResponseStatus.success: successCount,
+      ResponseStatus.redirection: redirectionCount,
+      ResponseStatus.clientError: clientErrorCount,
+      ResponseStatus.serverError: serverErrorCount,
     };
   }
 
@@ -230,7 +232,7 @@ class CachedCurlStorage {
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
-    HttpStatusGroup? statusGroup,
+    ResponseStatus? statusGroup,
   }) {
     final box = Hive.box<CachedCurlEntry>(_boxName);
     Iterable<CachedCurlEntry> entries = box.values.toList().reversed;
@@ -258,16 +260,18 @@ class CachedCurlStorage {
       entries = entries.where((entry) {
         final statusCode = entry.statusCode ?? 0;
         switch (statusGroup) {
-          case HttpStatusGroup.informational:
+          case ResponseStatus.informational:
             return statusCode >= 100 && statusCode < 200;
-          case HttpStatusGroup.success:
+          case ResponseStatus.success:
             return statusCode >= 200 && statusCode < 300;
-          case HttpStatusGroup.redirection:
+          case ResponseStatus.redirection:
             return statusCode >= 300 && statusCode < 400;
-          case HttpStatusGroup.clientError:
+          case ResponseStatus.clientError:
             return statusCode >= 400 && statusCode < 500;
-          case HttpStatusGroup.serverError:
+          case ResponseStatus.serverError:
             return statusCode >= 500 && statusCode < 600;
+          case ResponseStatus.unknown:
+            return false;
         }
       });
     }
@@ -275,10 +279,3 @@ class CachedCurlStorage {
   }
 }
 
-enum HttpStatusGroup {
-  informational,
-  success,
-  redirection,
-  clientError,
-  serverError,
-}

@@ -9,6 +9,9 @@ const String kNA = 'N/A';
 const String kXClientTime = 'X-Client-Time';
 
 const defaultInspectionStatus = <ResponseStatus>[
+  ResponseStatus.informational,
+  // ResponseStatus.success, // it's too verbose
+  ResponseStatus.redirection,
   ResponseStatus.clientError,
   ResponseStatus.serverError,
 ];

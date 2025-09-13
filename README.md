@@ -241,16 +241,6 @@ await telegramInspector.sendBugReport(
   extraInfo: {'userId': 'testUser', 'appVersion': '1.0.0'},
 );
 
-// Send files
-await discordInspector.sendFiles(
-  paths: ['/path/to/logfile.txt'],
-  payload: {'message': 'Log file attached'},
-);
-
-await telegramInspector.sendFiles(
-  paths: ['/path/to/logfile.txt'],
-  payload: {'caption': 'Log file attached'},
-);
 ```
 
 ### Option 4: Using factory constructors for quick setup

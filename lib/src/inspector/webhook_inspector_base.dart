@@ -1,12 +1,11 @@
-import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 
 import '../core/constants.dart';
 import '../core/helpers.dart';
 import '../core/types.dart';
+import '../data/models/sender_info.dart';
 import '../core/utils/curl_utils.dart';
 
 /// Abstract base class for webhook inspectors.
@@ -76,11 +75,9 @@ abstract class WebhookInspectorBase {
           }
         });
 
-    final includeMatch = includeUrls.isEmpty ||
-        includeUrls.any((filter) => url.contains(filter));
+    final includeMatch = includeUrls.isEmpty || includeUrls.any((filter) => url.contains(filter));
 
-    final excludeMatch = excludeUrls.isEmpty ||
-        !excludeUrls.any((filter) => url.contains(filter));
+    final excludeMatch = excludeUrls.isEmpty || !excludeUrls.any((filter) => url.contains(filter));
 
     // If both are provided, both must match.
     return includeMatch && excludeMatch && statusMatch;
@@ -140,9 +137,7 @@ abstract class WebhookInspectorBase {
         senderInfo: effectiveSenderInfo,
         responseTime: '$duration ms',
         responseBody: responseBody,
-        extraInfo: err != null
-            ? {'type': err.type.name, 'message': err.message}
-            : null,
+        extraInfo: err != null ? {'type': err.type.name, 'message': err.message} : null,
       );
     }
   }
@@ -183,17 +178,6 @@ abstract class WebhookInspectorBase {
     StackTrace? stackTrace,
     String? message,
     Map<String, dynamic>? extraInfo,
-    SenderInfo? senderInfo,
-  });
-
-  /// Abstract method to send files to the webhook service.
-  ///
-  /// [paths] List of file paths to send.
-  /// [payload] Optional payload to include with files.
-  /// [senderInfo] Optional sender information for the webhook message.
-  Future<List<Response>> sendFiles({
-    required List<String> paths,
-    Map<String, dynamic>? payload,
     SenderInfo? senderInfo,
   });
 
@@ -251,68 +235,13 @@ abstract class WebhookSenderBase {
           hookUrl,
           data: payload,
           options: Options(
-            headers:
-                headers ?? {'Content-Type': contentType ?? 'application/json'},
+            headers: headers ?? {'Content-Type': contentType ?? 'application/json'},
           ),
         );
         responses.add(response);
       } catch (e) {
         // Handle errors silently to prevent disrupting the main application
         log('Error sending webhook to $hookUrl: $e', name: 'WebhookSenderBase');
-      }
-    }
-
-    return responses;
-  }
-
-  /// Sends files to webhooks using multipart/form-data.
-  ///
-  /// [paths] List of file paths to send.
-  /// [payload] Optional JSON payload to include with files.
-  /// [senderInfo] Optional sender information for the webhook message.
-  Future<List<Response>> sendFiles({
-    required List<String> paths,
-    Map<String, dynamic>? payload,
-    SenderInfo? senderInfo,
-  }) async {
-    final List<Response> responses = [];
-    final formData = FormData();
-
-    // Add files to form data
-    for (var i = 0; i < paths.length; i++) {
-      final path = paths[i];
-      final file = File(path);
-      if (await file.exists()) {
-        formData.files.add(MapEntry(
-          'file$i',
-          await MultipartFile.fromFile(path),
-        ));
-      }
-    }
-
-    // Add JSON payload if provided
-    if (payload != null) {
-      formData.fields.add(MapEntry(
-        'payload_json',
-        jsonEncode({
-          'username': senderInfo?.username,
-          'avatar_url': senderInfo?.avatarUrl,
-          ...payload,
-        }),
-      ));
-    }
-
-    // Send to all webhook URLs
-    for (final hookUrl in hookUrls) {
-      try {
-        final response = await _innerDio.post(
-          hookUrl,
-          data: formData,
-          options: Options(contentType: 'multipart/form-data'),
-        );
-        responses.add(response);
-      } catch (e) {
-        log('Error sending files to $hookUrl: $e', name: 'WebhookSenderBase');
       }
     }
 

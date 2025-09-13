@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../core/constants.dart';
 import '../core/types.dart';
+import '../data/models/sender_info.dart';
 import '../core/utils/webhook_utils.dart';
 import '../data/discord_webhook_model.dart';
 import 'webhook_inspector_base.dart';
@@ -76,18 +77,6 @@ class DiscordInspector extends WebhookInspectorBase {
     );
   }
 
-  @override
-  Future<List<Response>> sendFiles({
-    required List<String> paths,
-    Map<String, dynamic>? payload,
-    SenderInfo? senderInfo,
-  }) async {
-    return S.sendFiles(
-      paths: paths,
-      payload: payload,
-      senderInfo: senderInfo ?? this.senderInfo,
-    );
-  }
 
   @override
   Future<List<Response>> sendMessage({
@@ -239,21 +228,6 @@ class DiscordWebhookSender extends WebhookSenderBase {
     return send(discordMessage);
   }
 
-  /// Sends a single file to Discord webhooks.
-  ///
-  /// This is a convenience method that wraps the `sendFiles` method
-  /// for sending a single file.
-  ///
-  /// [webhookUrl] The specific webhook URL to send the file to (note: this method currently sends to all configured hookUrls).
-  /// [filePaths] The path to the file to send.
-  /// [senderInfo] Optional sender information for the webhook message.
-  Future<void> sendToDiscordWebhook(String webhookUrl, List<String> filePaths,
-      {SenderInfo? senderInfo}) async {
-    // Note: The original implementation of sendToDiscordWebhook was not found.
-    // This new implementation uses the existing sendFiles method.
-    // The webhookUrl parameter is currently ignored as sendFiles uses the class's hookUrls.
-    await sendFiles(paths: filePaths, senderInfo: senderInfo);
-  }
 
   /// Sends a simple message to Discord webhooks.
   ///
