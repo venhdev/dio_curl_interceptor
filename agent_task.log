@@ -38,3 +38,4 @@ Updated CHANGELOG.md and README.md with recent changes including enhanced FormDa
 Updated CI workflow with formatting, analysis, and testing steps
 Updated InspectorUtils with caching functionality - added enableCaching parameter, integrated CachedCurlStorage.save and CachedCurlEntry, added comprehensive cache management methods
 Simplified InspectorUtils with enableCaching integration - added enableCaching parameter and integrated caching in inspect() method
+Added test workflow and updated ci.yml with branch trigger option for testing GitHub Actions
