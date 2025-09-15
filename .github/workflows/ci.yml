@@ -1,0 +1,35 @@
+# .github/workflows/ci.yml
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+' # tag pattern on pub.dev: 'v{{version}'
+
+# Publish using custom workflow
+jobs:
+  publish:
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout repository
+      - uses: actions/checkout@v4
+
+      # Setup Dart
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.9.2
+
+      # Install dependencies
+      - run: dart pub get
+      # Here you can insert custom steps you need
+      # - run: dart tool/generate-code.dart
+      
+      # Quality checks
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
+      - name: Publish
+        run: dart pub publish --force

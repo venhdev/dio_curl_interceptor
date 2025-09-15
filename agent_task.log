@@ -35,3 +35,6 @@ Removed sendFiles method and related functionality from webhook_inspector_base.d
 Successfully removed all sendFiles references from codebase - analyze passes
 Enhanced FormData handling to include contentType, filename, and length information for files while maintaining JSON compatibility
 Updated CHANGELOG.md and README.md with recent changes including enhanced FormData handling, improved UI, and better error handling - 2025-09-15 10:12:58
+Updated CI workflow with formatting, analysis, and testing steps
+Updated InspectorUtils with caching functionality - added enableCaching parameter, integrated CachedCurlStorage.save and CachedCurlEntry, added comprehensive cache management methods
+Simplified InspectorUtils with enableCaching integration - added enableCaching parameter and integrated caching in inspect() method

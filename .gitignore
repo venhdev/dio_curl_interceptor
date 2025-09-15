@@ -33,3 +33,6 @@ build/
 
 cli/
 secret/
+
+# FVM Version Cache
+.fvm/

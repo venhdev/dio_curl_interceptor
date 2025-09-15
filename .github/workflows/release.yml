@@ -7,6 +7,7 @@ on:
 
 jobs:
   publish:
+    if: false #>> Disable this workflow
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Required for pub.dev token
@@ -32,6 +33,8 @@ jobs:
       - name: Publish package
         uses: k-paxian/dart-package-publisher@v1.5.1
         with:
+          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}
           credentialJson: ${{ secrets.PUB_CREDENTIALS_JSON }}
           flutter: true
           skipTests: true # Since we already ran tests

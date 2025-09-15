@@ -91,11 +91,12 @@ class CachedCurlStorage {
     });
   }
 
-  static Future<void> save(CachedCurlEntry entry) async {
+  static Future<int?> save(CachedCurlEntry entry) async {
     if (_isInitialized()) {
       final box = Hive.box<CachedCurlEntry>(_boxName);
-      await box.add(entry);
+      return await box.add(entry);
     }
+    return null;
   }
 
   static List<CachedCurlEntry> loadAll() {
