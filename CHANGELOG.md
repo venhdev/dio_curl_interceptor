@@ -1,3 +1,10 @@
+## v3.3.3-alpha4
+
+- **ENHANCEMENT**: Enhanced FormData handling with detailed file info in cURL output
+- **IMPROVEMENT**: Improved CurlViewer UI and error handling
+- **ENHANCEMENT**: Updated cURL sharing logic and Telegram webhook integration
+- **FEATURE**: Added global task logging and BLoC data sharing guidelines
+
 ## v3.3.3-alpha
 
 - **BREAKING**: Removed file export functionality from CurlViewer (moved to legacy documentation)

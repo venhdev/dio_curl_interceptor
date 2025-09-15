@@ -1,12 +1,15 @@
 # dio_curl_interceptor
 
 [![pub package](https://img.shields.io/pub/v/dio_curl_interceptor.svg)](https://pub.dev/packages/dio_curl_interceptor)
+[![pub points](https://img.shields.io/pub/points/dio_curl_interceptor?logo=dart)](https://pub.dev/packages/dio_curl_interceptor/score)
+[![popularity](https://img.shields.io/pub/popularity/dio_curl_interceptor?logo=dart)](https://pub.dev/packages/dio_curl_interceptor/score)
 
 A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal for debugging. Includes a modern UI to view, filter, and manage logs, plus webhook integration for team collaboration.
 
 ## Features
 
 - 🔍 Converts Dio HTTP requests to cURL commands for easy debugging and sharing.
+- 📁 Enhanced FormData handling with detailed file information in cURL commands.
 - 💾 Caches cURL commands and responses with filtering and search options.
 - 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, clear, copy, etc).
 - 🔔 Webhook integration for remote logging and team collaboration (Discord & Telegram support, including bug and exception reporting).
@@ -317,7 +320,8 @@ The log viewer supports:
 - Search and filter by status code, date range, or text
 - Copy cURL command
 - Clear all logs
-- Share logs via system share functionality
+- Enhanced sharing functionality with improved system integration
+- Better error handling and UI responsiveness
 
 > **Note**: File export functionality has been removed in v3.3.3-alpha. For legacy export features, see the [legacy documentation](.docs/export_file_legacy.md).
 

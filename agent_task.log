@@ -34,3 +34,4 @@ Moved SenderInfo class from lib/src/core/types.dart to lib/src/data/models/sende
 Removed sendFiles method and related functionality from webhook_inspector_base.dart
 Successfully removed all sendFiles references from codebase - analyze passes
 Enhanced FormData handling to include contentType, filename, and length information for files while maintaining JSON compatibility
+Updated CHANGELOG.md and README.md with recent changes including enhanced FormData handling, improved UI, and better error handling - 2025-09-15 10:12:58
