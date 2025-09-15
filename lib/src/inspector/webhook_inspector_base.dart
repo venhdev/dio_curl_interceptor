@@ -75,9 +75,11 @@ abstract class WebhookInspectorBase {
           }
         });
 
-    final includeMatch = includeUrls.isEmpty || includeUrls.any((filter) => url.contains(filter));
+    final includeMatch = includeUrls.isEmpty ||
+        includeUrls.any((filter) => url.contains(filter));
 
-    final excludeMatch = excludeUrls.isEmpty || !excludeUrls.any((filter) => url.contains(filter));
+    final excludeMatch = excludeUrls.isEmpty ||
+        !excludeUrls.any((filter) => url.contains(filter));
 
     // If both are provided, both must match.
     return includeMatch && excludeMatch && statusMatch;
@@ -137,7 +139,9 @@ abstract class WebhookInspectorBase {
         senderInfo: effectiveSenderInfo,
         responseTime: '$duration ms',
         responseBody: responseBody,
-        extraInfo: err != null ? {'type': err.type.name, 'message': err.message} : null,
+        extraInfo: err != null
+            ? {'type': err.type.name, 'message': err.message}
+            : null,
       );
     }
   }
@@ -235,7 +239,8 @@ abstract class WebhookSenderBase {
           hookUrl,
           data: payload,
           options: Options(
-            headers: headers ?? {'Content-Type': contentType ?? 'application/json'},
+            headers:
+                headers ?? {'Content-Type': contentType ?? 'application/json'},
           ),
         );
         responses.add(response);

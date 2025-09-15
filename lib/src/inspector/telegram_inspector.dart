@@ -1,3 +1,5 @@
+// ignore_for_file: unintended_html_in_doc_comment
+
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -80,7 +82,6 @@ class TelegramInspector extends WebhookInspectorBase {
       senderInfo: senderInfo ?? this.senderInfo,
     );
   }
-
 
   @override
   Future<List<Response>> sendMessage({
@@ -294,7 +295,6 @@ class TelegramWebhookSender extends WebhookSenderBase {
 
     return responses;
   }
-
 
   /// Creates a formatted cURL message for Telegram.
   String _createCurlMessage({

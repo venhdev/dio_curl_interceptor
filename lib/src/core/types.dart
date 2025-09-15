@@ -55,4 +55,3 @@ enum ResponseStatus {
         unknown,
       ];
 }
-

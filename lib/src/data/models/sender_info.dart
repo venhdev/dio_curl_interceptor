@@ -46,4 +46,3 @@ class SenderInfo {
   @override
   String toString() => 'SenderInfo(username: $username, avatarUrl: $avatarUrl)';
 }
-

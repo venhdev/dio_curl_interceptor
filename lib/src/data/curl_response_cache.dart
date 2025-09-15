@@ -278,4 +278,3 @@ class CachedCurlStorage {
     return entries;
   }
 }
-

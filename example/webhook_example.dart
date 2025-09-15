@@ -74,5 +74,4 @@ void main() async {
   await telegramInspector.sendMessage(
     content: 'Hello from Telegram webhook!',
   );
-
 }

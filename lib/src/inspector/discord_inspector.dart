@@ -77,7 +77,6 @@ class DiscordInspector extends WebhookInspectorBase {
     );
   }
 
-
   @override
   Future<List<Response>> sendMessage({
     required String content,
@@ -227,7 +226,6 @@ class DiscordWebhookSender extends WebhookSenderBase {
 
     return send(discordMessage);
   }
-
 
   /// Sends a simple message to Discord webhooks.
   ///
