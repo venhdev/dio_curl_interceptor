@@ -23,7 +23,7 @@ jobs:
           sdk: 3.9.2
 
       # Install dependencies
-      - run: dart pub get
+      - run: flutter pub get
       # Here you can insert custom steps you need
       # - run: dart tool/generate-code.dart
       
