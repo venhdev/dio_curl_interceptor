@@ -1,15 +1,12 @@
-## v3.3.3-alpha4
+## v3.3.3.alphaX
 
+- **BREAKING**: Removed file export functionality from CurlViewer
+- **FEAT**: Added `enableCaching` parameter to `InspectorUtils` for controlling curl request/response caching
 - **ENHANCEMENT**: Enhanced FormData handling with detailed file info in cURL output
-- **IMPROVEMENT**: Improved CurlViewer UI and error handling
+- **ENHANCEMENT**: Improved CurlViewer UI and error handling
 - **ENHANCEMENT**: Updated cURL sharing logic and Telegram webhook integration
-- **FEATURE**: Added global task logging and BLoC data sharing guidelines
-
-## v3.3.3-alpha
-
-- **BREAKING**: Removed file export functionality from CurlViewer (moved to legacy documentation)
 - **REFACTOR**: Cleaned up unused dependencies (`codekit`, `file_saver`) from pubspec.yaml
-- **ENHANCEMENT**: Refactored `CurlViewerPopup` to `CurlViewer` with improved UI and display logic
+- **REFACTOR**: Refactored `CurlViewerPopup` to `CurlViewer` with improved UI and display logic
 - **DOCS**: Added legacy documentation for removed export file functionality
 
 ## v3.3.2

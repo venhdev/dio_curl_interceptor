@@ -40,3 +40,9 @@ Updated InspectorUtils with caching functionality - added enableCaching paramete
 Simplified InspectorUtils with enableCaching integration - added enableCaching parameter and integrated caching in inspect() method
 Added test workflow and updated ci.yml with branch trigger option for testing GitHub Actions
 Updated ci.yml to run on branch pushes and added option to disable publishing for testing
+Updated CHANGELOG.md and README.md to document InspectorUtils.enableCaching parameter - added changelog entry and comprehensive usage examples with caching control
+Combined all v3.3.3 changelog entries into single clean entry and updated pubspec version to 3.3.3
+Simplified v3.3.3 changelog entry to match share_plus format - more concise with proper type prefixes
+Documented all flutter-dart-cli scripts in cli.md with comprehensive descriptions, usage examples, and organized structure
+Created macOS/Linux shell script versions of all Windows batch files and updated cli.md with concise CLI reference
+Simplified cli.md to clean format for easy copy-paste of commands
