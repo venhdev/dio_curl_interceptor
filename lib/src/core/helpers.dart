@@ -62,23 +62,32 @@ class Helpers {
         final formData = options.data as FormData;
         final Map<String, dynamic> dataMap = Map.fromEntries(formData.fields);
 
-        // Handle file attachments - group files by field name and use filenames as values
-        final Map<String, List<String>> fileGroups = {};
+        // Handle file attachments - group files by field name and include file info
+        final Map<String, List<Map<String, dynamic>>> fileGroups = {};
         for (final fileEntry in formData.files) {
           final fieldName = fileEntry.key;
-          final fileName = fileEntry.value.filename ?? 'unknown_file';
+          final multipartFile = fileEntry.value;
+          final fileName = multipartFile.filename ?? 'unknown_file';
+          final contentType = multipartFile.contentType?.toString() ?? 'application/octet-stream';
+          final fileLength = multipartFile.length;
 
-          fileGroups.putIfAbsent(fieldName, () => []).add(fileName);
+          final fileInfo = {
+            'filename': fileName,
+            'contentType': contentType,
+            'length': fileLength,
+          };
+
+          fileGroups.putIfAbsent(fieldName, () => []).add(fileInfo);
         }
 
         // Add file information to the data map
-        // For single files, use the filename directly
-        // For multiple files with the same field name, use an array of filenames
-        fileGroups.forEach((fieldName, fileNames) {
-          if (fileNames.length == 1) {
-            dataMap[fieldName] = fileNames.first;
+        // For single files, use the file info object directly
+        // For multiple files with the same field name, use an array of file info objects
+        fileGroups.forEach((fieldName, fileInfos) {
+          if (fileInfos.length == 1) {
+            dataMap[fieldName] = fileInfos.first;
           } else {
-            dataMap[fieldName] = fileNames;
+            dataMap[fieldName] = fileInfos;
           }
         });
 

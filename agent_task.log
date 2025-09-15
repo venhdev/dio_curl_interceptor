@@ -33,3 +33,4 @@ Removed duplicate HttpStatusGroup enum, consolidated to use ResponseStatus from 
 Moved SenderInfo class from lib/src/core/types.dart to lib/src/data/models/sender_info.dart and updated all import statements
 Removed sendFiles method and related functionality from webhook_inspector_base.dart
 Successfully removed all sendFiles references from codebase - analyze passes
+Enhanced FormData handling to include contentType, filename, and length information for files while maintaining JSON compatibility
