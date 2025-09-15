@@ -7,7 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:type_caster/type_caster.dart';
 
 import '../core/constants.dart';
-import '../core/helpers.dart';
+import '../core/helpers/ui_helper.dart';
 import '../core/types.dart';
 import '../data/curl_response_cache.dart';
 

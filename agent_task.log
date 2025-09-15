@@ -46,3 +46,5 @@ Simplified v3.3.3 changelog entry to match share_plus format - more concise with
 Documented all flutter-dart-cli scripts in cli.md with comprehensive descriptions, usage examples, and organized structure
 Created macOS/Linux shell script versions of all Windows batch files and updated cli.md with concise CLI reference
 Simplified cli.md to clean format for easy copy-paste of commands
+Split HTTP status code methods into HttpHelper class and renamed Helpers to CurlHelper - all imports updated and analyzed successfully
+Successfully split helpers.dart into organized helper files in helpers/ directory - all imports updated and verified

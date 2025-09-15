@@ -1,4 +1,4 @@
-import 'package:dio_curl_interceptor/src/core/helpers.dart';
+import 'package:dio_curl_interceptor/src/core/helpers/pretty.dart';
 import 'package:dio_curl_interceptor/src/options/curl_options.dart';
 import 'package:flutter_test/flutter_test.dart';
 

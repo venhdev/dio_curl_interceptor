@@ -7,7 +7,11 @@ import '../../inspector/webhook_inspector_base.dart';
 import '../../options/curl_options.dart';
 import '../constants.dart';
 import '../extensions.dart';
-import '../helpers.dart';
+import '../helpers/curl_helper.dart';
+import '../helpers/http_helper.dart';
+import '../helpers/pretty.dart';
+import '../helpers/ui_helper.dart';
+import '../helpers/emojis.dart';
 import '../types.dart';
 
 /// Generates a cURL command string from [RequestOptions].
@@ -21,7 +25,7 @@ import '../types.dart';
 /// Returns a [String] representing the cURL command.
 String? genCurl(RequestOptions options) {
   try {
-    return Helpers.generateCurlFromRequestOptions(
+    return CurlHelper.generateCurlFromRequestOptions(
       options,
     );
   } catch (e) {
@@ -61,7 +65,7 @@ class CurlUtils {
     if (curl_ == null || curl_.isEmpty) {
       return;
     }
-    int? duration = Helpers.tryExtractDuration(
+    int? duration = CurlHelper.tryExtractDuration(
       stopwatch: stopwatch,
       xClientTimeHeader: response.requestOptions.headers[kXClientTime],
     );
@@ -93,7 +97,7 @@ class CurlUtils {
       return;
     }
 
-    int? duration = Helpers.tryExtractDuration(
+    int? duration = CurlHelper.tryExtractDuration(
       stopwatch: stopwatch,
       xClientTimeHeader: err.requestOptions.headers[kXClientTime],
     );
@@ -148,7 +152,7 @@ class CurlUtils {
   }) {
     try {
       String curl = prefix +
-          Helpers.generateCurlFromRequestOptions(
+          CurlHelper.generateCurlFromRequestOptions(
             requestOptions,
           );
 
@@ -267,7 +271,7 @@ void _handleOn({
 
   final int statusCode = response?.statusCode ?? -1;
   final String methodColored = requestOptions.method
-      .style(Helpers.getMethodAnsi(requestOptions.method))
+      .style(HttpHelper.getMethodAnsi(requestOptions.method))
       .toString(curlOptions.colorEnabled);
   final String uri = requestOptions.uri.toString();
 
@@ -277,7 +281,7 @@ void _handleOn({
   final Map<String, dynamic> responseHeaders = response?.headers.map ?? {};
   final dynamic responseBody = response?.data;
 
-  int? duration = Helpers.tryExtractDuration(
+  int? duration = CurlHelper.tryExtractDuration(
     stopwatch: stopwatch,
     xClientTimeHeader: requestHeaders[kXClientTime],
   );
@@ -302,7 +306,7 @@ void _handleOn({
   final String clockEmoji = curlOptions.emojiEnabled ? Emojis.clock : '';
   final String statusEmoji =
       !curlOptions.emojiEnabled ? '' : UiHelper.getStatusEmoji(statusCode);
-  final String statusName = Helpers.getStatusName(statusCode);
+  final String statusName = HttpHelper.getStatusName(statusCode);
   final String summary =
       ' $statusEmoji$errType $methodColored [$statusCode $statusName] [$clockEmoji $responseTimeStr] $uri';
 

@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 
 import '../core/constants.dart';
-import '../core/helpers.dart';
+import '../core/helpers/curl_helper.dart';
 import '../core/types.dart';
 import '../data/models/sender_info.dart';
 import '../core/utils/curl_utils.dart';
@@ -123,7 +123,7 @@ abstract class WebhookInspectorBase {
     if (isMatch(uri, statusCode)) {
       final String? curl = genCurl(options);
       final dynamic responseBody = response?.data;
-      int? duration = Helpers.tryExtractDuration(
+      int? duration = CurlHelper.tryExtractDuration(
         stopwatch: stopwatch,
         xClientTimeHeader: options.headers[kXClientTime],
       );
