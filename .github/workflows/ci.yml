@@ -4,9 +4,8 @@ name: Publish to pub.dev (ci.yml)
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+' # tag pattern on pub.dev: 'v{{version}}'
-  # Uncomment the line below to test the workflow on every push
-  # branches: [ main, master ]
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # tag pattern on pub.dev: 'v{{version}}'
+    branches: [ main ] # Enable this to test the workflow on every push
 
 # Publish using custom workflow
 jobs:

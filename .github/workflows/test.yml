@@ -20,7 +20,7 @@ jobs:
           sdk: 3.9.2
 
       # Install dependencies
-      - run: dart pub get
+      - run: flutter pub get
       
       # Quality checks
       - run: dart format --output=none --set-exit-if-changed .
