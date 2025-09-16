@@ -1,5 +1,5 @@
 # .github/workflows/ci.yml
-name: Publish to pub.dev (ci.yml)
+name: Publish to pub.dev (publish.yml)
 
 on:
   push:
