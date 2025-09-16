@@ -61,3 +61,7 @@ Fixed main export file to use new service layer architecture
 Successfully combined v3.4.0 changes into v3.3.3 and updated all documentation
 Updated CHANGELOG.md with proper level headings for better readability
 Fixed dangling library doc comments by adding named library directives to impl.dart, repositories.dart, and services.dart
+Simplified CurlViewer share format - removed redundant URL line and reorganized metadata order
+Updated CurlViewer share format to combine status and method: Status: 200 (POST)
+Updated CurlViewer share format to single line metadata: Status: 200 (PUT) - [835 ms] - [2025-09-16 11:49:10]
+Removed 'Status:' prefix from metadata line in CurlViewer share format

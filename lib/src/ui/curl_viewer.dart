@@ -353,12 +353,7 @@ class _CurlViewerState extends State<CurlViewer> {
 
     // Add header with metadata
     buffer.writeln('=== cURL Command ===');
-    buffer.writeln('Method: ${entry.method ?? kNA}');
-    buffer.writeln('URL: ${entry.url ?? kNA}');
-    buffer.writeln('Status: ${entry.statusCode ?? kNA}');
-    buffer.writeln('Duration: ${entry.duration ?? kNA} ms');
-    buffer.writeln(
-        'Timestamp: ${_formatDateTime(entry.timestamp.toLocal(), includeTime: true)}');
+    buffer.writeln('${entry.statusCode ?? kNA} (${entry.method ?? kNA}) - [${entry.duration ?? kNA} ms] - [${_formatDateTime(entry.timestamp.toLocal(), includeTime: true)}]');
     buffer.writeln();
 
     // Add the actual cURL command
