@@ -4,9 +4,15 @@ globs:
 alwaysApply: true
 ---
 
-# Global Task Logging Rule
+# Global Rules
+
+## Task Logging
 
 For all tasks, write a short description after finished (using echo) to [agent_task.log](mdc:agent_task.log) - keep it as brief as possible.
+
+## Task Planing
+
+When user ask: "create plan...", "make plan...",... then follow rule [GUIDE_create_plan.mdc](mdc:.cursor/rules/guides/GUIDE_create_plan.mdc)
 
 # Project tech stack & architecture patterns
 

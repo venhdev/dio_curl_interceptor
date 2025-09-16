@@ -1,19 +1,15 @@
-/// Async patterns and non-blocking strategies for CurlInterceptor.
+/// Async patterns for CurlInterceptor.
 /// 
-/// This library provides comprehensive async patterns and non-blocking strategies
-/// for implementing production-ready CurlInterceptor with robust error handling,
-/// performance optimization, and comprehensive monitoring capabilities.
+/// This library provides essential async patterns for implementing
+/// production-ready CurlInterceptor with robust error handling and
+/// non-blocking webhook operations.
+library patterns;
 
-// Core async patterns
-export 'circuit_breaker.dart';
-export 'batch_processor.dart';
-export 'retry_policy.dart';
-export 'resource_pool.dart';
-export 'error_isolation.dart';
-export 'fallback_handler.dart';
-export 'lazy_initialization.dart';
-export 'caching.dart';
+// Async patterns (essential for production use)
 export 'fire_and_forget.dart';
+export 'circuit_breaker.dart';
+export 'retry_policy.dart';
+export 'webhook_cache.dart';
 
-// Enhanced interceptor
-export '../interceptors/enhanced_curl_interceptor.dart';
+// Interceptors
+export '../interceptors/curl_interceptor_v2.dart';
