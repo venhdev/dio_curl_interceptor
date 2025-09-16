@@ -48,3 +48,5 @@ Created macOS/Linux shell script versions of all Windows batch files and updated
 Simplified cli.md to clean format for easy copy-paste of commands
 Split HTTP status code methods into HttpHelper class and renamed Helpers to CurlHelper - all imports updated and analyzed successfully
 Successfully split helpers.dart into organized helper files in helpers/ directory - all imports updated and verified
+Updated package analyze scripts (removed tests) and created package-test scripts for win/mac
+Renamed package-test scripts to package-analyze-test for win/mac

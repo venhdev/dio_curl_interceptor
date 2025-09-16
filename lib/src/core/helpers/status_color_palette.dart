@@ -131,7 +131,8 @@ Color getStatusColorFromPalette(int statusCode) {
   } else if (statusCode >= 200 && statusCode < 300) {
     return _StatusColors.success.primary; // 2xx Success - Green
   } else if (statusCode >= 300 && statusCode < 400) {
-    return _StatusColors.redirection.primary; // 3xx Redirection - Light Blue/Cyan
+    return _StatusColors
+        .redirection.primary; // 3xx Redirection - Light Blue/Cyan
   } else if (statusCode >= 400 && statusCode < 500) {
     return _StatusColors.clientError.primary; // 4xx Client Error - Orange
   } else if (statusCode >= 500 && statusCode < 600) {
