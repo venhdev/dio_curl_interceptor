@@ -45,4 +45,18 @@ class SenderInfo {
 
   @override
   String toString() => 'SenderInfo(username: $username, avatarUrl: $avatarUrl)';
+
+  factory SenderInfo.fromJson(Map<String, dynamic> json) {
+    return SenderInfo(
+      username: json['username'],
+      avatarUrl: json['avatarUrl'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'avatarUrl': avatarUrl,
+    };
+  }
 }

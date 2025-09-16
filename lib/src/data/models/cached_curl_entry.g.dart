@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'curl_response_cache.dart';
+part of 'cached_curl_entry.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
@@ -23,8 +23,7 @@ class CachedCurlEntryAdapter extends TypeAdapter<CachedCurlEntry> {
       timestamp: fields[3] as DateTime,
       url: fields[4] as String?,
       duration: fields[5] as int?,
-      responseHeaders: (fields[6] as Map?)?.map((dynamic k, dynamic v) =>
-          MapEntry(k as String, (v as List).cast<String>())),
+      responseHeaders: (fields[6] as Map?)?.cast<String, List<String>>(),
       method: fields[7] as String?,
     );
   }

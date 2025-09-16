@@ -17,6 +17,10 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 
 For detailed screenshots of the interceptor's behavior, including simultaneous and chronological logging, please refer to the [Screenshots](#screenshots) section at the bottom of this README.
 
+## Migration Guide
+
+For detailed migration instructions, breaking changes, and code examples, please see our comprehensive [MIGRATION.md](MIGRATION.md) guide.
+
 ## Terminal Compatibility
 
 Below is a compatibility table for different terminals and their support for printing and ANSI colors:
@@ -332,7 +336,7 @@ Before using caching or the log viewer, initialize storage in your `main()`:
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await CachedCurlStorage.init();
+  await CachedCurlService.init();
   runApp(const MyApp());
 }
 ```

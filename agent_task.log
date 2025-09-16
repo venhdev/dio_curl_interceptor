@@ -51,3 +51,12 @@ Successfully split helpers.dart into organized helper files in helpers/ director
 Updated package analyze scripts (removed tests) and created package-test scripts for win/mac
 Renamed package-test scripts to package-analyze-test for win/mac
 Moved Emojis and Pretty classes from separate files into ui_helper.dart and updated all imports
+Removed duplicate HttpHelper file from lib/src/core/http_helper.dart - kept the one in helpers/ folder that was being used
+Successfully split data logic from curl_response_cache.dart into CacheRepository pattern with proper separation of concerns
+Successfully reorganized repository structure with proper impl folder separation
+Successfully reorganized architecture with proper service layer separation
+Successfully completed breaking change migration from CachedCurlStorage to CachedCurlService with proper documentation
+Created dedicated MIGRATION.md file following industry best practices
+Fixed main export file to use new service layer architecture
+Successfully combined v3.4.0 changes into v3.3.3 and updated all documentation
+Updated CHANGELOG.md with proper level headings for better readability

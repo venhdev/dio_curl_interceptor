@@ -9,7 +9,8 @@ import 'package:type_caster/type_caster.dart';
 import '../core/constants.dart';
 import '../core/helpers/ui_helper.dart';
 import '../core/types.dart';
-import '../data/curl_response_cache.dart';
+import '../services/cached_curl_service.dart';
+import '../data/models/cached_curl_entry.dart';
 
 /// Reusable color palette for CurlViewer component
 ///
@@ -212,7 +213,7 @@ class _CurlViewerState extends State<CurlViewer> {
       setState(() => isLoadingMore = true);
     }
 
-    final newEntries = CachedCurlStorage.loadFiltered(
+    final newEntries = CachedCurlService.loadFiltered(
       search: _searchQuery,
       startDate: _startDate,
       endDate: _endDate,
@@ -221,7 +222,7 @@ class _CurlViewerState extends State<CurlViewer> {
       limit: pageSize,
     );
 
-    final count = CachedCurlStorage.countFiltered(
+    final count = CachedCurlService.countFiltered(
       search: _searchQuery,
       startDate: _startDate,
       endDate: _endDate,
@@ -709,7 +710,7 @@ class _CurlViewerState extends State<CurlViewer> {
                       Builder(
                         builder: (context) {
                           // Use the optimized countByStatusGroup method for better performance
-                          final counts = CachedCurlStorage.countByStatusGroup(
+                          final counts = CachedCurlService.countByStatusGroup(
                             search: _searchQuery,
                             startDate: _startDate,
                             endDate: _endDate,
@@ -1425,7 +1426,7 @@ class _CurlViewerState extends State<CurlViewer> {
                               ),
                             );
                             if (confirmed == true) {
-                              await CachedCurlStorage.clear();
+                              await CachedCurlService.clear();
                               _loadEntries(reset: true);
                             }
                           },

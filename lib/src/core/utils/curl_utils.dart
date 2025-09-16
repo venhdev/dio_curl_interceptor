@@ -2,7 +2,8 @@ import 'package:colored_logger/colored_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:type_caster/type_caster.dart';
 
-import '../../data/curl_response_cache.dart';
+import '../../services/cached_curl_service.dart';
+import '../../data/models/cached_curl_entry.dart';
 import '../../inspector/webhook_inspector_base.dart';
 import '../../options/curl_options.dart';
 import '../constants.dart';
@@ -54,7 +55,7 @@ class CurlUtils {
   ///
   /// This method extracts relevant information from the [response] object,
   /// including the cURL command, status code, response body, and headers,
-  /// and stores it in the [CachedCurlStorage].
+  /// and stores it in the [CachedCurlService].
   ///
   /// [response] The Dio [Response] object to be cached.
   /// [stopwatch] An optional [Stopwatch] to calculate the response duration.
@@ -67,7 +68,7 @@ class CurlUtils {
       stopwatch: stopwatch,
       xClientTimeHeader: response.requestOptions.headers[kXClientTime],
     );
-    CachedCurlStorage.save(CachedCurlEntry(
+    CachedCurlService.save(CachedCurlEntry(
       curlCommand: curl_,
       responseBody: response.data.toString(),
       statusCode: response.statusCode,
@@ -85,7 +86,7 @@ class CurlUtils {
   ///
   /// This method extracts relevant information from the [err] object,
   /// including the cURL command, status code (if available), response body,
-  /// and headers, and stores it in the [CachedCurlStorage].
+  /// and headers, and stores it in the [CachedCurlService].
   ///
   /// [err] The [DioException] object representing the error.
   /// [stopwatch] An optional [Stopwatch] to calculate the request/response duration.
@@ -100,7 +101,7 @@ class CurlUtils {
       xClientTimeHeader: err.requestOptions.headers[kXClientTime],
     );
 
-    CachedCurlStorage.save(CachedCurlEntry(
+    CachedCurlService.save(CachedCurlEntry(
       curlCommand: curl_,
       responseBody: err.response?.data.toString(),
       statusCode: err.response?.statusCode,

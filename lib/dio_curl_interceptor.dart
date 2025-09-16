@@ -1,23 +1,33 @@
 library dio_curl_interceptor;
 
+// External dependencies
 export 'package:colored_logger/colored_logger.dart' show Ansi;
 
-// core
+// Core types and utilities
 export 'src/core/types.dart';
-// utils
 export 'src/core/utils/curl_utils.dart';
 export 'src/core/utils/inspector_utils.dart';
 export 'src/core/utils/webhook_utils.dart';
-export 'src/data/curl_response_cache.dart';
-export 'src/data/discord_webhook_model.dart';
+
+// Data models
+export 'src/data/models/cached_curl_entry.dart';
+export 'src/data/models/discord_webhook_model.dart';
 export 'src/data/models/sender_info.dart';
-// inspectors
+
+// Services
+export 'src/services/services.dart';
+
+// Inspectors
 export 'src/inspector/discord_inspector.dart';
 export 'src/inspector/telegram_inspector.dart';
 export 'src/inspector/webhook_inspector_base.dart';
-// others
+
+// Interceptors
 export 'src/interceptors/dio_curl_interceptor_base.dart';
+
+// Options and configuration
 export 'src/options/cache_options.dart';
 export 'src/options/curl_options.dart';
-// ui
+
+// UI components
 export 'src/ui/curl_viewer.dart';

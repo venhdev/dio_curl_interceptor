@@ -1,13 +1,28 @@
-## v3.3.3.alphaX
+## v3.3.3
 
-- **BREAKING**: Removed file export functionality from CurlViewer
-- **FEAT**: Added `enableCaching` parameter to `InspectorUtils` for controlling curl request/response caching
-- **ENHANCEMENT**: Enhanced FormData handling with detailed file info in cURL output
-- **ENHANCEMENT**: Improved CurlViewer UI and error handling
-- **ENHANCEMENT**: Updated cURL sharing logic and Telegram webhook integration
-- **REFACTOR**: Cleaned up unused dependencies (`codekit`, `file_saver`) from pubspec.yaml
-- **REFACTOR**: Refactored `CurlViewerPopup` to `CurlViewer` with improved UI and display logic
-- **DOCS**: Added legacy documentation for removed export file functionality
+### Breaking Changes
+- Replaced `CachedCurlStorage` with `CachedCurlService` for better architecture
+- Removed file export functionality from CurlViewer
+
+### Architecture
+- Implemented proper MVC + Service Layer pattern with repository pattern
+
+### Features
+- Added `enableCaching` parameter to `InspectorUtils` for controlling curl request/response caching
+
+### Enhancements
+- Enhanced FormData handling with detailed file info in cURL output
+- Improved CurlViewer UI and error handling
+- Updated cURL sharing logic and Telegram webhook integration
+- Improved code organization and maintainability
+
+### Refactoring
+- Cleaned up unused dependencies (`codekit`, `file_saver`) from pubspec.yaml
+- Refactored `CurlViewerPopup` to `CurlViewer` with improved UI and display logic
+
+### Documentation
+- Added comprehensive migration guide in [MIGRATION.md](MIGRATION.md)
+- Added legacy documentation for removed export file functionality
 
 ## v3.3.2
 

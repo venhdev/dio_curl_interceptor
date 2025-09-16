@@ -1,70 +1,32 @@
-import 'package:colored_logger/colored_logger.dart';
 import 'dart:convert';
-
+import 'package:colored_logger/colored_logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../core/types.dart';
-
-part 'curl_response_cache.g.dart';
+import '../../models/cached_curl_entry.dart';
+import '../../../core/types.dart';
+import '../cache_repository.dart';
 
 const _boxName = 'cachedCurlBox';
 
-@HiveType(typeId: 0)
-class CachedCurlEntry extends HiveObject {
-  @HiveField(0)
-  String curlCommand;
-
-  @HiveField(1)
-  String? responseBody;
-
-  @HiveField(2)
-  int? statusCode;
-
-  @HiveField(3)
-  DateTime timestamp;
-
-  @HiveField(4)
-  String? url;
-
-  @HiveField(5)
-  int? duration;
-
-  @HiveField(6)
-  Map<String, List<String>>? responseHeaders;
-
-  @HiveField(7)
-  String? method;
-
-  CachedCurlEntry({
-    required this.curlCommand,
-    this.responseBody,
-    this.statusCode,
-    required this.timestamp,
-    this.url,
-    this.duration,
-    this.responseHeaders,
-    this.method,
-  });
-}
-
-bool _isInitialized() {
-  if (!Hive.isBoxOpen(_boxName)) {
-    final msg =
-        'CachedCurlStorage is not initialized. Call `await CachedCurlStorage.init()` first.';
-    ColoredLogger.info(msg);
-    return false;
+class HiveCacheRepositoryImpl implements CacheRepository {
+  static bool _isInitialized() {
+    if (!Hive.isBoxOpen(_boxName)) {
+      final msg =
+          'HiveCacheRepositoryImpl is not initialized. Call `await HiveCacheRepositoryImpl.init()` first.';
+      ColoredLogger.info(msg);
+      return false;
+    }
+    return true;
   }
-  return true;
-}
 
-class CachedCurlStorage {
-  static Future<void> init() async {
+  @override
+  Future<void> init() async {
     if (Hive.isBoxOpen(_boxName)) {
       // Already initialized
-      ColoredLogger.warning('CachedCurlStorage is already initialized.');
+      ColoredLogger.warning('HiveCacheRepositoryImpl is already initialized.');
       return;
     }
     final dir = await getApplicationDocumentsDirectory();
@@ -87,11 +49,12 @@ class CachedCurlStorage {
       _boxName,
       encryptionCipher: HiveAesCipher(encryptionKeyUint8List),
     ).then((value) {
-      ColoredLogger.success('CachedCurlStorage initialized.');
+      ColoredLogger.success('HiveCacheRepositoryImpl initialized.');
     });
   }
 
-  static Future<int?> save(CachedCurlEntry entry) async {
+  @override
+  Future<int?> save(CachedCurlEntry entry) async {
     if (_isInitialized()) {
       final box = Hive.box<CachedCurlEntry>(_boxName);
       return await box.add(entry);
@@ -99,7 +62,8 @@ class CachedCurlStorage {
     return null;
   }
 
-  static List<CachedCurlEntry> loadAll() {
+  @override
+  List<CachedCurlEntry> loadAll() {
     if (!_isInitialized()) {
       return [];
     }
@@ -107,20 +71,16 @@ class CachedCurlStorage {
     return box.values.toList().reversed.toList();
   }
 
-  static Future<void> clear() async {
+  @override
+  Future<void> clear() async {
     if (_isInitialized()) {
       final box = Hive.box<CachedCurlEntry>(_boxName);
       await box.clear();
     }
   }
 
-  /// Loads entries with optional filtering and pagination.
-  /// [search]: search string for curlCommand, responseBody, or statusCode
-  /// [startDate], [endDate]: filter by timestamp
-  /// [statusGroup]: 2 for 2xx, 4 for 4xx, 5 for 5xx
-  /// [offset]: skip this many entries
-  /// [limit]: max number of entries to return
-  static List<CachedCurlEntry> loadFiltered({
+  @override
+  List<CachedCurlEntry> loadFiltered({
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
@@ -140,8 +100,8 @@ class CachedCurlStorage {
     return filtered;
   }
 
-  /// Returns the count of entries matching the filters.
-  static int countFiltered({
+  @override
+  int countFiltered({
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
@@ -158,9 +118,8 @@ class CachedCurlStorage {
     ).length;
   }
 
-  /// Returns counts for all status groups in a single iteration.
-  /// Much more efficient than calling countFiltered multiple times.
-  static Map<ResponseStatus, int> countByStatusGroup({
+  @override
+  Map<ResponseStatus, int> countByStatusGroup({
     String search = '',
     DateTime? startDate,
     DateTime? endDate,
@@ -229,7 +188,7 @@ class CachedCurlStorage {
     };
   }
 
-  static Iterable<CachedCurlEntry> _getFilteredEntries({
+  Iterable<CachedCurlEntry> _getFilteredEntries({
     String search = '',
     DateTime? startDate,
     DateTime? endDate,

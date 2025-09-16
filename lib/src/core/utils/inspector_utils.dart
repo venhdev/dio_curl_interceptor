@@ -22,7 +22,7 @@ class InspectorUtils {
   final List<WebhookInspectorBase>? webhookInspectors;
 
   /// Whether to enable caching of curl requests and responses.
-  /// When enabled, successful responses and errors will be cached using [CachedCurlStorage].
+  /// When enabled, successful responses and errors will be cached using [CachedCurlService].
   final bool enableCaching;
 
   // in future we will add more inspection methods, such as logcat, etc.

@@ -6,7 +6,7 @@ import '../core/constants.dart';
 import '../core/types.dart';
 import '../data/models/sender_info.dart';
 import '../core/utils/webhook_utils.dart';
-import '../data/discord_webhook_model.dart';
+import '../data/models/discord_webhook_model.dart';
 import 'webhook_inspector_base.dart';
 
 /// Options for configuring Discord webhook integration for cURL logging.
