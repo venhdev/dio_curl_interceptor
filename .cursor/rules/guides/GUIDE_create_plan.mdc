@@ -1,0 +1,72 @@
+---
+description: Guide for creating structured plans using the plan template
+globs: *plan.md
+alwaysApply: false
+---
+
+# Plan Creation Guide
+
+This guide helps you create structured plans using a standardized template format.
+
+## Summary progress
+- PlanA: 30% - 3/10
+- PlanB: ...
+
+## When to Use This Guide
+
+Use this guide when you need to:
+- Plan new features or improvements
+- Document implementation steps
+- Create structured task breakdowns
+- Organize complex development work
+
+## Best Practices
+
+### Writing Effective Steps
+- Start each step with an action verb (Create, Implement, Test, etc.)
+- Be specific about what needs to be done
+- Include acceptance criteria when helpful
+- Consider dependencies between steps
+
+### Naming Conventions
+- Use descriptive filenames: `feature_name_plan.md`
+- Place plans in `.docs/plan/` directory
+- Use snake-case for filenames
+
+### Plan Maintenance
+- Update checkboxes and progress indicator as steps are completed
+- Add new steps if scope changes
+- Reference completed plans in new related work
+
+## Example Usage
+
+```markdown
+# Plan Template
+
+## Short Description
+Add dark mode support to the curl viewer interface with theme persistence.
+
+## Summary progress
+- Phase1: 30% - 3/10
+- Phase2: ...
+
+## Reference Links
+- [Flutter Theme Guide](https://flutter.dev/docs/cookbook/design/themes) - Official theming documentation
+- [Issue #123](https://github.com/user/repo/issues/123) - Dark mode feature request
+
+## Plan Steps (Progress indicator 30% - 3/10 done)
+- [x] Create theme data models and enums
+- [x] Implement theme provider with state management
+- [x] Update UI components to use theme colors
+- [ ] Add theme toggle in settings
+- [ ] Implement theme persistence with SharedPreferences
+- [ ] Test theme switching across all screens
+- [ ] Update documentation with theme usage examples
+```
+
+## Integration with Development Workflow
+
+- Create plans before starting major features
+- Reference plans in pull request descriptions
+- Update plans as requirements evolve
+- Archive completed plans for future reference

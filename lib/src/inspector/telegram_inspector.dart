@@ -227,39 +227,20 @@ class TelegramWebhookSender {
   Future<List<Response>> _sendMessage(String message) async {
     final List<Response> responses = [];
 
-    // Truncate message if it exceeds Telegram's limit
-    final truncatedMessage = _truncateMessage(message);
-
-    for (final dynamic chatId in chatIds) {
+    // Try HTML formatting first
+    try {
+      final truncatedMessage = _truncateMessage(message);
+      responses.addAll(await _sendHtmlMessage(truncatedMessage));
+    } catch (e) {
+      log('HTML message sending failed, trying plain text fallback: $e',
+          name: 'TelegramWebhookSender');
+      
+      // Fallback to plain text
       try {
-        final telegramMessage = {
-          'chat_id': chatId,
-          'text': truncatedMessage,
-          'parse_mode': 'HTML',
-        };
-
-        // Construct the proper Telegram API URL
-        final apiUrl = 'https://api.telegram.org/bot$botToken/sendMessage';
-
-        final response = await _dio.post(
-          apiUrl,
-          data: telegramMessage,
-          options: Options(
-            headers: {'Content-Type': 'application/json'},
-          ),
-        );
-
-        // Check if the response indicates success
-        final responseData = response.data;
-        if (responseData is Map<String, dynamic> && 
-            responseData['ok'] == true) {
-          responses.add(response);
-        } else {
-          log('Telegram API returned error: $responseData',
-              name: 'TelegramWebhookSender');
-        }
-      } catch (e) {
-        log('Error sending message to Telegram chat $chatId: $e',
+        final plainTextMessage = _convertToPlainText(message);
+        responses.addAll(await _sendPlainTextMessage(plainTextMessage));
+      } catch (fallbackError) {
+        log('Plain text fallback also failed: $fallbackError',
             name: 'TelegramWebhookSender');
       }
     }
@@ -267,11 +248,270 @@ class TelegramWebhookSender {
     return responses;
   }
 
-  /// Truncates a message to fit within Telegram's character limit.
+  /// Sends an HTML-formatted message to all configured chats.
+  Future<List<Response>> _sendHtmlMessage(String message) async {
+    final List<Response> responses = [];
+
+    for (final dynamic chatId in chatIds) {
+      try {
+        final telegramMessage = {
+          'chat_id': chatId,
+          'text': message,
+          'parse_mode': 'HTML',
+        };
+
+        final response = await _dio.post(
+          'https://api.telegram.org/bot$botToken/sendMessage',
+          data: telegramMessage,
+          options: Options(
+            headers: {'Content-Type': 'application/json'},
+          ),
+        );
+
+        final responseData = response.data;
+        if (responseData is Map<String, dynamic> && 
+            responseData['ok'] == true) {
+          responses.add(response);
+        } else {
+          throw Exception('Telegram API error: $responseData');
+        }
+      } catch (e) {
+        log('Error sending HTML message to Telegram chat $chatId: $e',
+            name: 'TelegramWebhookSender');
+        rethrow;
+      }
+    }
+
+    return responses;
+  }
+
+  /// Sends a plain text message to all configured chats.
+  Future<List<Response>> _sendPlainTextMessage(String message) async {
+    final List<Response> responses = [];
+
+    for (final dynamic chatId in chatIds) {
+      try {
+        final telegramMessage = {
+          'chat_id': chatId,
+          'text': message,
+          // No parse_mode for plain text
+        };
+
+        final response = await _dio.post(
+          'https://api.telegram.org/bot$botToken/sendMessage',
+          data: telegramMessage,
+          options: Options(
+            headers: {'Content-Type': 'application/json'},
+          ),
+        );
+
+        final responseData = response.data;
+        if (responseData is Map<String, dynamic> && 
+            responseData['ok'] == true) {
+          responses.add(response);
+        } else {
+          log('Telegram API returned error for plain text: $responseData',
+              name: 'TelegramWebhookSender');
+        }
+      } catch (e) {
+        log('Error sending plain text message to Telegram chat $chatId: $e',
+            name: 'TelegramWebhookSender');
+      }
+    }
+
+    return responses;
+  }
+
+  /// Converts HTML content to plain text for fallback sending.
+  String _convertToPlainText(String htmlContent) {
+    // Simple HTML to plain text conversion
+    String plainText = htmlContent
+        .replaceAll(RegExp(r'<[^>]*>'), '') // Remove HTML tags
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#x27;', "'")
+        .replaceAll(RegExp(r'\s+'), ' ') // Normalize whitespace
+        .trim();
+
+    // Truncate if still too long
+    if (plainText.length > maxMessageLength) {
+      const truncationIndicator = '\n\n⚠️ Message truncated due to length limit';
+      final maxContentLength = maxMessageLength - truncationIndicator.length;
+      plainText = plainText.substring(0, maxContentLength) + truncationIndicator;
+    }
+
+    return plainText;
+  }
+
+  /// Finds a safe truncation point that doesn't break HTML tags.
   ///
-  /// If the message exceeds [maxMessageLength], it will be truncated and
-  /// a truncation indicator will be added.
-  String _truncateMessage(String message) {
+  /// This method scans backwards from the desired length to find a position
+  /// that is outside of any HTML tags, ensuring valid HTML structure.
+  ///
+  /// [message] The message to find a safe truncation point for.
+  /// [maxLength] The maximum desired length for the truncated message.
+  /// Returns the index of a safe truncation point.
+  int _findSafeTruncationPoint(String message, int maxLength) {
+    if (maxLength >= message.length) {
+      return message.length;
+    }
+
+    // Start from the desired length and work backwards
+    int safePoint = maxLength;
+    bool insideTag = false;
+    bool insideEntity = false;
+    
+    // Scan backwards to find a safe point
+    for (int i = maxLength - 1; i >= 0; i--) {
+      final char = message[i];
+      
+      // Handle HTML entities (like &amp;, &lt;, etc.)
+      if (char == ';' && i > 0 && message[i - 1] != ';') {
+        // Check if this is the end of an HTML entity
+        int entityStart = i - 1;
+        while (entityStart >= 0 && 
+               message[entityStart] != '&' && 
+               message[entityStart] != ' ' && 
+               message[entityStart] != '\n') {
+          entityStart--;
+        }
+        if (entityStart >= 0 && message[entityStart] == '&') {
+          insideEntity = true;
+          i = entityStart;
+          continue;
+        }
+      }
+      
+      if (char == '&' && !insideEntity) {
+        insideEntity = true;
+        continue;
+      }
+      
+      if (insideEntity) {
+        if (char == ' ' || char == '\n' || char == '<' || char == '>') {
+          insideEntity = false;
+        } else {
+          continue;
+        }
+      }
+      
+      // Handle HTML tags
+      if (char == '>') {
+        insideTag = false;
+        safePoint = i + 1;
+        break;
+      }
+      
+      if (char == '<') {
+        insideTag = true;
+        continue;
+      }
+      
+      if (insideTag) {
+        continue;
+      }
+      
+      // Found a safe point outside of tags and entities
+      if (char == '\n' || char == ' ' || char == '.' || char == '!' || char == '?') {
+        safePoint = i + 1;
+        break;
+      }
+    }
+    
+    // Ensure we don't truncate in the middle of a word if possible
+    if (safePoint < maxLength && safePoint > 0) {
+      // Look for word boundaries near the safe point
+      for (int i = safePoint; i < maxLength && i < message.length; i++) {
+        if (message[i] == ' ' || message[i] == '\n') {
+          safePoint = i;
+          break;
+        }
+      }
+    }
+    
+    return safePoint;
+  }
+
+  /// Closes any open HTML tags in the truncated content to ensure valid HTML structure.
+  ///
+  /// This method parses the content and closes any unclosed HTML tags,
+  /// ensuring that the resulting HTML is valid and won't cause parsing errors.
+  ///
+  /// [content] The content that may have unclosed HTML tags.
+  /// Returns the content with all HTML tags properly closed.
+  String _closeOpenTags(String content) {
+    final List<String> openTags = [];
+    final StringBuffer result = StringBuffer();
+    int i = 0;
+    
+    while (i < content.length) {
+      if (content[i] == '<') {
+        // Find the end of the tag
+        int tagEnd = content.indexOf('>', i);
+        if (tagEnd == -1) {
+          // Incomplete tag at the end, just append the rest
+          result.write(content.substring(i));
+          break;
+        }
+        
+        final String tag = content.substring(i + 1, tagEnd);
+        result.write(content.substring(i, tagEnd + 1));
+        
+        // Handle the tag
+        if (tag.startsWith('/')) {
+          // Closing tag - remove from open tags
+          final String tagName = tag.substring(1).split(' ')[0];
+          for (int j = openTags.length - 1; j >= 0; j--) {
+            if (openTags[j] == tagName) {
+              openTags.removeAt(j);
+              break;
+            }
+          }
+        } else if (!tag.endsWith('/') && !_isSelfClosingTag(tag)) {
+          // Opening tag - add to open tags
+          final String tagName = tag.split(' ')[0];
+          openTags.add(tagName);
+        }
+        
+        i = tagEnd + 1;
+      } else {
+        result.write(content[i]);
+        i++;
+      }
+    }
+    
+    // Close any remaining open tags in reverse order
+    for (int j = openTags.length - 1; j >= 0; j--) {
+      result.write('</${openTags[j]}>');
+    }
+    
+    return result.toString();
+  }
+
+  /// Checks if a tag is self-closing (like <br>, <hr>, etc.).
+  ///
+  /// [tag] The tag content without angle brackets.
+  /// Returns true if the tag is self-closing.
+  bool _isSelfClosingTag(String tag) {
+    const selfClosingTags = {
+      'br', 'hr', 'img', 'input', 'meta', 'link', 'area', 'base',
+      'col', 'embed', 'source', 'track', 'wbr'
+    };
+    
+    final tagName = tag.split(' ')[0].toLowerCase();
+    return selfClosingTags.contains(tagName);
+  }
+
+  /// Truncates a message using HTML-aware truncation to maintain valid HTML structure.
+  ///
+  /// This method combines safe truncation point finding with HTML tag closing
+  /// to ensure the resulting message has valid HTML that won't cause parsing errors.
+  ///
+  /// [message] The message to truncate.
+  /// Returns the truncated message with valid HTML structure.
+  String _truncateMessageHtmlAware(String message) {
     if (message.length <= maxMessageLength) {
       return message;
     }
@@ -279,7 +519,40 @@ class TelegramWebhookSender {
     const truncationIndicator = '\n\n⚠️ <i>Message truncated due to length limit</i>';
     final maxContentLength = maxMessageLength - truncationIndicator.length;
     
-    return message.substring(0, maxContentLength) + truncationIndicator;
+    // Find a safe truncation point that doesn't break HTML tags
+    final safeTruncationPoint = _findSafeTruncationPoint(message, maxContentLength);
+    
+    // Truncate at the safe point
+    final truncatedContent = message.substring(0, safeTruncationPoint);
+    
+    // Close any open HTML tags
+    final validHtmlContent = _closeOpenTags(truncatedContent);
+    
+    return validHtmlContent + truncationIndicator;
+  }
+
+  /// Truncates a message to fit within Telegram's character limit.
+  ///
+  /// If the message exceeds [maxMessageLength], it will be truncated and
+  /// a truncation indicator will be added. Uses HTML-aware truncation to
+  /// maintain valid HTML structure.
+  String _truncateMessage(String message) {
+    try {
+      return _truncateMessageHtmlAware(message);
+    } catch (e) {
+      // Fallback to simple truncation if HTML parsing fails
+      log('HTML-aware truncation failed, falling back to simple truncation: $e',
+          name: 'TelegramWebhookSender');
+      
+      if (message.length <= maxMessageLength) {
+        return message;
+      }
+
+      const truncationIndicator = '\n\n⚠️ <i>Message truncated due to length limit</i>';
+      final maxContentLength = maxMessageLength - truncationIndicator.length;
+      
+      return message.substring(0, maxContentLength) + truncationIndicator;
+    }
   }
 
   /// Escapes HTML entities in text to prevent Telegram API parsing errors.

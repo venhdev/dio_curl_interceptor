@@ -23,6 +23,10 @@ export 'src/inspector/webhook_inspector_base.dart';
 
 // Interceptors
 export 'src/interceptors/dio_curl_interceptor_base.dart';
+export 'src/interceptors/enhanced_curl_interceptor.dart';
+
+// Async patterns and non-blocking strategies
+export 'src/patterns/patterns.dart' hide WebhookInspectorBase;
 
 // Options and configuration
 export 'src/options/cache_options.dart';
