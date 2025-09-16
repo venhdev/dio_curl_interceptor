@@ -9,9 +9,7 @@ import '../constants.dart';
 import '../extensions.dart';
 import '../helpers/curl_helper.dart';
 import '../helpers/http_helper.dart';
-import '../helpers/pretty.dart';
 import '../helpers/ui_helper.dart';
-import '../helpers/emojis.dart';
 import '../types.dart';
 
 /// Generates a cURL command string from [RequestOptions].

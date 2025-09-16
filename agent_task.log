@@ -50,3 +50,4 @@ Split HTTP status code methods into HttpHelper class and renamed Helpers to Curl
 Successfully split helpers.dart into organized helper files in helpers/ directory - all imports updated and verified
 Updated package analyze scripts (removed tests) and created package-test scripts for win/mac
 Renamed package-test scripts to package-analyze-test for win/mac
+Moved Emojis and Pretty classes from separate files into ui_helper.dart and updated all imports
