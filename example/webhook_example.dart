@@ -13,12 +13,15 @@ void main() async {
     inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
   );
 
-  // Example 2: Using Telegram webhook inspector
-  // Note: For Telegram, you need to include the chat_id in the webhook URL
-  // Format: https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage?chat_id=<CHAT_ID>
+  // Example 2: Using Telegram Bot API inspector
+  // Note: You need to provide bot token and chat IDs separately
+  // Get bot token from @BotFather and chat IDs from getUpdates API
   final telegramInspector = TelegramInspector(
-    webhookUrls: [
-      'https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'
+    botToken: 'YOUR_BOT_TOKEN', // e.g., '8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI'
+    chatIds: [
+      -1003019608685, // Supergroup (negative number)
+      123456789,      // Private chat (positive number)
+      '@channelusername', // Channel username
     ],
     includeUrls: ['api.example.com'],
     excludeUrls: ['api.example.com/health'],
@@ -44,7 +47,8 @@ void main() async {
   // );
 
   // final telegramOnlyInterceptor = CurlInterceptor.withTelegramInspector(
-  //   ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+  //   'YOUR_BOT_TOKEN', // Bot token from @BotFather
+  //   [-1003019608685], // List of chat IDs
   //   includeUrls: ['api.example.com'],
   //   inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
   // );

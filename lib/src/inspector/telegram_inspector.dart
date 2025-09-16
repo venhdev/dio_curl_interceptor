@@ -11,35 +11,53 @@ import '../core/utils/webhook_utils.dart';
 import '../interceptors/dio_curl_interceptor_base.dart';
 import 'webhook_inspector_base.dart';
 
-/// Options for configuring Telegram webhook integration for cURL logging.
+/// Options for configuring Telegram Bot API integration for cURL logging.
 ///
 /// This class allows you to define rules for when and how cURL logs
-/// are sent to Telegram, including URL filtering and status code-based inspection.
+/// are sent to Telegram chats via the Telegram Bot API, including URL filtering 
+/// and status code-based inspection.
 class TelegramInspector extends WebhookInspectorBase {
   /// Creates a [TelegramInspector] instance.
   ///
-  /// [webhookUrls] A list of Telegram webhook URLs to send logs to.
+  /// [botToken] The Telegram bot token obtained from @BotFather.
+  /// [chatIds] A list of chat IDs where messages will be sent. Can be:
+  ///   - Positive integers for private chats (e.g., 123456789)
+  ///   - Negative integers for groups/supergroups (e.g., -1003019608685)
+  ///   - Channel usernames with @ prefix (e.g., @channelusername)
   /// [includeUrls] A list of URI patterns to include for inspection. If not empty,
   ///   only requests matching any of these patterns will be sent.
   /// [excludeUrls] A list of URI patterns to exclude from inspection. If not empty,
   ///   requests matching any of these patterns will NOT be sent.
   /// [inspectionStatus] A list of [ResponseStatus] types that trigger webhook notifications.
   /// [senderInfo] Optional sender information (username, avatar) for webhook messages.
+  /// [dio] Optional Dio instance for making HTTP requests to Telegram API.
   const TelegramInspector({
-    super.webhookUrls = const <String>[],
+    required this.botToken,
+    required this.chatIds,
     super.includeUrls = const [],
     super.excludeUrls = const [],
     super.inspectionStatus = defaultInspectionStatus,
     super.senderInfo,
     this.dio,
-  });
+  }) : super(webhookUrls: const <String>[]);
+
+  /// The Telegram bot token obtained from @BotFather
+  final String botToken;
+
+  /// List of chat IDs where messages will be sent
+  final List<dynamic> chatIds;
 
   /// The Dio instance for making HTTP requests to Telegram API
   final Dio? dio;
 
-  TelegramWebhookSender get S => TelegramWebhookSender(hookUrls: webhookUrls);
+  TelegramWebhookSender get S => TelegramWebhookSender(
+        botToken: botToken,
+        chatIds: chatIds,
+        dio: dio,
+      );
   TelegramWebhookSender toSender([Dio? dio]) => TelegramWebhookSender(
-        hookUrls: webhookUrls,
+        botToken: botToken,
+        chatIds: chatIds,
         dio: dio ?? this.dio,
       );
 
@@ -95,28 +113,40 @@ class TelegramInspector extends WebhookInspectorBase {
   }
 }
 
-/// A class to handle sending cURL logs and other messages to Telegram webhooks.
+/// A class to handle sending cURL logs and other messages to Telegram via Bot API.
 ///
 /// This class provides methods to send various types of information,
-/// including cURL commands, bug reports, and simple messages, to Telegram channels.
-class TelegramWebhookSender extends WebhookSenderBase {
+/// including cURL commands, bug reports, and simple messages, to Telegram chats
+/// using the official Telegram Bot API.
+class TelegramWebhookSender {
   /// Creates a [TelegramWebhookSender] instance.
   ///
-  /// [hookUrls] A list of Telegram webhook URLs where messages will be sent.
-  /// [dio] An optional Dio instance to use for making HTTP requests to webhooks.
+  /// [botToken] The Telegram bot token obtained from @BotFather.
+  /// [chatIds] A list of chat IDs where messages will be sent.
+  /// [dio] An optional Dio instance to use for making HTTP requests to Telegram API.
   TelegramWebhookSender({
-    required super.hookUrls,
+    required this.botToken,
+    required this.chatIds,
     Dio? dio,
   }) : _dio = dio ?? Dio()
           ..interceptors.add(CurlInterceptor());
 
+  /// The Telegram bot token
+  final String botToken;
+
+  /// List of chat IDs where messages will be sent
+  final List<dynamic> chatIds;
+
   /// The Dio instance for making HTTP requests to Telegram API
   final Dio _dio;
 
-  /// Sends a cURL log to all configured Telegram webhooks.
+  /// Maximum message length allowed by Telegram API
+  static const int maxMessageLength = 4096;
+
+  /// Sends a cURL log to all configured Telegram chats.
   ///
   /// This method formats the cURL command and response details into a Telegram message
-  /// and sends it using the proper Telegram API format.
+  /// and sends it using the proper Telegram Bot API.
   ///
   /// [curl] The cURL command string.
   /// [method] The HTTP method (e.g., 'GET', 'POST').
@@ -128,7 +158,7 @@ class TelegramWebhookSender extends WebhookSenderBase {
   /// [extraInfo] (optional) Additional information to include in the message.
   ///
   /// Returns a [Future] that completes with a list of [Response] objects
-  /// from each successful webhook call.
+  /// from each successful API call.
   Future<List<Response>> sendCurlLog({
     required String? curl,
     required String method,
@@ -149,46 +179,10 @@ class TelegramWebhookSender extends WebhookSenderBase {
       extraInfo: extraInfo,
     );
 
-    final List<Response> responses = [];
-
-    for (final String hookUrl in hookUrls) {
-      try {
-        // Extract chat_id from the webhook URL
-        final chatId = _extractChatIdFromUrl(hookUrl);
-        if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
-              name: 'TelegramWebhookSender');
-          continue;
-        }
-
-        final telegramMessage = {
-          'chat_id':
-              chatId.startsWith('@') ? chatId.trim() : _parseChatId(chatId),
-          'text': message,
-          'parse_mode': 'HTML',
-        };
-
-        // Construct the proper Telegram API URL
-        final apiUrl = _constructTelegramApiUrl(hookUrl);
-
-        final response = await _dio.post(
-          apiUrl,
-          data: telegramMessage,
-          options: Options(
-            headers: {'Content-Type': 'application/json'},
-          ),
-        );
-        responses.add(response);
-      } catch (e) {
-        log('Error sending cURL log to Telegram webhook $hookUrl: $e',
-            name: 'TelegramWebhookSender');
-      }
-    }
-
-    return responses;
+    return await _sendMessage(message);
   }
 
-  /// Sends a bug report or exception details to Telegram webhooks.
+  /// Sends a bug report or exception details to Telegram chats.
   ///
   /// This method creates a Telegram message with details about an error or exception,
   /// including the error message, stack trace, and optional user information.
@@ -212,45 +206,10 @@ class TelegramWebhookSender extends WebhookSenderBase {
       extraInfo: extraInfo,
     );
 
-    final List<Response> responses = [];
-
-    for (final String hookUrl in hookUrls) {
-      try {
-        // Extract chat_id from the webhook URL
-        final chatId = _extractChatIdFromUrl(hookUrl);
-        if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
-              name: 'TelegramWebhookSender');
-          continue;
-        }
-
-        final telegramMessage = {
-          'chat_id': chatId,
-          'text': content,
-          'parse_mode': 'HTML',
-        };
-
-        // Construct the proper Telegram API URL
-        final apiUrl = _constructTelegramApiUrl(hookUrl);
-
-        final response = await _dio.post(
-          apiUrl,
-          data: telegramMessage,
-          options: Options(
-            headers: {'Content-Type': 'application/json'},
-          ),
-        );
-        responses.add(response);
-      } catch (e) {
-        log('Error sending bug report to Telegram webhook $hookUrl: $e',
-            name: 'TelegramWebhookSender');
-      }
-    }
-
-    return responses;
+    return await _sendMessage(content);
   }
 
-  /// Sends a simple message to Telegram webhooks.
+  /// Sends a simple message to Telegram chats.
   ///
   /// [content] The message content to send.
   /// [senderInfo] Optional sender information for the webhook message.
@@ -258,26 +217,29 @@ class TelegramWebhookSender extends WebhookSenderBase {
     required String content,
     SenderInfo? senderInfo,
   }) async {
+    return await _sendMessage(content);
+  }
+
+  /// Core method to send a message to all configured Telegram chats.
+  ///
+  /// This method handles the actual API communication with Telegram Bot API,
+  /// including message truncation, error handling, and rate limiting.
+  Future<List<Response>> _sendMessage(String message) async {
     final List<Response> responses = [];
 
-    for (final String hookUrl in hookUrls) {
-      try {
-        // Extract chat_id from the webhook URL or use a default
-        final chatId = _extractChatIdFromUrl(hookUrl);
-        if (chatId == null) {
-          log('Warning: No chat_id found in Telegram webhook URL: $hookUrl',
-              name: 'TelegramWebhookSender');
-          continue;
-        }
+    // Truncate message if it exceeds Telegram's limit
+    final truncatedMessage = _truncateMessage(message);
 
+    for (final dynamic chatId in chatIds) {
+      try {
         final telegramMessage = {
           'chat_id': chatId,
-          'text': content,
+          'text': truncatedMessage,
           'parse_mode': 'HTML',
         };
 
         // Construct the proper Telegram API URL
-        final apiUrl = _constructTelegramApiUrl(hookUrl);
+        final apiUrl = 'https://api.telegram.org/bot$botToken/sendMessage';
 
         final response = await _dio.post(
           apiUrl,
@@ -286,14 +248,38 @@ class TelegramWebhookSender extends WebhookSenderBase {
             headers: {'Content-Type': 'application/json'},
           ),
         );
-        responses.add(response);
+
+        // Check if the response indicates success
+        final responseData = response.data;
+        if (responseData is Map<String, dynamic> && 
+            responseData['ok'] == true) {
+          responses.add(response);
+        } else {
+          log('Telegram API returned error: ${responseData}',
+              name: 'TelegramWebhookSender');
+        }
       } catch (e) {
-        log('Error sending message to Telegram webhook $hookUrl: $e',
+        log('Error sending message to Telegram chat $chatId: $e',
             name: 'TelegramWebhookSender');
       }
     }
 
     return responses;
+  }
+
+  /// Truncates a message to fit within Telegram's character limit.
+  ///
+  /// If the message exceeds [maxMessageLength], it will be truncated and
+  /// a truncation indicator will be added.
+  String _truncateMessage(String message) {
+    if (message.length <= maxMessageLength) {
+      return message;
+    }
+
+    const truncationIndicator = '\n\n⚠️ <i>Message truncated due to length limit</i>';
+    final maxContentLength = maxMessageLength - truncationIndicator.length;
+    
+    return message.substring(0, maxContentLength) + truncationIndicator;
   }
 
   /// Creates a formatted cURL message for Telegram.
@@ -401,75 +387,4 @@ class TelegramWebhookSender extends WebhookSenderBase {
     }
   }
 
-  /// Extracts chat_id from a Telegram webhook URL.
-  ///
-  /// Supports URLs in the format:
-  /// - https://api.telegram.org/bot<token>/sendMessage?chat_id=<chat_id>
-  /// - https://api.telegram.org/bot<token>/sendMessage#chat_id=<chat_id>
-  /// - https://api.telegram.org/bot<token>/sendMessage (returns null, requires manual chat_id)
-  String? _extractChatIdFromUrl(String url) {
-    try {
-      final uri = Uri.parse(url);
-
-      // Check query parameters first
-      final chatIdFromQuery = uri.queryParameters['chat_id'];
-      if (chatIdFromQuery != null && chatIdFromQuery.isNotEmpty) {
-        return chatIdFromQuery;
-      }
-
-      // Check fragment (hash) parameters
-      final fragmentParams = uri.fragment
-          .split('&')
-          .where((param) => param.startsWith('chat_id='));
-      final chatIdFromFragment =
-          fragmentParams.isNotEmpty ? fragmentParams.first.split('=')[1] : null;
-      if (chatIdFromFragment != null && chatIdFromFragment.isNotEmpty) {
-        return chatIdFromFragment;
-      }
-
-      return null;
-    } catch (e) {
-      log('Error parsing Telegram webhook URL: $e',
-          name: 'TelegramWebhookSender');
-      return null;
-    }
-  }
-
-  /// Parses chat ID, handling both positive and negative integers
-  dynamic _parseChatId(String chatId) {
-    try {
-      // Handle negative numbers (like -1003019608685)
-      if (chatId.startsWith('-')) {
-        return int.parse(chatId);
-      }
-      // Handle positive numbers
-      return int.parse(chatId);
-    } catch (e) {
-      // If parsing fails, return as string (for usernames)
-      return chatId;
-    }
-  }
-
-  /// Constructs the proper Telegram API URL for sendMessage.
-  ///
-  /// Converts URLs like:
-  /// - https://api.telegram.org/bot<token>/sendMessage?chat_id=<chat_id>
-  ///   to https://api.telegram.org/bot<token>/sendMessage
-  String _constructTelegramApiUrl(String webhookUrl) {
-    try {
-      final uri = Uri.parse(webhookUrl);
-
-      // Remove query parameters and fragment, keep only the base path
-      return Uri(
-        scheme: uri.scheme,
-        host: uri.host,
-        port: uri.port,
-        path: uri.path,
-      ).toString();
-    } catch (e) {
-      log('Error constructing Telegram API URL: $e',
-          name: 'TelegramWebhookSender');
-      return webhookUrl; // Return original URL as fallback
-    }
-  }
 }

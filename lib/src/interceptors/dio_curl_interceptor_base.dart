@@ -73,20 +73,25 @@ class CurlInterceptor extends Interceptor {
         ],
       );
 
-  /// Factory constructor to create a CurlInterceptor with Telegram webhook enabled
-  /// Creates a [CurlInterceptor] instance configured for Telegram webhook integration.
+  /// Factory constructor to create a CurlInterceptor with Telegram Bot API integration
+  /// Creates a [CurlInterceptor] instance configured for Telegram Bot API integration.
   ///
   /// This factory simplifies the setup for sending cURL logs and inspection
-  /// data to specified Telegram webhook URLs.
+  /// data to specified Telegram chats via the Bot API.
   ///
-  /// [webhookUrls] is a list of Telegram webhook URLs where logs will be sent.
+  /// [botToken] The Telegram bot token obtained from @BotFather.
+  /// [chatIds] A list of chat IDs where messages will be sent. Can be:
+  ///   - Positive integers for private chats (e.g., 123456789)
+  ///   - Negative integers for groups/supergroups (e.g., -1003019608685)
+  ///   - Channel usernames with @ prefix (e.g., @channelusername)
   /// [includeUrls] (optional) specifies a list of URI patterns to include for inspection.
   /// [excludeUrls] (optional) specifies a list of URI patterns to exclude from inspection.
   /// [inspectionStatus] (optional) defines which response statuses trigger webhook notifications.
   /// [curlOptions] (optional) customizes how cURL commands are generated.
   /// [cacheOptions] (optional) configures caching behavior.
   factory CurlInterceptor.withTelegramInspector(
-    List<String> webhookUrls, {
+    String botToken,
+    List<dynamic> chatIds, {
     List<String> includeUrls = const [],
     List<String> excludeUrls = const [],
     List<ResponseStatus> inspectionStatus = const <ResponseStatus>[
@@ -101,7 +106,8 @@ class CurlInterceptor extends Interceptor {
         cacheOptions: cacheOptions,
         webhookInspectors: [
           TelegramInspector(
-            webhookUrls: webhookUrls,
+            botToken: botToken,
+            chatIds: chatIds,
             includeUrls: includeUrls,
             excludeUrls: excludeUrls,
             inspectionStatus: inspectionStatus,

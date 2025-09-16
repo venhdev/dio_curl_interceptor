@@ -104,7 +104,8 @@ dio.interceptors.add(CurlInterceptor(
       excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
     ),
     TelegramInspector(
-      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+      botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
+      chatIds: [-1003019608685], // Get from getUpdates API
       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
       includeUrls: const ['/api/v1/users', 'https://example.com/data'],
       excludeUrls: const ['/api/v1/auth/login', 'https://example.com/sensitive'],
@@ -126,7 +127,8 @@ class YourInterceptor extends Interceptor {
       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
     ),
     TelegramInspector(
-      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+      botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
+      chatIds: [-1003019608685], // Get from getUpdates API
       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
     ),
   ];

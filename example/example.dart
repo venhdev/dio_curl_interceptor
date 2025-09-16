@@ -181,7 +181,8 @@ class YourInterceptor extends Interceptor {
       ],
     ),
     TelegramInspector(
-      webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage'],
+      botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
+      chatIds: [-1003019608685], // Get from getUpdates API
       inspectionStatus: [
         ResponseStatus.clientError,
         ResponseStatus.serverError
