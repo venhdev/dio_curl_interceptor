@@ -60,3 +60,4 @@ Created dedicated MIGRATION.md file following industry best practices
 Fixed main export file to use new service layer architecture
 Successfully combined v3.4.0 changes into v3.3.3 and updated all documentation
 Updated CHANGELOG.md with proper level headings for better readability
+Fixed dangling library doc comments by adding named library directives to impl.dart, repositories.dart, and services.dart
