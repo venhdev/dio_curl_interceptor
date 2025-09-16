@@ -7,7 +7,6 @@ export 'package:colored_logger/colored_logger.dart' show Ansi;
 export 'src/core/types.dart';
 export 'src/core/utils/curl_utils.dart';
 export 'src/core/utils/inspector_utils.dart';
-export 'src/core/utils/webhook_utils.dart';
 
 // Data models
 export 'src/data/models/cached_curl_entry.dart';

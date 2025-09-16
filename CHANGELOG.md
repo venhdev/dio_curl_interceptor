@@ -19,10 +19,18 @@
 ### Refactoring
 - Cleaned up unused dependencies (`codekit`, `file_saver`) from pubspec.yaml
 - Refactored `CurlViewerPopup` to `CurlViewer` with improved UI and display logic
+- **REFACTORED**: Moved Discord-specific utilities (`formatEmbedValue`, `_wrapWithBackticks`) from `webhook_utils.dart` to `discord_inspector.dart`
+- **REMOVED**: `webhook_utils.dart` file as utilities are now properly organized by platform
+- **IMPROVED**: Code organization with platform-specific utility methods
 
 ### Documentation
 - Added comprehensive migration guide in [MIGRATION.md](MIGRATION.md)
 - Added legacy documentation for removed export file functionality
+- **ADDED**: TLDR sections to Telegram API documentation and fix documentation
+
+### Fixes
+- **FIXED**: Telegram HTML parsing error - resolved "can't parse entities" error by removing markdown code blocks from HTML context
+- **FIXED**: Created separate formatting methods for Telegram vs Discord to prevent mixing markdown and HTML
 
 ## v3.3.2
 

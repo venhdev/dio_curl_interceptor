@@ -1,4 +1,9 @@
-# Links
+# Telegram Bot API Documentation
+
+## TLDR
+Telegram Bot API uses REST endpoints (not webhooks) with `sendMessage` method. Requires `botToken` and `chatId` parameters. Supports HTML formatting with proper entity escaping. Use `https://api.telegram.org/bot<token>/sendMessage` endpoint.
+
+## Links
 - https://core.telegram.org/bots/api#sendmessage
 - https://core.telegram.org/bots/api#message
 - https://willschenk.com/labnotes/2024/telegram_with_curl/

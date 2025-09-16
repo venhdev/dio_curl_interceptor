@@ -3,11 +3,11 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:type_caster/type_caster.dart';
 
 import '../core/constants.dart';
 import '../core/types.dart';
 import '../data/models/sender_info.dart';
-import '../core/utils/webhook_utils.dart';
 import '../interceptors/dio_curl_interceptor_base.dart';
 import 'webhook_inspector_base.dart';
 
@@ -169,7 +169,7 @@ class TelegramWebhookSender {
     SenderInfo? senderInfo,
     Map<String, dynamic>? extraInfo,
   }) async {
-    final message = _createCurlMessage(
+    final message = createCurlMessage(
       curl: curl,
       method: method,
       uri: uri,
@@ -199,7 +199,7 @@ class TelegramWebhookSender {
     Map<String, dynamic>? extraInfo,
     SenderInfo? senderInfo,
   }) async {
-    final content = _createBugReportMessage(
+    final content = createBugReportMessage(
       error: error,
       stackTrace: stackTrace,
       message: message,
@@ -255,7 +255,7 @@ class TelegramWebhookSender {
             responseData['ok'] == true) {
           responses.add(response);
         } else {
-          log('Telegram API returned error: ${responseData}',
+          log('Telegram API returned error: $responseData',
               name: 'TelegramWebhookSender');
         }
       } catch (e) {
@@ -282,8 +282,40 @@ class TelegramWebhookSender {
     return message.substring(0, maxContentLength) + truncationIndicator;
   }
 
+  /// Escapes HTML entities in text to prevent Telegram API parsing errors.
+  ///
+  /// This method properly escapes special characters that could break HTML parsing
+  /// in Telegram messages, including quotes, angle brackets, and ampersands.
+  String _escapeHtml(String text) {
+    return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#x27;');
+  }
+
+  /// Formats a value for Telegram messages without markdown code blocks.
+  ///
+  /// This method formats structured data for Telegram without adding markdown
+  /// backticks, since Telegram uses HTML formatting instead of markdown.
+  String _formatForTelegram(dynamic rawValue) {
+    if (rawValue is Map || rawValue is List) {
+      // Use proper JSON formatting for structured data
+      try {
+        return indentJson(rawValue, indent: '  ');
+      } catch (e) {
+        // Fallback to stringify if JSON encoding fails
+        return stringify(rawValue, maxLen: 1000, replacements: const {'```': ''});
+      }
+    } else {
+      // Use stringify for other types
+      return stringify(rawValue, maxLen: 1000, replacements: const {'```': ''});
+    }
+  }
+
   /// Creates a formatted cURL message for Telegram.
-  String _createCurlMessage({
+  String createCurlMessage({
     required String? curl,
     required String method,
     required String uri,
@@ -299,43 +331,43 @@ class TelegramWebhookSender {
 
     buffer.writeln('$statusEmoji <b>HTTP Request</b>');
     buffer.writeln('');
-    buffer.writeln('<b>Method:</b> $method');
-    buffer.writeln('<b>URL:</b> <code>$uri</code>');
+    buffer.writeln('<b>Method:</b> ${_escapeHtml(method)}');
+    buffer.writeln('<b>URL:</b> <code>${_escapeHtml(uri)}</code>');
     buffer.writeln('<b>Status:</b> $statusCode');
 
     if (responseTime != null) {
-      buffer.writeln('<b>Response Time:</b> $responseTime');
+      buffer.writeln('<b>Response Time:</b> ${_escapeHtml(responseTime)}');
     }
 
     if (curl != null && curl.isNotEmpty) {
       buffer.writeln('');
       buffer.writeln('<b>cURL Command:</b>');
-      buffer.writeln('<pre><code>$curl</code></pre>');
+      buffer.writeln('<pre><code>${_escapeHtml(curl)}</code></pre>');
     }
 
     if (responseBody != null) {
       buffer.writeln('');
       buffer.writeln('<b>Response Body:</b>');
-      final formattedBody = formatEmbedValue(responseBody, lang: 'json');
-      buffer.writeln('<pre><code>$formattedBody</code></pre>');
+      final formattedBody = _formatForTelegram(responseBody);
+      buffer.writeln('<pre><code>${_escapeHtml(formattedBody)}</code></pre>');
     }
 
     if (extraInfo != null && extraInfo.isNotEmpty) {
       buffer.writeln('');
       buffer.writeln('<b>Extra Info:</b>');
-      final formattedInfo = formatEmbedValue(extraInfo, lang: 'json');
-      buffer.writeln('<pre><code>$formattedInfo</code></pre>');
+      final formattedInfo = _formatForTelegram(extraInfo);
+      buffer.writeln('<pre><code>${_escapeHtml(formattedInfo)}</code></pre>');
     }
 
     buffer.writeln('');
     buffer.writeln(
-        '<i>Timestamp: ${DateTime.now().toUtc().toIso8601String()}</i>');
+        '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>');
 
     return buffer.toString();
   }
 
   /// Creates a formatted bug report message for Telegram.
-  String _createBugReportMessage({
+  String createBugReportMessage({
     required Object error,
     StackTrace? stackTrace,
     String? message,
@@ -347,29 +379,29 @@ class TelegramWebhookSender {
     buffer.writeln('');
 
     if (message != null) {
-      buffer.writeln('<b>Message:</b> $message');
+      buffer.writeln('<b>Message:</b> ${_escapeHtml(message)}');
       buffer.writeln('');
     }
 
     buffer.writeln('<b>Error:</b>');
-    buffer.writeln('<pre><code>${formatEmbedValue(error)}</code></pre>');
+    buffer.writeln('<pre><code>${_escapeHtml(_formatForTelegram(error))}</code></pre>');
 
     if (stackTrace != null) {
       buffer.writeln('');
       buffer.writeln('<b>Stack Trace:</b>');
-      buffer.writeln('<pre><code>${formatEmbedValue(stackTrace)}</code></pre>');
+      buffer.writeln('<pre><code>${_escapeHtml(_formatForTelegram(stackTrace))}</code></pre>');
     }
 
     if (extraInfo != null && extraInfo.isNotEmpty) {
       buffer.writeln('');
       buffer.writeln('<b>Extra Info:</b>');
-      final formattedInfo = formatEmbedValue(extraInfo, lang: 'json');
-      buffer.writeln('<pre><code>$formattedInfo</code></pre>');
+      final formattedInfo = _formatForTelegram(extraInfo);
+      buffer.writeln('<pre><code>${_escapeHtml(formattedInfo)}</code></pre>');
     }
 
     buffer.writeln('');
     buffer.writeln(
-        '<i>Timestamp: ${DateTime.now().toUtc().toIso8601String()}</i>');
+        '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>');
 
     return buffer.toString();
   }

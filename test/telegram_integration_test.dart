@@ -22,6 +22,7 @@ void main() {
         botToken: testBotToken,
         chatIds: [testChatId],
         inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+        dio: dio,
       );
     });
 
@@ -38,7 +39,6 @@ void main() {
     });
 
     test('should handle message truncation for long messages', () {
-      final sender = telegramInspector.toSender();
       final longMessage = 'A' * 5000; // Exceeds 4096 character limit
       
       // This is a private method test - we'll verify indirectly through message sending

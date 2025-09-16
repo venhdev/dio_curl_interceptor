@@ -69,3 +69,7 @@ Updated plan template with short description, ref links, and checkbox plan steps
 Created comprehensive Telegram inspector integration plan with 6 phases covering validation, testing, documentation, error handling, advanced features, and quality assurance
 Updated Telegram inspector integration plan with critical analysis - found major API compliance issues requiring complete refactor of URL-based chat_id extraction approach
 Successfully implemented Telegram inspector integration plan - fixed critical API compliance issues, removed URL-based chat_id extraction, added message truncation, updated all documentation and examples, created comprehensive tests
+Analyzed CurlInterceptor error handling impact - confirmed non-blocking design with proper error isolation
+Fixed Telegram HTML escaping issue - added _escapeHtml method to prevent 'can't parse entities' errors, updated message creation methods, created comprehensive tests and documentation
+Fixed Telegram HTML parsing error - removed markdown code blocks from HTML context, created _formatForTelegram method to avoid mixing markdown and HTML formatting, updated all message creation methods
+Completed code reorganization: moved Discord utilities from webhook_utils.dart to discord_inspector.dart, removed test files, updated all documentation with TLDR sections, updated CHANGELOG, README, and MIGRATION guides

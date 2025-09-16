@@ -1,5 +1,5 @@
 import '../../core/constants.dart';
-import '../../core/utils/webhook_utils.dart';
+import '../../inspector/discord_inspector.dart';
 
 /// A class to represent a Discord webhook message.
 /// This class follows the Discord Webhook API structure.

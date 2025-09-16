@@ -173,7 +173,8 @@ final webhookInspectors = [
     includeUrls: ['api.example.com'],
   ),
   TelegramInspector(
-    webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+    botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
+    chatIds: [-1003019608685], // Get from getUpdates API
     inspectionStatus: [ResponseStatus.serverError], // Only server errors to Telegram
     includeUrls: ['api.example.com'],
   ),
@@ -205,9 +206,9 @@ For Telegram integration, you need to:
    - Visit `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
    - Find your chat ID in the response (it's a number, can be negative for groups)
 
-3. **Configure the webhook URL:**
-   - Use format: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage?chat_id=<YOUR_CHAT_ID>`
-   - Example: `https://api.telegram.org/bot123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11/sendMessage?chat_id=123456789`
+3. **Configure the TelegramInspector:**
+   - Use `botToken` and `chatIds` parameters directly
+   - Example: `TelegramInspector(botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatIds: [123456789])`
 
 ```dart
 // Using factory constructors for convenience
@@ -219,7 +220,8 @@ dio.interceptors.add(CurlInterceptor.withDiscordInspector(
 ));
 
 dio.interceptors.add(CurlInterceptor.withTelegramInspector(
-  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+  'YOUR_BOT_TOKEN', // Get from @BotFather
+  [-1003019608685], // Get from getUpdates API
   includeUrls: ['api.example.com'],
   inspectionStatus: [ResponseStatus.serverError], // Only server errors
 ));
@@ -230,7 +232,8 @@ final discordInspector = DiscordInspector(
 );
 
 final telegramInspector = TelegramInspector(
-  webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+  botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
+  chatIds: [-1003019608685], // Get from getUpdates API
 );
 
 // Send messages
@@ -266,7 +269,8 @@ dio.interceptors.add(CurlInterceptor.withDiscordInspector(
 
 // Telegram-only setup
 dio.interceptors.add(CurlInterceptor.withTelegramInspector(
-  ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID'],
+  'YOUR_BOT_TOKEN', // Get from @BotFather
+  [-1003019608685], // Get from getUpdates API
   includeUrls: ['api.example.com'],
   inspectionStatus: [ResponseStatus.serverError],
 ));
@@ -275,7 +279,7 @@ dio.interceptors.add(CurlInterceptor.withTelegramInspector(
 dio.interceptors.add(CurlInterceptor.allEnabled(
   webhookInspectors: [
     DiscordInspector(webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url']),
-    TelegramInspector(webhookUrls: ['https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID']),
+    TelegramInspector(botToken: 'YOUR_BOT_TOKEN', chatIds: [-1003019608685]),
   ],
 ));
 ```
