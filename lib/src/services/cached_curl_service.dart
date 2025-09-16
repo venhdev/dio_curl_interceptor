@@ -4,7 +4,7 @@ import '../data/repositories/cache_repository.dart';
 import '../data/repositories/impl/impl.dart';
 
 /// Service class for managing cached cURL entries
-/// 
+///
 /// This service provides business logic for cache operations and acts as a facade
 /// over the repository pattern. It maintains backward compatibility while
 /// providing a clean service layer interface.
