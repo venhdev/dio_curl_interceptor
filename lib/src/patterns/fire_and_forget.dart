@@ -13,7 +13,7 @@ class FireAndForget {
   }) {
     unawaited(_executeWithErrorHandling(operation, operationName));
   }
-  
+
   /// Executes multiple operations in parallel without waiting for completion.
   ///
   /// [operations] List of operations to execute.
@@ -29,7 +29,7 @@ class FireAndForget {
       );
     }
   }
-  
+
   /// Executes an operation with error handling.
   static Future<void> _executeWithErrorHandling(
     Future<void> Function() operation,

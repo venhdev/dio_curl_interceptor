@@ -26,7 +26,8 @@ void main() {
     group('Auto Detection', () {
       test('should select V2 when webhook inspectors are provided', () {
         final webhookInspectors = [
-          DiscordInspector(webhookUrls: ['https://discord.com/api/webhooks/test']),
+          DiscordInspector(
+              webhookUrls: ['https://discord.com/api/webhooks/test']),
         ];
 
         final interceptor = CurlInterceptorFactory.create(
@@ -115,7 +116,8 @@ void main() {
 
       test('should pass webhookInspectors to created interceptor', () {
         final webhookInspectors = [
-          DiscordInspector(webhookUrls: ['https://discord.com/api/webhooks/test']),
+          DiscordInspector(
+              webhookUrls: ['https://discord.com/api/webhooks/test']),
         ];
 
         final interceptor = CurlInterceptorFactory.create(
@@ -195,7 +197,8 @@ void main() {
         dio.close();
       });
 
-      test('should work with Dio when using factory-created interceptor', () async {
+      test('should work with Dio when using factory-created interceptor',
+          () async {
         final interceptor = CurlInterceptorFactory.create(
           version: CurlInterceptorVersion.v1,
         );
@@ -208,7 +211,8 @@ void main() {
 
       test('should work with auto-detection in real scenario', () async {
         final webhookInspectors = [
-          DiscordInspector(webhookUrls: ['https://discord.com/api/webhooks/test']),
+          DiscordInspector(
+              webhookUrls: ['https://discord.com/api/webhooks/test']),
         ];
 
         final interceptor = CurlInterceptorFactory.create(
@@ -224,7 +228,8 @@ void main() {
     });
 
     group('Backward Compatibility', () {
-      test('should maintain compatibility with existing CurlInterceptor usage', () {
+      test('should maintain compatibility with existing CurlInterceptor usage',
+          () {
         // This test ensures that existing code patterns still work
         final interceptor1 = CurlInterceptor();
         final interceptor2 = CurlInterceptorFactory.create(

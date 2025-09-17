@@ -27,16 +27,16 @@ class CurlInterceptorV2 extends Interceptor {
   final CurlOptions curlOptions;
   final CacheOptions cacheOptions;
   final List<WebhookInspectorBase>? webhookInspectors;
-  
+
   // Async patterns
   final Map<String, CircuitBreaker> _circuitBreakers = {};
   final WebhookCache _webhookCache;
   final RetryPolicy _retryPolicy;
-  
+
   // Memory management
   final Map<RequestOptions, Stopwatch> _stopwatches = {};
   Timer? _cleanupTimer;
-  
+
   /// Creates a [CurlInterceptorV2] instance with customizable options.
   ///
   /// [curlOptions] defines how cURL commands are generated and displayed.
@@ -46,14 +46,14 @@ class CurlInterceptorV2 extends Interceptor {
     this.curlOptions = const CurlOptions(),
     this.cacheOptions = const CacheOptions(),
     this.webhookInspectors,
-  }) : _webhookCache = WebhookCache(
+  })  : _webhookCache = WebhookCache(
           cooldownPeriod: Duration(minutes: 1),
         ),
-       _retryPolicy = RetryPolicy(
-         maxRetries: 3,
-         initialDelay: Duration(seconds: 1),
-         backoffMultiplier: 2.0,
-       ) {
+        _retryPolicy = RetryPolicy(
+          maxRetries: 3,
+          initialDelay: Duration(seconds: 1),
+          backoffMultiplier: 2.0,
+        ) {
     _initializeCleanup();
   }
 
@@ -72,7 +72,6 @@ class CurlInterceptorV2 extends Interceptor {
         webhookInspectors: inspectorOptions != null ? [inspectorOptions] : null,
       );
 
-  
   /// Initializes cleanup timer for orphaned stopwatches.
   void _initializeCleanup() {
     _cleanupTimer = Timer.periodic(
@@ -80,7 +79,7 @@ class CurlInterceptorV2 extends Interceptor {
       (timer) => _cleanupOrphanedStopwatches(),
     );
   }
-  
+
   /// Intercepts the request before it is sent.
   ///
   /// This method handles logging the request as a cURL command, starting a stopwatch
@@ -97,27 +96,26 @@ class CurlInterceptorV2 extends Interceptor {
         curlOptions: curlOptions,
         webhookInspectors: webhookInspectors,
       );
-      
+
       // Start stopwatch for response time measurement
       if (curlOptions.responseTime) {
         final stopwatch = Stopwatch()..start();
         _stopwatches[options] = stopwatch;
       }
-      
+
       // Queue webhook notifications (fire-and-forget)
       if (webhookInspectors != null) {
         _queueWebhookNotifications(options, null);
       }
-      
     } catch (e) {
       // Log error but don't propagate
       developer.log('Request processing error: $e', name: 'CurlInterceptorV2');
     }
-    
+
     // Always continue main flow
     return handler.next(options);
   }
-  
+
   /// Intercepts the response after it is received.
   ///
   /// This method stops the stopwatch for response time, handles logging the response,
@@ -129,7 +127,7 @@ class CurlInterceptorV2 extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final stopwatch = _stopwatches.remove(response.requestOptions);
     stopwatch?.stop();
-    
+
     try {
       // Handle response logging using CurlUtils (synchronous)
       if (curlOptions.responseVisible) {
@@ -140,7 +138,7 @@ class CurlInterceptorV2 extends Interceptor {
           stopwatch: stopwatch,
         );
       }
-      
+
       // Cache response if enabled using CurlUtils (synchronous)
       if (cacheOptions.cacheResponse) {
         CurlUtils.cacheResponse(
@@ -148,21 +146,20 @@ class CurlInterceptorV2 extends Interceptor {
           stopwatch: stopwatch,
         );
       }
-      
+
       // Queue webhook notifications (fire-and-forget)
       if (webhookInspectors != null) {
         _queueWebhookNotifications(response.requestOptions, response);
       }
-      
     } catch (e) {
       // Log error but don't propagate
       developer.log('Response processing error: $e', name: 'CurlInterceptorV2');
     }
-    
+
     // Always continue main flow
     return handler.next(response);
   }
-  
+
   /// Intercepts errors that occur during the request or response process.
   ///
   /// This method stops the stopwatch, handles logging the error,
@@ -174,7 +171,7 @@ class CurlInterceptorV2 extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final stopwatch = _stopwatches.remove(err.requestOptions);
     stopwatch?.stop();
-    
+
     try {
       // Handle error logging using CurlUtils (synchronous)
       if (curlOptions.errorVisible) {
@@ -185,7 +182,7 @@ class CurlInterceptorV2 extends Interceptor {
           stopwatch: stopwatch,
         );
       }
-      
+
       // Cache error if enabled using CurlUtils (synchronous)
       if (cacheOptions.cacheError) {
         CurlUtils.cacheError(
@@ -193,32 +190,29 @@ class CurlInterceptorV2 extends Interceptor {
           stopwatch: stopwatch,
         );
       }
-      
+
       // Queue webhook notifications (fire-and-forget)
       if (webhookInspectors != null) {
         _queueWebhookNotifications(err.requestOptions, err.response, err);
       }
-      
     } catch (e) {
       // Log error but don't propagate
       developer.log('Error processing error: $e', name: 'CurlInterceptorV2');
     }
-    
+
     // Always continue main flow
     return handler.next(err);
   }
-  
+
   /// Queues webhook notifications using fire-and-forget pattern.
-  void _queueWebhookNotifications(
-    RequestOptions options,
-    Response? response,
-    [DioException? error]
-  ) {
+  void _queueWebhookNotifications(RequestOptions options, Response? response,
+      [DioException? error]) {
     if (webhookInspectors == null) return;
-    
+
     final uri = options.uri.toString();
-    final statusCode = response?.statusCode ?? error?.response?.statusCode ?? -1;
-    
+    final statusCode =
+        response?.statusCode ?? error?.response?.statusCode ?? -1;
+
     for (final inspector in webhookInspectors!) {
       if (inspector.isMatch(uri, statusCode)) {
         // Fire-and-forget webhook notification
@@ -229,7 +223,7 @@ class CurlInterceptorV2 extends Interceptor {
       }
     }
   }
-  
+
   /// Sends a webhook notification with comprehensive error handling.
   Future<void> _sendWebhookNotification(
     WebhookInspectorBase inspector,
@@ -240,12 +234,12 @@ class CurlInterceptorV2 extends Interceptor {
     try {
       final webhookUrl = _getWebhookUrl(inspector);
       final cacheKey = _getCacheKey(webhookUrl, options);
-      
+
       // Check cache for cooldown
       if (!_webhookCache.shouldSend(cacheKey)) {
         return;
       }
-      
+
       // Get or create circuit breaker
       final circuitBreaker = _circuitBreakers.putIfAbsent(
         webhookUrl,
@@ -254,7 +248,7 @@ class CurlInterceptorV2 extends Interceptor {
           resetTimeout: Duration(minutes: 1),
         ),
       );
-      
+
       // Execute with circuit breaker and retry
       await circuitBreaker.call(() async {
         await _retryPolicy.execute(
@@ -262,16 +256,16 @@ class CurlInterceptorV2 extends Interceptor {
           operationName: 'webhook_send',
         );
       });
-      
+
       // Mark as sent in cache
       _webhookCache.markSent(cacheKey);
-      
     } catch (e) {
       // Log error but don't propagate
-      developer.log('Webhook notification failed: $e', name: 'CurlInterceptorV2');
+      developer.log('Webhook notification failed: $e',
+          name: 'CurlInterceptorV2');
     }
   }
-  
+
   /// Sends a webhook with retry logic.
   Future<void> _sendWebhookWithRetry(
     WebhookInspectorBase inspector,
@@ -282,13 +276,15 @@ class CurlInterceptorV2 extends Interceptor {
     // Generate cURL command using genCurl function
     final curl = genCurl(options);
     if (curl == null || curl.isEmpty) {
-      developer.log('Unable to generate cURL for webhook', name: 'CurlInterceptorV2');
+      developer.log('Unable to generate cURL for webhook',
+          name: 'CurlInterceptorV2');
       return;
     }
-    
-    final statusCode = response?.statusCode ?? error?.response?.statusCode ?? -1;
+
+    final statusCode =
+        response?.statusCode ?? error?.response?.statusCode ?? -1;
     final uri = options.uri.toString();
-    
+
     // Calculate response time
     final stopwatch = _stopwatches[options];
     final duration = CurlHelper.tryExtractDuration(
@@ -296,7 +292,7 @@ class CurlInterceptorV2 extends Interceptor {
       xClientTimeHeader: options.headers['X-Client-Time'],
     );
     final responseTime = '${duration ?? 'N/A'}ms';
-    
+
     await inspector.sendCurlLog(
       curl: curl,
       method: options.method,
@@ -304,32 +300,32 @@ class CurlInterceptorV2 extends Interceptor {
       statusCode: statusCode,
       responseBody: response?.data ?? error?.response?.data,
       responseTime: responseTime,
-      extraInfo: error != null ? {
-        'type': error.type.name,
-        'message': error.message,
-      } : null,
+      extraInfo: error != null
+          ? {
+              'type': error.type.name,
+              'message': error.message,
+            }
+          : null,
     );
   }
-  
-  
-  
-  
+
   /// Gets the webhook URL from an inspector.
   String _getWebhookUrl(WebhookInspectorBase inspector) {
     if (inspector is DiscordInspector) {
-      return inspector.webhookUrls.isNotEmpty ? inspector.webhookUrls.first : 'discord-webhook';
+      return inspector.webhookUrls.isNotEmpty
+          ? inspector.webhookUrls.first
+          : 'discord-webhook';
     } else if (inspector is TelegramInspector) {
       return 'telegram-bot-${inspector.botToken.substring(0, 10)}...';
     }
     return 'webhook-url';
   }
-  
+
   /// Gets a cache key for webhook cooldown.
   String _getCacheKey(String webhookUrl, RequestOptions options) {
     return '$webhookUrl:${options.uri.toString()}:${options.method}';
   }
-  
-  
+
   /// Cleans up orphaned stopwatches.
   void _cleanupOrphanedStopwatches() {
     _stopwatches.removeWhere((key, stopwatch) {
@@ -338,7 +334,7 @@ class CurlInterceptorV2 extends Interceptor {
       return true; // Simplified cleanup
     });
   }
-  
+
   /// Disposes of all resources.
   void dispose() {
     _cleanupTimer?.cancel();

@@ -34,7 +34,6 @@ class CurlInterceptor extends Interceptor {
         webhookInspectors: inspectorOptions != null ? [inspectorOptions] : null,
       );
 
-
   final CacheOptions cacheOptions;
   final CurlOptions curlOptions;
   final List<WebhookInspectorBase>? webhookInspectors;

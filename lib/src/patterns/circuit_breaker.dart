@@ -4,11 +4,11 @@ import 'dart:developer' as developer;
 class CircuitBreaker {
   final int failureThreshold;
   final Duration resetTimeout;
-  
+
   int _failureCount = 0;
   DateTime? _lastFailureTime;
   bool _isOpen = false;
-  
+
   /// Creates a [CircuitBreaker] instance.
   ///
   /// [failureThreshold] The number of consecutive failures before opening the circuit.
@@ -17,7 +17,7 @@ class CircuitBreaker {
     this.failureThreshold = 5,
     this.resetTimeout = const Duration(minutes: 1),
   });
-  
+
   /// Executes an operation with circuit breaker protection.
   ///
   /// [operation] The operation to execute.
@@ -28,11 +28,11 @@ class CircuitBreaker {
       _isOpen = false;
       developer.log('Circuit breaker attempting reset', name: 'CircuitBreaker');
     }
-    
+
     if (_isOpen) {
       throw CircuitBreakerOpenException('Circuit breaker is open');
     }
-    
+
     try {
       final result = await operation();
       _onSuccess();
@@ -42,17 +42,17 @@ class CircuitBreaker {
       rethrow;
     }
   }
-  
+
   /// Handles successful operation execution.
   void _onSuccess() {
     _failureCount = 0;
   }
-  
+
   /// Handles failed operation execution.
   void _onFailure() {
     _failureCount++;
     _lastFailureTime = DateTime.now();
-    
+
     if (_failureCount >= failureThreshold) {
       _isOpen = true;
       developer.log(
@@ -61,19 +61,19 @@ class CircuitBreaker {
       );
     }
   }
-  
+
   /// Determines if the circuit should attempt a reset.
   bool _shouldAttemptReset() {
     return _lastFailureTime != null &&
-           DateTime.now().difference(_lastFailureTime!) > resetTimeout;
+        DateTime.now().difference(_lastFailureTime!) > resetTimeout;
   }
-  
+
   /// Gets the current state of the circuit breaker.
   bool get isOpen => _isOpen;
-  
+
   /// Gets the current failure count.
   int get failureCount => _failureCount;
-  
+
   /// Resets the circuit breaker to closed state.
   void reset() {
     _failureCount = 0;
@@ -86,9 +86,9 @@ class CircuitBreaker {
 /// Exception thrown when a circuit breaker is open.
 class CircuitBreakerOpenException implements Exception {
   final String message;
-  
+
   const CircuitBreakerOpenException(this.message);
-  
+
   @override
   String toString() => 'CircuitBreakerOpenException: $message';
 }

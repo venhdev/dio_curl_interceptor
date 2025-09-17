@@ -3,7 +3,7 @@ import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 import 'package:test/test.dart';
 
 /// Integration test for Telegram Bot API implementation
-/// 
+///
 /// This test uses real bot credentials from .docs/testing/telegram_dev_info.txt
 /// Bot Token: 8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI
 /// Chat ID: -1003019608685 (CDS API Report supergroup)
@@ -13,7 +13,8 @@ void main() {
     late TelegramInspector telegramInspector;
 
     // Real test credentials from development bot
-    const String testBotToken = '8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI';
+    const String testBotToken =
+        '8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI';
     const int testChatId = -1003019608685; // CDS API Report supergroup
 
     setUp(() {
@@ -21,7 +22,10 @@ void main() {
       telegramInspector = TelegramInspector(
         botToken: testBotToken,
         chatIds: [testChatId],
-        inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+        inspectionStatus: [
+          ResponseStatus.clientError,
+          ResponseStatus.serverError
+        ],
         dio: dio,
       );
     });
@@ -40,15 +44,17 @@ void main() {
 
     test('should handle message truncation for long messages', () {
       final longMessage = 'A' * 5000; // Exceeds 4096 character limit
-      
+
       // This is a private method test - we'll verify indirectly through message sending
-      expect(longMessage.length, greaterThan(TelegramWebhookSender.maxMessageLength));
+      expect(longMessage.length,
+          greaterThan(TelegramWebhookSender.maxMessageLength));
     });
 
     test('should use correct Telegram Bot API URL format', () {
       // Verify the API URL format is correct (not the old webhook format)
-      final expectedApiUrl = 'https://api.telegram.org/bot$testBotToken/sendMessage';
-      
+      final expectedApiUrl =
+          'https://api.telegram.org/bot$testBotToken/sendMessage';
+
       // The URL should not contain chat_id as a query parameter
       expect(expectedApiUrl, isNot(contains('chat_id=')));
       expect(expectedApiUrl, contains('/bot$testBotToken/sendMessage'));
@@ -58,8 +64,8 @@ void main() {
       final inspectorWithMultipleChats = TelegramInspector(
         botToken: testBotToken,
         chatIds: [
-          -1003019608685,     // Supergroup (negative)
-          123456789,          // Private chat (positive)
+          -1003019608685, // Supergroup (negative)
+          123456789, // Private chat (positive)
           '@channelusername', // Channel username
         ],
       );
@@ -83,8 +89,9 @@ void main() {
 
       expect(interceptor.webhookInspectors, isNotNull);
       expect(interceptor.webhookInspectors!.length, equals(1));
-      
-      final inspector = interceptor.webhookInspectors!.first as TelegramInspector;
+
+      final inspector =
+          interceptor.webhookInspectors!.first as TelegramInspector;
       expect(inspector.botToken, equals(testBotToken));
       expect(inspector.chatIds, contains(testChatId));
     });

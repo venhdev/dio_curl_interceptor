@@ -1,4 +1,4 @@
-## v3.3.3
+## v3.3.3-alpha8
 
 ### New Features
 - **NEW**: `CurlBubble` - Floating bubble overlay for non-intrusive cURL log viewing

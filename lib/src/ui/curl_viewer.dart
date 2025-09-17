@@ -39,7 +39,8 @@ class CurlViewerColors {
   // ============================================================================
 
   /// Get theme-aware colors for the given context
-  static CurlViewerThemeColors theme(BuildContext context) => CurlViewerThemeColors(context);
+  static CurlViewerThemeColors theme(BuildContext context) =>
+      CurlViewerThemeColors(context);
 }
 
 /// Interactive elements colors (blue palette)
@@ -247,7 +248,8 @@ class _CurlViewerState extends State<CurlViewer> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (loadedCount < totalCount && !isLoadingMore) {
         _loadEntries();
       }
@@ -371,7 +373,8 @@ class _CurlViewerState extends State<CurlViewer> {
     return buffer.toString();
   }
 
-  Widget _buildStatusChip(String text, Color color, {VoidCallback? onTap, bool isSelected = false}) {
+  Widget _buildStatusChip(String text, Color color,
+      {VoidCallback? onTap, bool isSelected = false}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -396,7 +399,9 @@ class _CurlViewerState extends State<CurlViewer> {
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? color.withValues(alpha: 0.5) : color.withValues(alpha: 0.3),
+              color: isSelected
+                  ? color.withValues(alpha: 0.5)
+                  : color.withValues(alpha: 0.3),
               width: isSelected ? 2.0 : 1.5,
             ),
             boxShadow: [
@@ -442,12 +447,13 @@ class _CurlViewerState extends State<CurlViewer> {
                   ],
                 ),
                 borderRadius: widget.displayType == CurlViewerDisplayType.bubble
-                  ? BubbleBorderRadius.bubbleRadiusValue
-                  : BorderRadius.vertical(
-                      top: widget.displayType == CurlViewerDisplayType.dialog 
-                        ? const Radius.circular(BubbleBorderRadius.dialogRadius) 
-                        : Radius.zero,
-                    ),
+                    ? BubbleBorderRadius.bubbleRadiusValue
+                    : BorderRadius.vertical(
+                        top: widget.displayType == CurlViewerDisplayType.dialog
+                            ? const Radius.circular(
+                                BubbleBorderRadius.dialogRadius)
+                            : Radius.zero,
+                      ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.4),
@@ -468,7 +474,8 @@ class _CurlViewerState extends State<CurlViewer> {
                 ],
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     Container(
@@ -483,7 +490,9 @@ class _CurlViewerState extends State<CurlViewer> {
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            width: 1.5),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.2),
@@ -492,7 +501,8 @@ class _CurlViewerState extends State<CurlViewer> {
                           ),
                         ],
                       ),
-                      child: Icon(Icons.terminal, size: 20, color: Colors.white),
+                      child:
+                          Icon(Icons.terminal, size: 20, color: Colors.white),
                     ),
                     const SizedBox(width: 12),
                     Flexible(
@@ -516,7 +526,8 @@ class _CurlViewerState extends State<CurlViewer> {
                     ),
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
@@ -528,7 +539,9 @@ class _CurlViewerState extends State<CurlViewer> {
                           ],
                         ),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            width: 1.5),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.3),
@@ -580,7 +593,8 @@ class _CurlViewerState extends State<CurlViewer> {
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: colors.outlineLight, width: 1.5),
+                      border:
+                          Border.all(color: colors.outlineLight, width: 1.5),
                       boxShadow: [
                         BoxShadow(
                           color: colors.shadowLight,
@@ -593,26 +607,33 @@ class _CurlViewerState extends State<CurlViewer> {
                       controller: _searchController,
                       decoration: InputDecoration(
                         hintText: 'Search by status, cURL, response, URL...',
-                        hintStyle:
-                            TextStyle(fontSize: 14, color: colors.onSurfaceTertiary, fontWeight: FontWeight.w400),
+                        hintStyle: TextStyle(
+                            fontSize: 14,
+                            color: colors.onSurfaceTertiary,
+                            fontWeight: FontWeight.w400),
                         prefixIcon: Container(
                           margin: const EdgeInsets.all(8),
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: UiHelper.getMethodColorPalette('GET').background,
+                            color: UiHelper.getMethodColorPalette('GET')
+                                .background,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(Icons.search, color: UiHelper.getMethodColor('GET'), size: 18),
+                          child: Icon(Icons.search,
+                              color: UiHelper.getMethodColor('GET'), size: 18),
                         ),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? Container(
                                 margin: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: UiHelper.getStatusColorPalette(400).lighter,
+                                  color: UiHelper.getStatusColorPalette(400)
+                                      .lighter,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  icon: Icon(Icons.clear, color: UiHelper.getStatusColor(400), size: 16),
+                                  icon: Icon(Icons.clear,
+                                      color: UiHelper.getStatusColor(400),
+                                      size: 16),
                                   onPressed: () {
                                     _searchController.clear();
                                     _performSearch();
@@ -621,7 +642,8 @@ class _CurlViewerState extends State<CurlViewer> {
                               )
                             : null,
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
                       ),
                       onChanged: _onSearchChanged,
                       onSubmitted: (_) => _performSearch(),
@@ -648,7 +670,8 @@ class _CurlViewerState extends State<CurlViewer> {
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: colors.outlineLight, width: 1.5),
+                              border: Border.all(
+                                  color: colors.outlineLight, width: 1.5),
                               boxShadow: [
                                 BoxShadow(
                                   color: colors.shadowLight,
@@ -660,29 +683,41 @@ class _CurlViewerState extends State<CurlViewer> {
                             child: DropdownMenu<int?>(
                               initialSelection: _statusGroup == null
                                   ? null
-                                  : (_statusGroup == ResponseStatus.informational
+                                  : (_statusGroup ==
+                                          ResponseStatus.informational
                                       ? 1
                                       : (_statusGroup == ResponseStatus.success
                                           ? 2
-                                          : (_statusGroup == ResponseStatus.redirection
+                                          : (_statusGroup ==
+                                                  ResponseStatus.redirection
                                               ? 3
-                                              : (_statusGroup == ResponseStatus.clientError ? 4 : 5)))),
+                                              : (_statusGroup ==
+                                                      ResponseStatus.clientError
+                                                  ? 4
+                                                  : 5)))),
                               onSelected: _onStatusChanged,
                               // width: 160,
                               inputDecorationTheme: InputDecorationTheme(
                                 isCollapsed: true,
                                 isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
                                 border: InputBorder.none,
                                 filled: false,
                               ),
                               dropdownMenuEntries: const [
-                                DropdownMenuEntry(value: null, label: 'All Status'),
-                                DropdownMenuEntry(value: 1, label: '1xx Informational'),
-                                DropdownMenuEntry(value: 2, label: '2xx Success'),
-                                DropdownMenuEntry(value: 3, label: '3xx Redirection'),
-                                DropdownMenuEntry(value: 4, label: '4xx Client Error'),
-                                DropdownMenuEntry(value: 5, label: '5xx Server Error'),
+                                DropdownMenuEntry(
+                                    value: null, label: 'All Status'),
+                                DropdownMenuEntry(
+                                    value: 1, label: '1xx Informational'),
+                                DropdownMenuEntry(
+                                    value: 2, label: '2xx Success'),
+                                DropdownMenuEntry(
+                                    value: 3, label: '3xx Redirection'),
+                                DropdownMenuEntry(
+                                    value: 4, label: '4xx Client Error'),
+                                DropdownMenuEntry(
+                                    value: 5, label: '5xx Server Error'),
                               ],
                               hintText: 'Filter',
                             ),
@@ -692,51 +727,63 @@ class _CurlViewerState extends State<CurlViewer> {
                           Builder(
                             builder: (context) {
                               // Use the optimized countByStatusGroup method for better performance
-                              final counts = CachedCurlService.countByStatusGroup(
+                              final counts =
+                                  CachedCurlService.countByStatusGroup(
                                 search: _searchQuery,
                                 startDate: _startDate,
                                 endDate: _endDate,
                               );
 
-                              final informational = counts[ResponseStatus.informational]!;
+                              final informational =
+                                  counts[ResponseStatus.informational]!;
                               final done = counts[ResponseStatus.success]!;
-                              final fail = counts[ResponseStatus.clientError]! + counts[ResponseStatus.serverError]!;
-                              final redirection = counts[ResponseStatus.redirection]!;
+                              final fail = counts[ResponseStatus.clientError]! +
+                                  counts[ResponseStatus.serverError]!;
+                              final redirection =
+                                  counts[ResponseStatus.redirection]!;
 
                               return AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 300),
                                 child: Row(
-                                  key: ValueKey('$informational-$done-$fail-$redirection'),
+                                  key: ValueKey(
+                                      '$informational-$done-$fail-$redirection'),
                                   children: [
                                     if (informational > 0) ...[
                                       _buildStatusChip(
                                         '${UiHelper.getStatusEmoji(100)} $informational',
                                         UiHelper.getStatusColor(100),
-                                        onTap: () => _onStatusChipTapped('informational'),
-                                        isSelected: _selectedStatusChip == 'informational',
+                                        onTap: () => _onStatusChipTapped(
+                                            'informational'),
+                                        isSelected: _selectedStatusChip ==
+                                            'informational',
                                       ),
                                       const SizedBox(width: 12),
                                     ],
                                     _buildStatusChip(
                                       '${UiHelper.getStatusEmoji(200)} $done',
                                       UiHelper.getStatusColor(200),
-                                      onTap: () => _onStatusChipTapped('success'),
-                                      isSelected: _selectedStatusChip == 'success',
+                                      onTap: () =>
+                                          _onStatusChipTapped('success'),
+                                      isSelected:
+                                          _selectedStatusChip == 'success',
                                     ),
                                     const SizedBox(width: 12),
                                     _buildStatusChip(
                                       '${UiHelper.getStatusEmoji(400)} $fail',
                                       UiHelper.getStatusColor(400),
                                       onTap: () => _onStatusChipTapped('error'),
-                                      isSelected: _selectedStatusChip == 'error',
+                                      isSelected:
+                                          _selectedStatusChip == 'error',
                                     ),
                                     if (redirection > 0) ...[
                                       const SizedBox(width: 12),
                                       _buildStatusChip(
                                         '${UiHelper.getStatusEmoji(300)} $redirection',
                                         UiHelper.getStatusColor(300),
-                                        onTap: () => _onStatusChipTapped('redirection'),
-                                        isSelected: _selectedStatusChip == 'redirection',
+                                        onTap: () =>
+                                            _onStatusChipTapped('redirection'),
+                                        isSelected: _selectedStatusChip ==
+                                            'redirection',
                                       ),
                                     ],
                                   ],
@@ -755,7 +802,8 @@ class _CurlViewerState extends State<CurlViewer> {
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: colors.outlineLight, width: 1.5),
+                              border: Border.all(
+                                  color: colors.outlineLight, width: 1.5),
                               boxShadow: [
                                 BoxShadow(
                                   color: colors.shadowLight,
@@ -775,13 +823,17 @@ class _CurlViewerState extends State<CurlViewer> {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.date_range, size: 18, color: UiHelper.getMethodColor('GET')),
+                                            Icon(Icons.date_range,
+                                                size: 18,
+                                                color: UiHelper.getMethodColor(
+                                                    'GET')),
                                             const SizedBox(width: 8),
                                             Text(
                                               'Date Range',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: UiHelper.getMethodColor('GET'),
+                                                color: UiHelper.getMethodColor(
+                                                    'GET'),
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
@@ -800,13 +852,17 @@ class _CurlViewerState extends State<CurlViewer> {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.date_range, size: 16, color: UiHelper.getMethodColor('GET')),
+                                            Icon(Icons.date_range,
+                                                size: 16,
+                                                color: UiHelper.getMethodColor(
+                                                    'GET')),
                                             const SizedBox(width: 8),
                                             Text(
                                               '${_startDate != null ? _formatDateTime(_startDate!) : ''} ~ ${_endDate != null ? _formatDateTime(_endDate!) : ''}',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: UiHelper.getMethodColor('GET'),
+                                                color: UiHelper.getMethodColor(
+                                                    'GET'),
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
@@ -956,18 +1012,24 @@ class _CurlViewerState extends State<CurlViewer> {
                                       Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: UiHelper.getMethodColorPalette('GET').lighter,
+                                          color: UiHelper.getMethodColorPalette(
+                                                  'GET')
+                                              .lighter,
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: UiHelper.getMethodColorPalette('GET').shadow,
+                                              color: UiHelper
+                                                      .getMethodColorPalette(
+                                                          'GET')
+                                                  .shadow,
                                               blurRadius: 8,
                                               offset: const Offset(0, 4),
                                             ),
                                           ],
                                         ),
                                         child: CircularProgressIndicator(
-                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
                                             UiHelper.getMethodColor('GET'),
                                           ),
                                           strokeWidth: 3,
@@ -987,10 +1049,13 @@ class _CurlViewerState extends State<CurlViewer> {
                                 );
                               }
                               final entry = entries[index];
-                              final formattedTime = _formatDateTime(entry.timestamp.toLocal(), includeTime: true);
+                              final formattedTime = _formatDateTime(
+                                  entry.timestamp.toLocal(),
+                                  includeTime: true);
                               return AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 3),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
@@ -1002,12 +1067,16 @@ class _CurlViewerState extends State<CurlViewer> {
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).border,
+                                    color: UiHelper.getStatusColorPalette(
+                                            entry.statusCode ?? 200)
+                                        .border,
                                     width: 2,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).shadow,
+                                      color: UiHelper.getStatusColorPalette(
+                                              entry.statusCode ?? 200)
+                                          .shadow,
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
@@ -1024,38 +1093,61 @@ class _CurlViewerState extends State<CurlViewer> {
                                   ),
                                   child: ExpansionTile(
                                     dense: true,
-                                    tilePadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    childrenPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                    iconColor: UiHelper.getStatusColor(entry.statusCode ?? 200),
+                                    tilePadding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    collapsedShape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16)),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16)),
+                                    childrenPadding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 6),
+                                    iconColor: UiHelper.getStatusColor(
+                                        entry.statusCode ?? 200),
                                     collapsedIconColor:
-                                        UiHelper.getStatusColorPalette(entry.statusCode ?? 200).secondary,
+                                        UiHelper.getStatusColorPalette(
+                                                entry.statusCode ?? 200)
+                                            .secondary,
                                     title: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: Row(
                                         children: [
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 3),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
                                                 colors: [
-                                                  UiHelper.getStatusColorPalette(entry.statusCode ?? 200).background,
-                                                  UiHelper.getStatusColorPalette(entry.statusCode ?? 200)
+                                                  UiHelper.getStatusColorPalette(
+                                                          entry.statusCode ??
+                                                              200)
+                                                      .background,
+                                                  UiHelper.getStatusColorPalette(
+                                                          entry.statusCode ??
+                                                              200)
                                                       .backgroundLight,
                                                 ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                               border: Border.all(
-                                                color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200)
+                                                color: UiHelper
+                                                        .getStatusColorPalette(
+                                                            entry.statusCode ??
+                                                                200)
                                                     .borderStrong,
                                                 width: 1.5,
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).shadow,
+                                                  color: UiHelper
+                                                          .getStatusColorPalette(
+                                                              entry.statusCode ??
+                                                                  200)
+                                                      .shadow,
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -1064,7 +1156,11 @@ class _CurlViewerState extends State<CurlViewer> {
                                             child: Text(
                                               '${entry.statusCode ?? kNA}',
                                               style: TextStyle(
-                                                color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).dark,
+                                                color: UiHelper
+                                                        .getStatusColorPalette(
+                                                            entry.statusCode ??
+                                                                200)
+                                                    .dark,
                                                 fontWeight: FontWeight.w700,
                                                 fontSize: 11,
                                                 letterSpacing: 0.5,
@@ -1073,24 +1169,38 @@ class _CurlViewerState extends State<CurlViewer> {
                                           ),
                                           const SizedBox(width: 8),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 3),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
                                                 colors: [
-                                                  UiHelper.getMethodColorPalette(entry.method ?? 'GET').light,
-                                                  UiHelper.getMethodColorPalette(entry.method ?? 'GET').lighter,
+                                                  UiHelper.getMethodColorPalette(
+                                                          entry.method ?? 'GET')
+                                                      .light,
+                                                  UiHelper.getMethodColorPalette(
+                                                          entry.method ?? 'GET')
+                                                      .lighter,
                                                 ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                               border: Border.all(
-                                                color: UiHelper.getMethodColorPalette(entry.method ?? 'GET').border,
+                                                color: UiHelper
+                                                        .getMethodColorPalette(
+                                                            entry.method ??
+                                                                'GET')
+                                                    .border,
                                                 width: 1.5,
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: UiHelper.getMethodColorPalette(entry.method ?? 'GET').shadow,
+                                                  color: UiHelper
+                                                          .getMethodColorPalette(
+                                                              entry.method ??
+                                                                  'GET')
+                                                      .shadow,
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -1099,7 +1209,11 @@ class _CurlViewerState extends State<CurlViewer> {
                                             child: Text(
                                               entry.method ?? kNA,
                                               style: TextStyle(
-                                                color: UiHelper.getMethodColorPalette(entry.method ?? 'GET').dark,
+                                                color: UiHelper
+                                                        .getMethodColorPalette(
+                                                            entry.method ??
+                                                                'GET')
+                                                    .dark,
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w700,
                                                 letterSpacing: 0.3,
@@ -1108,24 +1222,30 @@ class _CurlViewerState extends State<CurlViewer> {
                                           ),
                                           const SizedBox(width: 8),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 3),
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
                                                 colors: [
-                                                  CurlViewerColors.neutral.light,
-                                                  CurlViewerColors.neutral.lighter,
+                                                  CurlViewerColors
+                                                      .neutral.light,
+                                                  CurlViewerColors
+                                                      .neutral.lighter,
                                                 ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                               border: Border.all(
-                                                color: CurlViewerColors.neutral.border,
+                                                color: CurlViewerColors
+                                                    .neutral.border,
                                                 width: 1.5,
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: CurlViewerColors.neutral.shadow,
+                                                  color: CurlViewerColors
+                                                      .neutral.shadow,
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -1134,7 +1254,8 @@ class _CurlViewerState extends State<CurlViewer> {
                                             child: Text(
                                               formattedTime,
                                               style: TextStyle(
-                                                color: CurlViewerColors.neutral.dark,
+                                                color: CurlViewerColors
+                                                    .neutral.dark,
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w600,
                                                 letterSpacing: 0.3,
@@ -1148,25 +1269,33 @@ class _CurlViewerState extends State<CurlViewer> {
                                       padding: const EdgeInsets.only(top: 2),
                                       child: Text(
                                         entry.url ?? kNA,
-                                        style: TextStyle(fontSize: 12, color: colors.onSurfaceSecondary),
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: colors.onSurfaceSecondary),
                                       ),
                                     ),
                                     expandedAlignment: Alignment.centerLeft,
                                     children: [
                                       if (entry.url != null)
                                         Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
                                           children: [
                                             RichText(
                                               text: TextSpan(
-                                                style: DefaultTextStyle.of(context).style,
+                                                style:
+                                                    DefaultTextStyle.of(context)
+                                                        .style,
                                                 children: [
                                                   TextSpan(
                                                     text: entry.method ?? kNA,
-                                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold),
                                                   ),
                                                   TextSpan(
-                                                    text: ' - [${entry.duration ?? kNA} ms]',
+                                                    text:
+                                                        ' - [${entry.duration ?? kNA} ms]',
                                                   ),
                                                 ],
                                               ),
@@ -1177,63 +1306,98 @@ class _CurlViewerState extends State<CurlViewer> {
                                         ),
                                       Row(
                                         children: [
-                                          const Text('cURL:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          const Text('cURL:',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
                                           const SizedBox(width: 8),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: UiHelper.getMethodColorPalette('GET').lighter,
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: UiHelper
+                                                      .getMethodColorPalette(
+                                                          'GET')
+                                                  .lighter,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                               border: Border.all(
-                                                color: UiHelper.getMethodColorPalette('GET').border,
+                                                color: UiHelper
+                                                        .getMethodColorPalette(
+                                                            'GET')
+                                                    .border,
                                                 width: 1,
                                               ),
                                             ),
                                             child: IconButton(
-                                              icon: Icon(Icons.copy, size: 18, color: UiHelper.getMethodColor('GET')),
+                                              icon: Icon(Icons.copy,
+                                                  size: 18,
+                                                  color:
+                                                      UiHelper.getMethodColor(
+                                                          'GET')),
                                               tooltip: 'Copy cURL',
                                               padding: const EdgeInsets.all(4),
                                               onPressed: () async {
-                                                await Clipboard.setData(ClipboardData(text: entry.curlCommand));
+                                                await Clipboard.setData(
+                                                    ClipboardData(
+                                                        text:
+                                                            entry.curlCommand));
                                               },
                                             ),
                                           ),
                                           const SizedBox(width: 4),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: UiHelper.getStatusColorPalette(200).lighter,
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: UiHelper
+                                                      .getStatusColorPalette(
+                                                          200)
+                                                  .lighter,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                               border: Border.all(
-                                                color: UiHelper.getStatusColorPalette(200).border,
+                                                color: UiHelper
+                                                        .getStatusColorPalette(
+                                                            200)
+                                                    .border,
                                                 width: 1,
                                               ),
                                             ),
                                             child: IconButton(
-                                              icon: Icon(Icons.share, size: 18, color: UiHelper.getStatusColor(200)),
+                                              icon: Icon(Icons.share,
+                                                  size: 18,
+                                                  color:
+                                                      UiHelper.getStatusColor(
+                                                          200)),
                                               tooltip: 'Share cURL',
                                               padding: const EdgeInsets.all(4),
-                                              onPressed: () => _shareCurlCommand(entry),
+                                              onPressed: () =>
+                                                  _shareCurlCommand(entry),
                                             ),
                                           ),
                                         ],
                                       ),
                                       SelectableText(entry.curlCommand),
                                       const SizedBox(height: 4),
-                                      if (entry.responseHeaders != null && entry.responseHeaders!.isNotEmpty)
+                                      if (entry.responseHeaders != null &&
+                                          entry.responseHeaders!.isNotEmpty)
                                         ExpansionTile(
                                           tilePadding: EdgeInsets.zero,
                                           dense: true,
                                           title: const Text('Response Headers:',
-                                              style: TextStyle(fontWeight: FontWeight.bold)),
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
                                           children: [
                                             Align(
                                               alignment: Alignment.centerLeft,
-                                              child: SelectableText(stringify(entry.responseHeaders, indent: '  ')),
+                                              child: SelectableText(stringify(
+                                                  entry.responseHeaders,
+                                                  indent: '  ')),
                                             ),
                                           ],
                                         ),
                                       const SizedBox(height: 4),
-                                      const Text('Response Body:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      SelectableText(entry.responseBody ?? '<no body>'),
+                                      const Text('Response Body:',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      SelectableText(
+                                          entry.responseBody ?? '<no body>'),
                                     ],
                                   ),
                                 ),
@@ -1245,273 +1409,362 @@ class _CurlViewerState extends State<CurlViewer> {
                         if (widget.displayType != CurlViewerDisplayType.bubble)
                           Container(
                             padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colors.surface,
-                                colors.surfaceContainer,
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            border: Border(
-                              top: BorderSide(color: colors.outlineLight, width: 1.5),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: colors.shadowLight,
-                                blurRadius: 10,
-                                offset: const Offset(0, -4),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  colors.surface,
+                                  colors.surfaceContainer,
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
                               ),
-                            ],
-                          ),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              // Hide bottom buttons if width is too small
-                              if (constraints.maxWidth < 200) {
-                                return const SizedBox.shrink();
-                              }
+                              border: Border(
+                                top: BorderSide(
+                                    color: colors.outlineLight, width: 1.5),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colors.shadowLight,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, -4),
+                                ),
+                              ],
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                // Hide bottom buttons if width is too small
+                                if (constraints.maxWidth < 200) {
+                                  return const SizedBox.shrink();
+                                }
 
-                              // Use different layouts based on available width
-                              if (constraints.maxWidth < 300) {
-                                // Stack vertically for very narrow widths
-                                return Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: UiHelper.getStatusColor(500),
-                                          side: BorderSide(
-                                              color: UiHelper.getStatusColorPalette(500).secondary, width: 1.5),
-                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                // Use different layouts based on available width
+                                if (constraints.maxWidth < 300) {
+                                  // Stack vertically for very narrow widths
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: OutlinedButton.icon(
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor:
+                                                UiHelper.getStatusColor(500),
+                                            side: BorderSide(
+                                                color: UiHelper
+                                                        .getStatusColorPalette(
+                                                            500)
+                                                    .secondary,
+                                                width: 1.5),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 10, horizontal: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            backgroundColor:
+                                                UiHelper.getStatusColorPalette(
+                                                        500)
+                                                    .lighter,
                                           ),
-                                          backgroundColor: UiHelper.getStatusColorPalette(500).lighter,
-                                        ),
-                                        onPressed: () async {
-                                          final confirmed = await showDialog(
-                                            context: context,
-                                            builder: (_) => AlertDialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(16),
-                                              ),
-                                              title: Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: UiHelper.getStatusColorPalette(400).background,
-                                                      borderRadius: BorderRadius.circular(8),
+                                          onPressed: () async {
+                                            final confirmed = await showDialog(
+                                              context: context,
+                                              builder: (_) => AlertDialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                ),
+                                                title: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8),
+                                                      decoration: BoxDecoration(
+                                                        color: UiHelper
+                                                                .getStatusColorPalette(
+                                                                    400)
+                                                            .background,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                      child: Icon(Icons.warning,
+                                                          color: UiHelper
+                                                              .getStatusColor(
+                                                                  400),
+                                                          size: 20),
                                                     ),
-                                                    child: Icon(Icons.warning,
-                                                        color: UiHelper.getStatusColor(400), size: 20),
+                                                    const SizedBox(width: 12),
+                                                    const Text(
+                                                      'Clear Logs',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                content: const Text(
+                                                  'Are you sure you want to clear all cached logs? This action cannot be undone.',
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      height: 1.4),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, false),
+                                                    child: const Text(
+                                                      'Cancel',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ),
                                                   ),
-                                                  const SizedBox(width: 12),
-                                                  const Text(
-                                                    'Clear Logs',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.w600,
+                                                  ElevatedButton(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: UiHelper
+                                                          .getStatusColor(500),
+                                                      foregroundColor:
+                                                          Colors.white,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                    ),
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, true),
+                                                    child: const Text(
+                                                      'Clear All',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600),
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                              content: const Text(
-                                                'Are you sure you want to clear all cached logs? This action cannot be undone.',
-                                                style: TextStyle(fontSize: 14, height: 1.4),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context, false),
-                                                  child: const Text(
-                                                    'Cancel',
-                                                    style: TextStyle(fontWeight: FontWeight.w600),
-                                                  ),
-                                                ),
-                                                ElevatedButton(
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: UiHelper.getStatusColor(500),
-                                                    foregroundColor: Colors.white,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                    ),
-                                                  ),
-                                                  onPressed: () => Navigator.pop(context, true),
-                                                  child: const Text(
-                                                    'Clear All',
-                                                    style: TextStyle(fontWeight: FontWeight.w600),
-                                                  ),
-                                                ),
-                                              ],
+                                            );
+                                            if (confirmed == true) {
+                                              await CachedCurlService.clear();
+                                              _loadEntries(reset: true);
+                                            }
+                                          },
+                                          icon: const Icon(Icons.delete_outline,
+                                              size: 18),
+                                          label: const Text(
+                                            'Clear All',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: CurlViewerColors
+                                                .neutral.primary,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 10, horizontal: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
-                                          );
-                                          if (confirmed == true) {
-                                            await CachedCurlService.clear();
-                                            _loadEntries(reset: true);
-                                          }
-                                        },
-                                        icon: const Icon(Icons.delete_outline, size: 18),
-                                        label: const Text(
-                                          'Clear All',
-                                          style: TextStyle(fontWeight: FontWeight.w600),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: CurlViewerColors.neutral.primary,
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            elevation: 2,
                                           ),
-                                          elevation: 2,
-                                        ),
-                                        onPressed: () {
-                                          if (widget.displayType == CurlViewerDisplayType.bubble) {
-                                            // For bubble mode, we can't use Navigator.pop
-                                            // The close functionality is handled by the bubble's close button
-                                            return;
-                                          }
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text(
-                                          'Close',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
+                                          onPressed: () {
+                                            if (widget.displayType ==
+                                                CurlViewerDisplayType.bubble) {
+                                              // For bubble mode, we can't use Navigator.pop
+                                              // The close functionality is handled by the bubble's close button
+                                              return;
+                                            }
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text(
+                                            'Close',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                );
-                              } else {
-                                // Use horizontal layout for wider widths
-                                return Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: UiHelper.getStatusColor(500),
-                                          side: BorderSide(
-                                              color: UiHelper.getStatusColorPalette(500).secondary, width: 1.5),
-                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                    ],
+                                  );
+                                } else {
+                                  // Use horizontal layout for wider widths
+                                  return Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor:
+                                                UiHelper.getStatusColor(500),
+                                            side: BorderSide(
+                                                color: UiHelper
+                                                        .getStatusColorPalette(
+                                                            500)
+                                                    .secondary,
+                                                width: 1.5),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 10, horizontal: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            backgroundColor:
+                                                UiHelper.getStatusColorPalette(
+                                                        500)
+                                                    .lighter,
                                           ),
-                                          backgroundColor: UiHelper.getStatusColorPalette(500).lighter,
-                                        ),
-                                        onPressed: () async {
-                                          final confirmed = await showDialog(
-                                            context: context,
-                                            builder: (_) => AlertDialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(16),
-                                              ),
-                                              title: Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: UiHelper.getStatusColorPalette(400).background,
-                                                      borderRadius: BorderRadius.circular(8),
+                                          onPressed: () async {
+                                            final confirmed = await showDialog(
+                                              context: context,
+                                              builder: (_) => AlertDialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                ),
+                                                title: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8),
+                                                      decoration: BoxDecoration(
+                                                        color: UiHelper
+                                                                .getStatusColorPalette(
+                                                                    400)
+                                                            .background,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                      child: Icon(Icons.warning,
+                                                          color: UiHelper
+                                                              .getStatusColor(
+                                                                  400),
+                                                          size: 20),
                                                     ),
-                                                    child: Icon(Icons.warning,
-                                                        color: UiHelper.getStatusColor(400), size: 20),
+                                                    const SizedBox(width: 12),
+                                                    const Text(
+                                                      'Clear Logs',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                content: const Text(
+                                                  'Are you sure you want to clear all cached logs? This action cannot be undone.',
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      height: 1.4),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, false),
+                                                    child: const Text(
+                                                      'Cancel',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ),
                                                   ),
-                                                  const SizedBox(width: 12),
-                                                  const Text(
-                                                    'Clear Logs',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.w600,
+                                                  ElevatedButton(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: UiHelper
+                                                          .getStatusColor(500),
+                                                      foregroundColor:
+                                                          Colors.white,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                    ),
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, true),
+                                                    child: const Text(
+                                                      'Clear All',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600),
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                              content: const Text(
-                                                'Are you sure you want to clear all cached logs? This action cannot be undone.',
-                                                style: TextStyle(fontSize: 14, height: 1.4),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context, false),
-                                                  child: const Text(
-                                                    'Cancel',
-                                                    style: TextStyle(fontWeight: FontWeight.w600),
-                                                  ),
-                                                ),
-                                                ElevatedButton(
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: UiHelper.getStatusColor(500),
-                                                    foregroundColor: Colors.white,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                    ),
-                                                  ),
-                                                  onPressed: () => Navigator.pop(context, true),
-                                                  child: const Text(
-                                                    'Clear All',
-                                                    style: TextStyle(fontWeight: FontWeight.w600),
-                                                  ),
-                                                ),
-                                              ],
+                                            );
+                                            if (confirmed == true) {
+                                              await CachedCurlService.clear();
+                                              _loadEntries(reset: true);
+                                            }
+                                          },
+                                          icon: const Icon(Icons.delete_outline,
+                                              size: 18),
+                                          label: const Text(
+                                            'Clear All',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: CurlViewerColors
+                                                .neutral.primary,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 10, horizontal: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
-                                          );
-                                          if (confirmed == true) {
-                                            await CachedCurlService.clear();
-                                            _loadEntries(reset: true);
-                                          }
-                                        },
-                                        icon: const Icon(Icons.delete_outline, size: 18),
-                                        label: const Text(
-                                          'Clear All',
-                                          style: TextStyle(fontWeight: FontWeight.w600),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: CurlViewerColors.neutral.primary,
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            elevation: 2,
                                           ),
-                                          elevation: 2,
-                                        ),
-                                        onPressed: () {
-                                          if (widget.displayType == CurlViewerDisplayType.bubble) {
-                                            // For bubble mode, we can't use Navigator.pop
-                                            // The close functionality is handled by the bubble's close button
-                                            return;
-                                          }
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text(
-                                          'Close',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
+                                          onPressed: () {
+                                            if (widget.displayType ==
+                                                CurlViewerDisplayType.bubble) {
+                                              // For bubble mode, we can't use Navigator.pop
+                                              // The close functionality is handled by the bubble's close button
+                                              return;
+                                            }
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text(
+                                            'Close',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                );
-                              }
-                            },
+                                    ],
+                                  );
+                                }
+                              },
+                            ),
                           ),
-                        ),
                       ],
                     );
                   },

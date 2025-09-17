@@ -14,7 +14,7 @@ import 'webhook_inspector_base.dart';
 /// Options for configuring Telegram Bot API integration for cURL logging.
 ///
 /// This class allows you to define rules for when and how cURL logs
-/// are sent to Telegram chats via the Telegram Bot API, including URL filtering 
+/// are sent to Telegram chats via the Telegram Bot API, including URL filtering
 /// and status code-based inspection.
 class TelegramInspector extends WebhookInspectorBase {
   /// Creates a [TelegramInspector] instance.
@@ -234,7 +234,7 @@ class TelegramWebhookSender {
     } catch (e) {
       log('HTML message sending failed, trying plain text fallback: $e',
           name: 'TelegramWebhookSender');
-      
+
       // Fallback to plain text
       try {
         final plainTextMessage = _convertToPlainText(message);
@@ -269,7 +269,7 @@ class TelegramWebhookSender {
         );
 
         final responseData = response.data;
-        if (responseData is Map<String, dynamic> && 
+        if (responseData is Map<String, dynamic> &&
             responseData['ok'] == true) {
           responses.add(response);
         } else {
@@ -306,7 +306,7 @@ class TelegramWebhookSender {
         );
 
         final responseData = response.data;
-        if (responseData is Map<String, dynamic> && 
+        if (responseData is Map<String, dynamic> &&
             responseData['ok'] == true) {
           responses.add(response);
         } else {
@@ -337,9 +337,11 @@ class TelegramWebhookSender {
 
     // Truncate if still too long
     if (plainText.length > maxMessageLength) {
-      const truncationIndicator = '\n\n⚠️ Message truncated due to length limit';
+      const truncationIndicator =
+          '\n\n⚠️ Message truncated due to length limit';
       final maxContentLength = maxMessageLength - truncationIndicator.length;
-      plainText = plainText.substring(0, maxContentLength) + truncationIndicator;
+      plainText =
+          plainText.substring(0, maxContentLength) + truncationIndicator;
     }
 
     return plainText;
@@ -362,19 +364,19 @@ class TelegramWebhookSender {
     int safePoint = maxLength;
     bool insideTag = false;
     bool insideEntity = false;
-    
+
     // Scan backwards to find a safe point
     for (int i = maxLength - 1; i >= 0; i--) {
       final char = message[i];
-      
+
       // Handle HTML entities (like &amp;, &lt;, etc.)
       if (char == ';' && i > 0 && message[i - 1] != ';') {
         // Check if this is the end of an HTML entity
         int entityStart = i - 1;
-        while (entityStart >= 0 && 
-               message[entityStart] != '&' && 
-               message[entityStart] != ' ' && 
-               message[entityStart] != '\n') {
+        while (entityStart >= 0 &&
+            message[entityStart] != '&' &&
+            message[entityStart] != ' ' &&
+            message[entityStart] != '\n') {
           entityStart--;
         }
         if (entityStart >= 0 && message[entityStart] == '&') {
@@ -383,12 +385,12 @@ class TelegramWebhookSender {
           continue;
         }
       }
-      
+
       if (char == '&' && !insideEntity) {
         insideEntity = true;
         continue;
       }
-      
+
       if (insideEntity) {
         if (char == ' ' || char == '\n' || char == '<' || char == '>') {
           insideEntity = false;
@@ -396,30 +398,34 @@ class TelegramWebhookSender {
           continue;
         }
       }
-      
+
       // Handle HTML tags
       if (char == '>') {
         insideTag = false;
         safePoint = i + 1;
         break;
       }
-      
+
       if (char == '<') {
         insideTag = true;
         continue;
       }
-      
+
       if (insideTag) {
         continue;
       }
-      
+
       // Found a safe point outside of tags and entities
-      if (char == '\n' || char == ' ' || char == '.' || char == '!' || char == '?') {
+      if (char == '\n' ||
+          char == ' ' ||
+          char == '.' ||
+          char == '!' ||
+          char == '?') {
         safePoint = i + 1;
         break;
       }
     }
-    
+
     // Ensure we don't truncate in the middle of a word if possible
     if (safePoint < maxLength && safePoint > 0) {
       // Look for word boundaries near the safe point
@@ -430,7 +436,7 @@ class TelegramWebhookSender {
         }
       }
     }
-    
+
     return safePoint;
   }
 
@@ -445,7 +451,7 @@ class TelegramWebhookSender {
     final List<String> openTags = [];
     final StringBuffer result = StringBuffer();
     int i = 0;
-    
+
     while (i < content.length) {
       if (content[i] == '<') {
         // Find the end of the tag
@@ -455,10 +461,10 @@ class TelegramWebhookSender {
           result.write(content.substring(i));
           break;
         }
-        
+
         final String tag = content.substring(i + 1, tagEnd);
         result.write(content.substring(i, tagEnd + 1));
-        
+
         // Handle the tag
         if (tag.startsWith('/')) {
           // Closing tag - remove from open tags
@@ -474,19 +480,19 @@ class TelegramWebhookSender {
           final String tagName = tag.split(' ')[0];
           openTags.add(tagName);
         }
-        
+
         i = tagEnd + 1;
       } else {
         result.write(content[i]);
         i++;
       }
     }
-    
+
     // Close any remaining open tags in reverse order
     for (int j = openTags.length - 1; j >= 0; j--) {
       result.write('</${openTags[j]}>');
     }
-    
+
     return result.toString();
   }
 
@@ -496,10 +502,21 @@ class TelegramWebhookSender {
   /// Returns true if the tag is self-closing.
   bool _isSelfClosingTag(String tag) {
     const selfClosingTags = {
-      'br', 'hr', 'img', 'input', 'meta', 'link', 'area', 'base',
-      'col', 'embed', 'source', 'track', 'wbr'
+      'br',
+      'hr',
+      'img',
+      'input',
+      'meta',
+      'link',
+      'area',
+      'base',
+      'col',
+      'embed',
+      'source',
+      'track',
+      'wbr'
     };
-    
+
     final tagName = tag.split(' ')[0].toLowerCase();
     return selfClosingTags.contains(tagName);
   }
@@ -516,18 +533,20 @@ class TelegramWebhookSender {
       return message;
     }
 
-    const truncationIndicator = '\n\n⚠️ <i>Message truncated due to length limit</i>';
+    const truncationIndicator =
+        '\n\n⚠️ <i>Message truncated due to length limit</i>';
     final maxContentLength = maxMessageLength - truncationIndicator.length;
-    
+
     // Find a safe truncation point that doesn't break HTML tags
-    final safeTruncationPoint = _findSafeTruncationPoint(message, maxContentLength);
-    
+    final safeTruncationPoint =
+        _findSafeTruncationPoint(message, maxContentLength);
+
     // Truncate at the safe point
     final truncatedContent = message.substring(0, safeTruncationPoint);
-    
+
     // Close any open HTML tags
     final validHtmlContent = _closeOpenTags(truncatedContent);
-    
+
     return validHtmlContent + truncationIndicator;
   }
 
@@ -543,14 +562,15 @@ class TelegramWebhookSender {
       // Fallback to simple truncation if HTML parsing fails
       log('HTML-aware truncation failed, falling back to simple truncation: $e',
           name: 'TelegramWebhookSender');
-      
+
       if (message.length <= maxMessageLength) {
         return message;
       }
 
-      const truncationIndicator = '\n\n⚠️ <i>Message truncated due to length limit</i>';
+      const truncationIndicator =
+          '\n\n⚠️ <i>Message truncated due to length limit</i>';
       final maxContentLength = maxMessageLength - truncationIndicator.length;
-      
+
       return message.substring(0, maxContentLength) + truncationIndicator;
     }
   }
@@ -579,7 +599,8 @@ class TelegramWebhookSender {
         return indentJson(rawValue, indent: '  ');
       } catch (e) {
         // Fallback to stringify if JSON encoding fails
-        return stringify(rawValue, maxLen: 1000, replacements: const {'```': ''});
+        return stringify(rawValue,
+            maxLen: 1000, replacements: const {'```': ''});
       }
     } else {
       // Use stringify for other types
@@ -657,12 +678,14 @@ class TelegramWebhookSender {
     }
 
     buffer.writeln('<b>Error:</b>');
-    buffer.writeln('<pre><code>${_escapeHtml(_formatForTelegram(error))}</code></pre>');
+    buffer.writeln(
+        '<pre><code>${_escapeHtml(_formatForTelegram(error))}</code></pre>');
 
     if (stackTrace != null) {
       buffer.writeln('');
       buffer.writeln('<b>Stack Trace:</b>');
-      buffer.writeln('<pre><code>${_escapeHtml(_formatForTelegram(stackTrace))}</code></pre>');
+      buffer.writeln(
+          '<pre><code>${_escapeHtml(_formatForTelegram(stackTrace))}</code></pre>');
     }
 
     if (extraInfo != null && extraInfo.isNotEmpty) {
@@ -691,5 +714,4 @@ class TelegramWebhookSender {
       return 'ℹ️'; // Other
     }
   }
-
 }

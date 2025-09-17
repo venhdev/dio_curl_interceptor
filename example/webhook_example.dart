@@ -17,10 +17,11 @@ void main() async {
   // Note: You need to provide bot token and chat IDs separately
   // Get bot token from @BotFather and chat IDs from getUpdates API
   final telegramInspector = TelegramInspector(
-    botToken: 'YOUR_BOT_TOKEN', // e.g., '8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI'
+    botToken:
+        'YOUR_BOT_TOKEN', // e.g., '8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI'
     chatIds: [
       -1003019608685, // Supergroup (negative number)
-      123456789,      // Private chat (positive number)
+      123456789, // Private chat (positive number)
       '@channelusername', // Channel username
     ],
     includeUrls: ['api.example.com'],

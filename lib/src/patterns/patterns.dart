@@ -1,5 +1,5 @@
 /// Async patterns for CurlInterceptor.
-/// 
+///
 /// This library provides essential async patterns for implementing
 /// production-ready CurlInterceptor with robust error handling and
 /// non-blocking webhook operations.

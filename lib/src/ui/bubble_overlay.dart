@@ -4,21 +4,25 @@ import 'package:flutter/material.dart';
 class BubbleBorderRadius {
   /// Corner radius for bubble components
   static const double bubbleRadius = 20.0;
-  
+
   /// Dialog corner radius
   static const double dialogRadius = 20.0;
-  
+
   /// Get the border radius for bubble components (all corners same)
-  static const BorderRadius bubbleRadiusValue = BorderRadius.all(Radius.circular(bubbleRadius));
-  
+  static const BorderRadius bubbleRadiusValue =
+      BorderRadius.all(Radius.circular(bubbleRadius));
+
   /// Get the border radius for minimized bubble (circular)
-  static const BorderRadius minimizedRadius = BorderRadius.all(Radius.circular(24.0));
-  
+  static const BorderRadius minimizedRadius =
+      BorderRadius.all(Radius.circular(24.0));
+
   /// Get the border radius for dialog components
-  static const BorderRadius dialogRadiusValue = BorderRadius.all(Radius.circular(dialogRadius));
-  
+  static const BorderRadius dialogRadiusValue =
+      BorderRadius.all(Radius.circular(dialogRadius));
+
   /// Get the border radius for bottom sheet (top only)
-  static const BorderRadius bottomSheetRadius = BorderRadius.vertical(top: Radius.circular(dialogRadius));
+  static const BorderRadius bottomSheetRadius =
+      BorderRadius.vertical(top: Radius.circular(dialogRadius));
 }
 
 /// A reusable Flutter widget that provides a draggable, floating bubble
@@ -103,7 +107,8 @@ class BubbleOverlay extends StatefulWidget {
   State<BubbleOverlay> createState() => _BubbleOverlayState();
 }
 
-class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateMixin {
+class _BubbleOverlayState extends State<BubbleOverlay>
+    with TickerProviderStateMixin {
   late ValueNotifier<Offset> _position;
   late ValueNotifier<Offset> _expandedPosition;
   late ValueNotifier<Size> _expandedSize;
@@ -116,8 +121,10 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
   void initState() {
     super.initState();
     _position = ValueNotifier(widget.initialPosition);
-    _expandedPosition = ValueNotifier(const Offset(0, 0)); // Will be calculated when expanded
-    _expandedSize = ValueNotifier(const Size(400, 500)); // Default expanded size
+    _expandedPosition =
+        ValueNotifier(const Offset(0, 0)); // Will be calculated when expanded
+    _expandedSize =
+        ValueNotifier(const Size(400, 500)); // Default expanded size
     _animationController = AnimationController(
       duration: widget.animationDuration,
       vsync: this,
@@ -129,7 +136,7 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
-    
+
     // Listen to controller changes if provided
     widget.controller?.addListener(_onControllerChanged);
   }
@@ -176,7 +183,7 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
 
   void _toggle() {
     setState(() => _isExpanded = !_isExpanded);
-    
+
     // Initialize expanded position when expanding
     if (_isExpanded) {
       // Calculate center position for expanded content
@@ -184,27 +191,30 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
         if (mounted) {
           final screenSize = MediaQuery.of(context).size;
           final bubbleSize = _expandedSize.value;
-          
+
           // Ensure bubble size doesn't exceed screen size
           final maxWidth = screenSize.width - 32; // 16px margin on each side
           final maxHeight = screenSize.height - 32;
           final finalWidth = bubbleSize.width.clamp(200.0, maxWidth);
           final finalHeight = bubbleSize.height.clamp(200.0, maxHeight);
-          
+
           // Update size if it was clamped
-          if (finalWidth != bubbleSize.width || finalHeight != bubbleSize.height) {
+          if (finalWidth != bubbleSize.width ||
+              finalHeight != bubbleSize.height) {
             _expandedSize.value = Size(finalWidth, finalHeight);
           }
-          
+
           final centerX = (screenSize.width - finalWidth) / 2;
           final centerY = (screenSize.height - finalHeight) / 2;
-          
+
           // Ensure clamp arguments are valid
           final minX = 16.0;
-          final maxX = (screenSize.width - finalWidth - 16).clamp(minX, screenSize.width);
+          final maxX = (screenSize.width - finalWidth - 16)
+              .clamp(minX, screenSize.width);
           final minY = 16.0;
-          final maxY = (screenSize.height - finalHeight - 16).clamp(minY, screenSize.height);
-          
+          final maxY = (screenSize.height - finalHeight - 16)
+              .clamp(minY, screenSize.height);
+
           _expandedPosition.value = Offset(
             centerX.clamp(minX, maxX),
             centerY.clamp(minY, maxY),
@@ -212,7 +222,7 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
         }
       });
     }
-    
+
     // Update controller state if provided
     if (widget.controller != null) {
       if (_isExpanded) {
@@ -221,7 +231,7 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
         widget.controller!.minimize();
       }
     }
-    
+
     if (_isExpanded) {
       _animationController.forward();
       widget.onExpanded?.call();
@@ -232,12 +242,15 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
   }
 
   void _onPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
-    final newX = (_position.value.dx + details.delta.dx).clamp(0.0, constraints.maxWidth - 48);
-    final newY = (_position.value.dy + details.delta.dy).clamp(0.0, constraints.maxHeight - 48);
+    final newX = (_position.value.dx + details.delta.dx)
+        .clamp(0.0, constraints.maxWidth - 48);
+    final newY = (_position.value.dy + details.delta.dy)
+        .clamp(0.0, constraints.maxHeight - 48);
     _position.value = Offset(newX, newY);
   }
 
-  void _onExpandedPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
+  void _onExpandedPanUpdate(
+      DragUpdateDetails details, BoxConstraints constraints) {
     final currentPosition = _expandedPosition.value;
     final newX = (currentPosition.dx + details.delta.dx)
         .clamp(0.0, constraints.maxWidth - _expandedSize.value.width);
@@ -248,8 +261,9 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
 
   void _onExpandedPanEnd(DragEndDetails details, BoxConstraints constraints) {
     // Use controller's snapToEdges setting if available, otherwise use widget's
-    final shouldSnapToEdges = widget.controller?.snapToEdges ?? widget.snapToEdges;
-    
+    final shouldSnapToEdges =
+        widget.controller?.snapToEdges ?? widget.snapToEdges;
+
     if (!shouldSnapToEdges) {
       // If snapToEdges is false, keep the bubble at its current position
       return;
@@ -260,61 +274,66 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
     final screenHeight = constraints.maxHeight;
     final bubbleWidth = _expandedSize.value.width;
     final bubbleHeight = _expandedSize.value.height;
-    
+
     // Determine which edge is closer
     final distanceToLeft = currentPosition.dx;
     final distanceToRight = screenWidth - currentPosition.dx - bubbleWidth;
     final distanceToTop = currentPosition.dy;
     final distanceToBottom = screenHeight - currentPosition.dy - bubbleHeight;
-    
+
     final minDistance = [
       distanceToLeft,
       distanceToRight,
       distanceToTop,
       distanceToBottom,
     ].reduce((a, b) => a < b ? a : b);
-    
+
     Offset targetPosition;
-    
+
     // Use controller's edgeMargin setting if available, otherwise use widget's
     final margin = widget.controller?.edgeMargin ?? widget.edgeMargin;
-    
+
     if (minDistance == distanceToLeft) {
       // Snap to left edge
       targetPosition = Offset(margin, currentPosition.dy);
     } else if (minDistance == distanceToRight) {
       // Snap to right edge
-      targetPosition = Offset(screenWidth - bubbleWidth - margin, currentPosition.dy);
+      targetPosition =
+          Offset(screenWidth - bubbleWidth - margin, currentPosition.dy);
     } else if (minDistance == distanceToTop) {
       // Snap to top edge
       targetPosition = Offset(currentPosition.dx, margin);
     } else {
       // Snap to bottom edge
-      targetPosition = Offset(currentPosition.dx, screenHeight - bubbleHeight - margin);
+      targetPosition =
+          Offset(currentPosition.dx, screenHeight - bubbleHeight - margin);
     }
-    
+
     // Animate to the target position
     _expandedPosition.value = targetPosition;
   }
 
-  void _onResizeUpdate(DragUpdateDetails details, BoxConstraints constraints, {bool isLeftCorner = false}) {
+  void _onResizeUpdate(DragUpdateDetails details, BoxConstraints constraints,
+      {bool isLeftCorner = false}) {
     final currentSize = _expandedSize.value;
     final currentPosition = _expandedPosition.value;
     double deltaX = details.delta.dx;
     double deltaY = details.delta.dy;
-    
+
     if (isLeftCorner) {
       // For left corner resize: dragging left makes bubble smaller, dragging right makes it bigger
       // We need to invert the deltaX because dragging left should reduce width
-      final newWidth = (currentSize.width - deltaX).clamp(200.0, constraints.maxWidth - 32);
-      final newHeight = (currentSize.height + deltaY).clamp(200.0, constraints.maxHeight - 32);
-      
+      final newWidth =
+          (currentSize.width - deltaX).clamp(200.0, constraints.maxWidth - 32);
+      final newHeight = (currentSize.height + deltaY)
+          .clamp(200.0, constraints.maxHeight - 32);
+
       // Calculate how much the width changed
       final widthDelta = newWidth - currentSize.width;
-      
+
       // Adjust position to keep the right edge fixed
       final newX = currentPosition.dx + widthDelta;
-      
+
       // Update position and size
       _expandedPosition.value = Offset(
         newX.clamp(0.0, constraints.maxWidth - newWidth),
@@ -323,8 +342,10 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
       _expandedSize.value = Size(newWidth, newHeight);
     } else {
       // For right corner resize: normal behavior
-      final newWidth = (currentSize.width + deltaX).clamp(200.0, constraints.maxWidth - 32);
-      final newHeight = (currentSize.height + deltaY).clamp(200.0, constraints.maxHeight - 32);
+      final newWidth =
+          (currentSize.width + deltaX).clamp(200.0, constraints.maxWidth - 32);
+      final newHeight = (currentSize.height + deltaY)
+          .clamp(200.0, constraints.maxHeight - 32);
       _expandedSize.value = Size(newWidth, newHeight);
     }
   }
@@ -337,7 +358,8 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
 
   void _onPanEnd(DragEndDetails details, BoxConstraints constraints) {
     // Use controller's snapToEdges setting if available, otherwise use widget's
-    final shouldSnapToEdges = widget.controller?.snapToEdges ?? widget.snapToEdges;
+    final shouldSnapToEdges =
+        widget.controller?.snapToEdges ?? widget.snapToEdges;
 
     if (!shouldSnapToEdges) {
       // If snapToEdges is false, keep the bubble at its current position
@@ -407,8 +429,10 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
                           left: pos.dx,
                           top: pos.dy,
                           child: GestureDetector(
-                            onPanUpdate: (details) => _onPanUpdate(details, constraints),
-                            onPanEnd: (details) => _onPanEnd(details, constraints),
+                            onPanUpdate: (details) =>
+                                _onPanUpdate(details, constraints),
+                            onPanEnd: (details) =>
+                                _onPanEnd(details, constraints),
                             onTap: () {
                               widget.onTap?.call();
                               _toggle();
@@ -456,16 +480,16 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
         // Calculate responsive dimensions
         final screenWidth = constraints.maxWidth;
         final screenHeight = constraints.maxHeight;
-        
+
         final maxWidth = widget.maxExpandedWidth ?? (screenWidth - 32);
         final maxHeight = widget.maxExpandedHeight ?? (screenHeight * 0.8);
         final minWidth = widget.minExpandedWidth ?? 200.0;
         final minHeight = widget.minExpandedHeight ?? 200.0;
-        
+
         // Use current size but respect min/max constraints
         final finalWidth = size.width.clamp(minWidth, maxWidth);
         final finalHeight = size.height.clamp(minHeight, maxHeight);
-        
+
         return Material(
           color: Colors.transparent,
           elevation: 8,
@@ -485,8 +509,10 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
               children: [
                 // Main content with drag functionality
                 GestureDetector(
-                  onPanUpdate: (details) => _onExpandedPanUpdate(details, constraints),
-                  onPanEnd: (details) => _onExpandedPanEnd(details, constraints),
+                  onPanUpdate: (details) =>
+                      _onExpandedPanUpdate(details, constraints),
+                  onPanEnd: (details) =>
+                      _onExpandedPanEnd(details, constraints),
                   child: widget.expandedChild,
                 ),
                 // Resize border overlay (only visible when resizing)
@@ -533,7 +559,9 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
                       }
                     },
                     child: GestureDetector(
-                      onPanUpdate: (details) => _onResizeUpdate(details, constraints, isLeftCorner: false),
+                      onPanUpdate: (details) => _onResizeUpdate(
+                          details, constraints,
+                          isLeftCorner: false),
                       onPanEnd: _onResizeEnd,
                       child: Container(
                         width: 30,
@@ -573,7 +601,9 @@ class _BubbleOverlayState extends State<BubbleOverlay> with TickerProviderStateM
                       }
                     },
                     child: GestureDetector(
-                      onPanUpdate: (details) => _onResizeUpdate(details, constraints, isLeftCorner: true),
+                      onPanUpdate: (details) => _onResizeUpdate(
+                          details, constraints,
+                          isLeftCorner: true),
                       onPanEnd: _onResizeEnd,
                       child: Container(
                         width: 30,

@@ -52,7 +52,7 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
               style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 30),
-            
+
             // Controller buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -71,9 +71,9 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -91,9 +91,9 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Status display
             Container(
               padding: const EdgeInsets.all(16),
@@ -123,7 +123,7 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -147,7 +147,7 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -185,7 +185,8 @@ class MultipleControllerExample extends StatefulWidget {
   const MultipleControllerExample({super.key});
 
   @override
-  State<MultipleControllerExample> createState() => _MultipleControllerExampleState();
+  State<MultipleControllerExample> createState() =>
+      _MultipleControllerExampleState();
 }
 
 class _MultipleControllerExampleState extends State<MultipleControllerExample> {
@@ -218,7 +219,7 @@ class _MultipleControllerExampleState extends State<MultipleControllerExample> {
           const Center(
             child: Text('Multiple bubble controllers example'),
           ),
-          
+
           // API Logs Bubble
           BubbleOverlay(
             controller: _apiController,
@@ -240,7 +241,7 @@ class _MultipleControllerExampleState extends State<MultipleControllerExample> {
             ),
             initialPosition: const Offset(50, 100),
           ),
-          
+
           // Debug Logs Bubble
           BubbleOverlay(
             controller: _debugController,

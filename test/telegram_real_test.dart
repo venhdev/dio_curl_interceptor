@@ -3,10 +3,10 @@ import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 
 /// Real-world test script for Telegram Bot API integration
-/// 
+///
 /// This script demonstrates the corrected Telegram inspector implementation
 /// using actual bot credentials from .docs/testing/telegram_dev_info.txt
-/// 
+///
 /// To run this test:
 /// dart run test/telegram_real_test.dart
 void main() async {
@@ -21,7 +21,7 @@ void main() async {
 
   // Create Dio instance with Telegram inspector
   final dio = Dio();
-  
+
   // Test 1: Direct TelegramInspector usage
   print('📋 Test 1: Creating TelegramInspector with corrected API structure');
   final telegramInspector = TelegramInspector(
@@ -29,11 +29,11 @@ void main() async {
     chatIds: [chatId],
     inspectionStatus: [
       ResponseStatus.success,
-      ResponseStatus.clientError, 
+      ResponseStatus.clientError,
       ResponseStatus.serverError
     ],
   );
-  
+
   print('✅ TelegramInspector created successfully');
   print('   - Bot Token: ${telegramInspector.botToken.substring(0, 10)}...');
   print('   - Chat IDs: ${telegramInspector.chatIds}');
@@ -51,7 +51,7 @@ void main() async {
       ),
     ],
   );
-  
+
   dio.interceptors.add(interceptor);
   print('✅ Manual webhook configuration works correctly');
   print('   - Interceptor added to Dio instance');
@@ -62,13 +62,13 @@ void main() async {
   try {
     final responses = await telegramInspector.sendMessage(
       content: '🧪 <b>Telegram Inspector Test</b>\n\n'
-               '✅ API Structure: <i>Corrected</i>\n'
-               '🔧 Implementation: <i>Fixed URL-based chat_id extraction</i>\n'
-               '📏 Message Limits: <i>4096 character truncation</i>\n'
-               '⚡ Error Handling: <i>Telegram API response validation</i>\n\n'
-               '🕐 Timestamp: <code>${DateTime.now().toIso8601String()}</code>',
+          '✅ API Structure: <i>Corrected</i>\n'
+          '🔧 Implementation: <i>Fixed URL-based chat_id extraction</i>\n'
+          '📏 Message Limits: <i>4096 character truncation</i>\n'
+          '⚡ Error Handling: <i>Telegram API response validation</i>\n\n'
+          '🕐 Timestamp: <code>${DateTime.now().toIso8601String()}</code>',
     );
-    
+
     if (responses.isNotEmpty) {
       print('✅ Message sent successfully!');
       for (int i = 0; i < responses.length; i++) {
@@ -79,7 +79,8 @@ void main() async {
         if (data['result'] != null) {
           final result = data['result'] as Map<String, dynamic>;
           print('   - Message ID: ${result['message_id']}');
-          print('   - Chat: ${result['chat']['title'] ?? result['chat']['id']}');
+          print(
+              '   - Chat: ${result['chat']['title'] ?? result['chat']['id']}');
         }
       }
     } else {
@@ -95,15 +96,18 @@ void main() async {
   print('📋 Test 4: Sending cURL log to Telegram');
   try {
     final responses = await telegramInspector.sendCurlLog(
-      curl: 'curl -X GET "https://jsonplaceholder.typicode.com/posts/1" -H "Accept: application/json"',
+      curl:
+          'curl -X GET "https://jsonplaceholder.typicode.com/posts/1" -H "Accept: application/json"',
       method: 'GET',
       uri: 'https://jsonplaceholder.typicode.com/posts/1',
       statusCode: 200,
       responseBody: {
         'userId': 1,
         'id': 1,
-        'title': 'sunt aut facere repellat provident occaecati excepturi optio reprehenderit',
-        'body': 'quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto'
+        'title':
+            'sunt aut facere repellat provident occaecati excepturi optio reprehenderit',
+        'body':
+            'quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto'
       },
       responseTime: '245ms',
       extraInfo: {
@@ -111,7 +115,7 @@ void main() async {
         'implementation': 'corrected_api_structure'
       },
     );
-    
+
     if (responses.isNotEmpty) {
       print('✅ cURL log sent successfully!');
       print('   - Responses: ${responses.length}');
@@ -127,7 +131,8 @@ void main() async {
   // Test 5: Test with actual HTTP request
   print('📋 Test 5: Testing with real HTTP request (triggers interceptor)');
   try {
-    final response = await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+    final response =
+        await dio.get('https://jsonplaceholder.typicode.com/posts/1');
     print('✅ HTTP request completed successfully');
     print('   - Status: ${response.statusCode}');
     print('   - Interceptor should have sent notification to Telegram');
@@ -143,11 +148,11 @@ void main() async {
   try {
     final responses = await telegramInspector.sendMessage(
       content: '🔍 <b>Message Truncation Test</b>\n\n'
-               'Original length: ${longMessage.length} characters\n'
-               'Telegram limit: 4096 characters\n\n'
-               'Long content:\n$longMessage',
+          'Original length: ${longMessage.length} characters\n'
+          'Telegram limit: 4096 characters\n\n'
+          'Long content:\n$longMessage',
     );
-    
+
     if (responses.isNotEmpty) {
       print('✅ Long message handled correctly (should be truncated)');
       print('   - Check Telegram to verify truncation indicator');

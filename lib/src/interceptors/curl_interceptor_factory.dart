@@ -10,29 +10,29 @@ import '../inspector/webhook_inspector_base.dart';
 enum CurlInterceptorVersion {
   /// Original CurlInterceptor (v1) - stable, basic features, maximum compatibility
   v1,
-  
+
   /// CurlInterceptorV2 - production-ready with essential async patterns, non-blocking webhooks
   v2,
-  
+
   /// Auto-detect best version based on configuration and usage patterns
   auto,
 }
 
 /// Factory for creating CurlInterceptor instances with intelligent version selection
-/// 
+///
 /// This factory provides a clean way to create interceptors while maintaining
 /// backward compatibility and enabling automatic optimization based on usage patterns.
-/// 
+///
 /// Example usage:
 /// ```dart
 /// // Auto-detect best version (recommended)
 /// dio.interceptors.add(CurlInterceptorFactory.create());
-/// 
+///
 /// // Specify version explicitly
 /// dio.interceptors.add(CurlInterceptorFactory.create(
 ///   version: CurlInterceptorVersion.v2,
 /// ));
-/// 
+///
 /// // With webhook integration (auto-selects enhanced version)
 /// dio.interceptors.add(CurlInterceptorFactory.create(
 ///   webhookInspectors: [DiscordInspector(webhookUrls: ['...'])],
@@ -40,12 +40,12 @@ enum CurlInterceptorVersion {
 /// ```
 class CurlInterceptorFactory {
   /// Creates a CurlInterceptor with intelligent version selection
-  /// 
+  ///
   /// [curlOptions] - Configuration for cURL command generation and display
   /// [cacheOptions] - Configuration for caching behavior
   /// [webhookInspectors] - List of webhook inspectors for remote logging
   /// [version] - Specific version to use, or auto for intelligent selection
-  /// 
+  ///
   /// Returns an Interceptor instance optimized for the given configuration
   static Interceptor create({
     CurlOptions? curlOptions,
@@ -64,7 +64,7 @@ class CurlInterceptorFactory {
   }
 
   /// Creates a CurlInterceptorV1 (original implementation)
-  /// 
+  ///
   /// Best for: Maximum compatibility, stable behavior, basic logging
   static Interceptor createV1({
     CurlOptions? curlOptions,
@@ -75,7 +75,7 @@ class CurlInterceptorFactory {
   }
 
   /// Creates a CurlInterceptorV2 (production-ready with async patterns)
-  /// 
+  ///
   /// Best for: Webhook integration, non-blocking operations, production use
   static Interceptor createV2({
     CurlOptions? curlOptions,
@@ -86,7 +86,7 @@ class CurlInterceptorFactory {
   }
 
   /// Auto-detects the best interceptor version based on configuration
-  /// 
+  ///
   /// Selection criteria:
   /// - Webhook inspectors present → CurlInterceptorV2
   /// - Complex configuration → CurlInterceptorV2
@@ -110,7 +110,6 @@ class CurlInterceptorFactory {
     return _createV1(curlOptions, cacheOptions, webhookInspectors);
   }
 
-
   /// Determines if the configuration is complex and needs V2
   static bool _isComplexConfiguration(
     CurlOptions? curlOptions,
@@ -121,12 +120,12 @@ class CurlInterceptorFactory {
 
     // Complex: detailed logging, caching, or custom configurations
     return (options.onRequest?.visible ?? false) == true ||
-           (options.onResponse?.visible ?? false) == true ||
-           (options.onError?.visible ?? false) == true ||
-           cache.cacheResponse == true ||
-           cache.cacheError == true ||
-           options.behavior != null ||
-           options.prettyConfig.blockEnabled == true;
+        (options.onResponse?.visible ?? false) == true ||
+        (options.onError?.visible ?? false) == true ||
+        cache.cacheResponse == true ||
+        cache.cacheError == true ||
+        options.behavior != null ||
+        options.prettyConfig.blockEnabled == true;
   }
 
   /// Creates CurlInterceptorV1 instance
@@ -158,7 +157,8 @@ class CurlInterceptorFactory {
   /// Gets version information for debugging and monitoring
   static Map<String, dynamic> getVersionInfo() {
     return {
-      'availableVersions': CurlInterceptorVersion.values.map((v) => v.name).toList(),
+      'availableVersions':
+          CurlInterceptorVersion.values.map((v) => v.name).toList(),
       'defaultVersion': CurlInterceptorVersion.auto.name,
       'factoryVersion': '2.0.0',
       'supportedFeatures': {
