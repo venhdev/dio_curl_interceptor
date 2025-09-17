@@ -1241,8 +1241,10 @@ class _CurlViewerState extends State<CurlViewer> {
                             },
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(12),
+                        // Hide bottom action buttons in bubble mode since bubble has its own close button
+                        if (widget.displayType != CurlViewerDisplayType.bubble)
+                          Container(
+                            padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -1371,7 +1373,14 @@ class _CurlViewerState extends State<CurlViewer> {
                                           ),
                                           elevation: 2,
                                         ),
-                                        onPressed: () => Navigator.pop(context),
+                                        onPressed: () {
+                                          if (widget.displayType == CurlViewerDisplayType.bubble) {
+                                            // For bubble mode, we can't use Navigator.pop
+                                            // The close functionality is handled by the bubble's close button
+                                            return;
+                                          }
+                                          Navigator.pop(context);
+                                        },
                                         child: const Text(
                                           'Close',
                                           style: TextStyle(
@@ -1480,7 +1489,14 @@ class _CurlViewerState extends State<CurlViewer> {
                                           ),
                                           elevation: 2,
                                         ),
-                                        onPressed: () => Navigator.pop(context),
+                                        onPressed: () {
+                                          if (widget.displayType == CurlViewerDisplayType.bubble) {
+                                            // For bubble mode, we can't use Navigator.pop
+                                            // The close functionality is handled by the bubble's close button
+                                            return;
+                                          }
+                                          Navigator.pop(context);
+                                        },
                                         child: const Text(
                                           'Close',
                                           style: TextStyle(
