@@ -3,7 +3,7 @@
 /// This library provides essential async patterns for implementing
 /// production-ready CurlInterceptor with robust error handling and
 /// non-blocking webhook operations.
-library patterns;
+library dio_curl_interceptor.patterns;
 
 // Async patterns (essential for production use)
 export 'fire_and_forget.dart';

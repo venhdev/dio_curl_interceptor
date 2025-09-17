@@ -1255,6 +1255,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                           color:
                                               UiHelper.getMethodColor('GET')),
                                       tooltip: 'Copy cURL',
+                                      padding: const EdgeInsets.all(4),
                                       onPressed: () async {
                                         await Clipboard.setData(ClipboardData(
                                             text: entry.curlCommand));
@@ -1279,6 +1280,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                           size: 18,
                                           color: UiHelper.getStatusColor(200)),
                                       tooltip: 'Share cURL',
+                                      padding: const EdgeInsets.all(4),
                                       onPressed: () => _shareCurlCommand(entry),
                                     ),
                                   ),

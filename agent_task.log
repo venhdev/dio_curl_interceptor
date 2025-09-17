@@ -114,3 +114,6 @@ Updated MIGRATION.md to include information about removed factory methods
 Fixed inspector webhook caching issue - inspector requests are no longer cached in CachedCurlService
 Reverted changes and explained enableCaching parameter usage
 Changed enableCaching default from true to false in InspectorUtils
+Reduced padding around copy and share icon buttons in curl viewer by adding padding: EdgeInsets.all(4) to both IconButton widgets
+Created comprehensive plan for floating bubble widget implementation with multi-state management support
+Updated file structure in floating bubble widget plan to use /lib/src/ui directory
