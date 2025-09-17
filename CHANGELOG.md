@@ -1,5 +1,17 @@
 ## v3.3.3
 
+### New Features
+- **NEW**: `CurlBubble` - Floating bubble overlay for non-intrusive cURL log viewing
+- **NEW**: `BubbleOverlay` - Generic draggable bubble widget for any content
+- **NEW**: `BubbleOverlayController` - Simple controller following Flutter's standard patterns (ChangeNotifier + listeners)
+- **NEW**: Programmatic control of bubble visibility and expansion states
+
+### Architecture Improvements
+- Applied KISS (Keep It Simple, Stupid) principle for clean, maintainable code
+- Controller-to-UI connection follows Flutter's standard patterns
+- Direct property access for simple state management
+- Clean separation of concerns between UI and business logic
+
 ### Breaking Changes
 - Replaced `CachedCurlStorage` with `CachedCurlService` for better architecture
 - Removed file export functionality from CurlViewer

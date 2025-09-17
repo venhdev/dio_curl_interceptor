@@ -117,3 +117,54 @@ Changed enableCaching default from true to false in InspectorUtils
 Reduced padding around copy and share icon buttons in curl viewer by adding padding: EdgeInsets.all(4) to both IconButton widgets
 Created comprehensive plan for floating bubble widget implementation with multi-state management support
 Updated file structure in floating bubble widget plan to use /lib/src/ui directory
+Analyzed differences between curl_bubble.dart and bubble_overlay.dart - curl_bubble is specialized cURL implementation built on generic bubble_overlay component
+Removed UiHelper dependencies from curl_bubble.dart - replaced with direct Flutter colors
+Explained CurlBubbleManager - singleton manager for controlling multiple CurlBubble instances with unique keys, bulk operations, and memory management
+Connected BubbleOverlayController to BubbleOverlay UI - added ChangeNotifier, controller parameter, state listeners, and created usage examples
+Applied KISS principle to curl_bubble.dart and bubble_overlay.dart - simplified controllers, removed over-engineering, updated documentation for both projects
+DELETED CurlBubbleManager class and all references - applied YAGNI principle, removed over-engineered unused code, updated documentation and examples
+Updated CHANGELOG versions - KISS refactoring and CurlBubbleManager removal now part of v3.3.3 (dio_curl_interceptor) and v1.0.45 (app_ft_pccc)
+Fixed CHANGELOG - v3.3.3 now correctly shows NEW bubble features instead of REMOVED CurlBubbleManager (since this is the first version introducing bubbles)
+Modified bubble overlay behavior: bubble now stays at dragged position instead of snapping to edges by default
+Updated CurlBubbleConfig to use new bubble behavior: snapToEdges = false by default
+Modified cURL viewer output format: changed header from '=== cURL Command ===' to '=== cURL ===', updated status line format from '200 (GET)' to '[200  GET]', and removed 'Command:' label
+Refactored bubble system: moved config logic to BubbleOverlayController, updated PCCC app to use new controller-based implementation, removed separate config file
+Updated README.md to reflect new bubble implementation: snapToEdges=false by default, controller-based configuration
+Fixed bubble teleporting issue: bubble now expands in place, added min/max sizing controls, simplified implementation following KISS principle
+Added drag-to-resize functionality: users can drag bottom-right corner of expanded bubble to resize it dynamically, following KISS principle
+Fixed all remaining issues: added bottom center drag bar for moving expanded bubble, fixed center positioning by moving expanded content outside position listener, made content horizontally scrollable
+Fixed Positioned widget error: restructured widget hierarchy to place Positioned directly inside Stack, removed duplicate positioning logic
+Fixed expanded bubble dragging: added separate _expandedPosition ValueNotifier and dedicated drag handlers for expanded state
+Fixed ArgumentError in _toggle(): added proper size validation and clamp argument safety checks to prevent invalid clamp operations
+Removed notification badge from CurlBubble minimized child widget
+Changed CurlBubble minimized child gradient from green to black-white and updated shadow color
+Replaced AppBar with normal Container widget and fixed bottom action buttons overflow with responsive layout
+Fixed text wrapping issue by replacing Expanded with Flexible and adding TextOverflow.ellipsis
+Fixed bottom overflow by hiding buttons when too small and added close icon at top-right to prevent accidental closing
+Fixed Column overflow by adding LayoutBuilder with height constraints and minimal view for very small sizes
+Added drag functionality to entire expanded content area and made bottom drag indicator visual-only
+Removed center drag indicator since entire content area now has drag functionality
+Replaced drag indicator icons with clean white pill-shaped handles inspired by modern UI design
+Updated resize handles to have more pill-like appearance with increased border radius (12px)
+Updated resize handles to have more pill-like appearance with increased border radius (12px)
+Redesigned resize handles as border components with bubble-matching gradient, larger size (32x32), and resize icon
+Removed icons from resize handles for cleaner appearance
+Added complete border around bottom action buttons container with rounded bottom corners
+Changed bottom corner resize handles to oval half shape (40x20) for better UI match
+Implemented unified resize indicator with dynamic border that changes color and thickness during resize
+Removed bottom corner border from CurlViewer bottom action buttons container
+Removed bottom corner rounding from bubble overlay main container and resize indicators
+Made resize indicators invisible (transparent) while keeping their functionality
+Made Material widget background transparent in _buildExpandedContent
+Added bottom border radius (8px) to match content and prevent square outside shape
+Fixed border radius matching by adding inner container with proper border radius for resize state
+Fixed CurlViewer border radius to use 20px for bubble display type to match bubble overlay
+Fixed CurlViewer border radius to match bubble overlay with both top (20px) and bottom (8px) rounded corners
+Fixed resize border by using Positioned.fill overlay that properly respects border radius instead of container border
+Centralized border radius configuration in BubbleOverlay and updated all components to use it
+Updated border radius configuration to use same radius for top and bottom corners (20px all around)
+Fixed bottom-right resize indicator getting stuck by adding onPanStart handlers and ensuring proper gesture detection
+Fixed resize logic: left corner now keeps left edge fixed, right corner uses Listener+GestureDetector for better touch detection
+Fixed right corner resize stuck issue by adding proper pointer event handling and timeout mechanism
+Removed over-engineered timeout mechanism, kept simple pointer event handling solution
+Fixed resize direction logic - left corner now properly shrinks from left edge, right corner from right edge

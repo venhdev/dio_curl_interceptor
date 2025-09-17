@@ -1,56 +1,61 @@
 import 'package:flutter/material.dart';
 import 'bubble_overlay.dart';
 import 'curl_viewer.dart';
-import '../core/helpers/ui_helper.dart';
 
 /// A specialized bubble overlay that integrates CurlViewer functionality
 /// with the draggable bubble interface.
-/// 
+///
 /// This widget wraps your main app content and provides a floating bubble
 /// for accessing cURL logs without interrupting the app flow.
 class CurlBubble extends StatefulWidget {
   /// Main app content body
   final Widget body;
-  
+
   /// Whether the bubble should be visible initially
   final bool initialVisible;
-  
+
   /// Initial position of the bubble
   final Offset initialPosition;
-  
+
   /// Whether the bubble should snap to screen edges
   final bool snapToEdges;
-  
+
   /// Margin from screen edges when snapping
   final double edgeMargin;
-  
+
   /// Custom minimized child widget (optional)
   final Widget? customMinimizedChild;
-  
+
   /// Custom expanded child widget (optional)
   final Widget? customExpandedChild;
-  
+
   /// Callback when bubble is minimized
   final VoidCallback? onMinimized;
-  
+
   /// Callback when bubble is expanded
   final VoidCallback? onExpanded;
-  
+
   /// Callback when bubble is tapped
   final VoidCallback? onTap;
-  
+
   /// Maximum width for expanded content (defaults to screen width - 32)
   final double? maxExpandedWidth;
-  
+
   /// Maximum height for expanded content (defaults to screen height * 0.8)
   final double? maxExpandedHeight;
+
+  /// Minimum width for expanded content (defaults to 200)
+  final double? minExpandedWidth;
+
+  /// Minimum height for expanded content (defaults to 200)
+  final double? minExpandedHeight;
 
   const CurlBubble({
     super.key,
     required this.body,
     this.initialVisible = true,
     this.initialPosition = const Offset(50, 200),
-    this.snapToEdges = true,
+    this.snapToEdges = false,
     this.edgeMargin = 16.0,
     this.customMinimizedChild,
     this.customExpandedChild,
@@ -59,7 +64,46 @@ class CurlBubble extends StatefulWidget {
     this.onTap,
     this.maxExpandedWidth,
     this.maxExpandedHeight,
+    this.minExpandedWidth,
+    this.minExpandedHeight,
   });
+
+  /// Factory method to create a CurlBubble with custom configuration
+  /// This is the recommended way to create a CurlBubble with specific settings
+  factory CurlBubble.configured({
+    required Widget body,
+    bool initialVisible = true,
+    Offset initialPosition = const Offset(50, 200),
+    bool snapToEdges = false,
+    double edgeMargin = 16.0,
+    bool enableLogging = true,
+    Widget? customMinimizedChild,
+    Widget? customExpandedChild,
+    VoidCallback? onMinimized,
+    VoidCallback? onExpanded,
+    VoidCallback? onTap,
+    double? maxExpandedWidth,
+    double? maxExpandedHeight,
+    double? minExpandedWidth,
+    double? minExpandedHeight,
+  }) {
+    return CurlBubble(
+      body: body,
+      initialVisible: initialVisible,
+      initialPosition: initialPosition,
+      snapToEdges: snapToEdges,
+      edgeMargin: edgeMargin,
+      customMinimizedChild: customMinimizedChild,
+      customExpandedChild: customExpandedChild,
+      onMinimized: onMinimized,
+      onExpanded: onExpanded,
+      onTap: onTap,
+      maxExpandedWidth: maxExpandedWidth,
+      maxExpandedHeight: maxExpandedHeight,
+      minExpandedWidth: minExpandedWidth,
+      minExpandedHeight: minExpandedHeight,
+    );
+  }
 
   @override
   State<CurlBubble> createState() => _CurlBubbleState();
@@ -67,34 +111,22 @@ class CurlBubble extends StatefulWidget {
 
 class _CurlBubbleState extends State<CurlBubble> {
   late BubbleOverlayController _controller;
-  bool _isVisible = true;
 
   @override
   void initState() {
     super.initState();
     _controller = BubbleOverlayController();
-    _isVisible = widget.initialVisible;
+    _controller.configure(
+      visible: widget.initialVisible,
+      snapToEdges: widget.snapToEdges,
+      edgeMargin: widget.edgeMargin,
+    );
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  /// Show the curl bubble
-  void show() {
-    setState(() => _isVisible = true);
-  }
-
-  /// Hide the curl bubble
-  void hide() {
-    setState(() => _isVisible = false);
-  }
-
-  /// Toggle bubble visibility
-  void toggleVisibility() {
-    setState(() => _isVisible = !_isVisible);
   }
 
   /// Get the controller for external control
@@ -106,21 +138,21 @@ class _CurlBubbleState extends State<CurlBubble> {
     }
 
     return Container(
-      width: 60,
-      height: 60,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            UiHelper.getMethodColorPalette('GET').primary,
-            UiHelper.getMethodColorPalette('GET').secondary,
+            Colors.black,
+            Colors.white,
           ],
         ),
-        shape: BoxShape.circle,
+        borderRadius: BubbleBorderRadius.minimizedRadius,
         boxShadow: [
           BoxShadow(
-            color: UiHelper.getMethodColorPalette('GET').shadow,
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
             spreadRadius: 2,
@@ -136,55 +168,19 @@ class _CurlBubbleState extends State<CurlBubble> {
           width: 2,
         ),
       ),
-      child: Stack(
-        children: [
-          // Terminal icon
-          Center(
-            child: Icon(
-              Icons.terminal,
-              color: Colors.white,
-              size: 24,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  offset: const Offset(0, 1),
-                  blurRadius: 2,
-                ),
-              ],
+      child: Center(
+        child: Icon(
+          Icons.terminal,
+          color: Colors.white,
+          size: 24,
+          shadows: [
+            Shadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              offset: const Offset(0, 1),
+              blurRadius: 2,
             ),
-          ),
-          // Notification badge (if there are logs)
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: UiHelper.getStatusColor(200),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Text(
-                  '●',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -196,7 +192,7 @@ class _CurlBubbleState extends State<CurlBubble> {
 
     return Material(
       elevation: 8,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BubbleBorderRadius.bubbleRadiusValue,
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -207,7 +203,7 @@ class _CurlBubbleState extends State<CurlBubble> {
               Colors.grey.shade900.withValues(alpha: 0.95),
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BubbleBorderRadius.bubbleRadiusValue,
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.2),
             width: 1.5,
@@ -220,16 +216,58 @@ class _CurlBubbleState extends State<CurlBubble> {
               spreadRadius: 2,
             ),
             BoxShadow(
-              color: UiHelper.getMethodColorPalette('GET').shadow,
+              color: Colors.green.shade800.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: const CurlViewer(
-            displayType: CurlViewerDisplayType.bubble,
+          borderRadius: BubbleBorderRadius.bubbleRadiusValue,
+          child: Stack(
+            children: [
+              const CurlViewer(
+                displayType: CurlViewerDisplayType.bubble,
+              ),
+              // Close button at top-right
+              Positioned(
+                top: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: () {
+                    // Close the expanded bubble
+                    if (widget.onMinimized != null) {
+                      widget.onMinimized!();
+                    }
+                    _controller.minimize();
+                  },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -239,81 +277,20 @@ class _CurlBubbleState extends State<CurlBubble> {
   @override
   Widget build(BuildContext context) {
     return BubbleOverlay(
+      controller: _controller,
       body: widget.body,
       minimizedChild: _buildMinimizedChild(),
       expandedChild: _buildExpandedChild(),
       initialPosition: widget.initialPosition,
-      visible: _isVisible,
       snapToEdges: widget.snapToEdges,
       edgeMargin: widget.edgeMargin,
       maxExpandedWidth: widget.maxExpandedWidth,
       maxExpandedHeight: widget.maxExpandedHeight,
-      onMinimized: () {
-        widget.onMinimized?.call();
-        _controller.minimize();
-      },
-      onExpanded: () {
-        widget.onExpanded?.call();
-        _controller.expand();
-      },
+      minExpandedWidth: widget.minExpandedWidth,
+      minExpandedHeight: widget.minExpandedHeight,
+      onMinimized: widget.onMinimized,
+      onExpanded: widget.onExpanded,
       onTap: widget.onTap,
     );
-  }
-}
-
-/// A manager class specifically for CurlBubble
-class CurlBubbleManager {
-  static CurlBubbleManager? _instance;
-  static CurlBubbleManager get instance => _instance ??= CurlBubbleManager._();
-  
-  CurlBubbleManager._();
-  
-  final Map<String, BubbleOverlayController> _controllers = {};
-  
-  /// Get or create a controller for a specific bubble
-  BubbleOverlayController getController(String key) {
-    return _controllers.putIfAbsent(key, () => BubbleOverlayController());
-  }
-  
-  /// Show a specific bubble
-  void showBubble(String key) {
-    getController(key).show();
-  }
-  
-  /// Hide a specific bubble
-  void hideBubble(String key) {
-    getController(key).hide();
-  }
-  
-  /// Toggle a specific bubble
-  void toggleBubble(String key) {
-    getController(key).toggleVisibility();
-  }
-  
-  /// Show all bubbles
-  void showAllBubbles() {
-    for (final controller in _controllers.values) {
-      controller.show();
-    }
-  }
-  
-  /// Hide all bubbles
-  void hideAllBubbles() {
-    for (final controller in _controllers.values) {
-      controller.hide();
-    }
-  }
-  
-  /// Remove a specific bubble controller
-  void removeController(String key) {
-    _controllers.remove(key)?.dispose();
-  }
-  
-  /// Clear all bubble controllers
-  void clearAll() {
-    for (final controller in _controllers.values) {
-      controller.dispose();
-    }
-    _controllers.clear();
   }
 }

@@ -321,7 +321,7 @@ class MyApp extends StatelessWidget {
           // Wrap your main app content
           body: YourMainContent(),
           initialPosition: const Offset(50, 200),
-          snapToEdges: true,
+          snapToEdges: false, // Stays where you drag it
           onExpanded: () => debugPrint('Bubble expanded'),
           onMinimized: () => debugPrint('Bubble minimized'),
         ),
@@ -334,10 +334,10 @@ class MyApp extends StatelessWidget {
 #### Bubble Features
 
 - **Draggable**: Drag the bubble around the screen
-- **Edge Snapping**: Automatically snaps to screen edges
+- **Free Positioning**: Stays where you drag it (no auto-snapping by default)
 - **Expandable**: Tap to expand and view cURL logs
 - **Non-intrusive**: Stays on top without blocking your app
-- **Customizable**: Use custom minimized/expanded widgets
+- **Controller-based**: Full programmatic control via `BubbleOverlayController`
 
 #### Custom Bubble Widgets
 
@@ -359,6 +359,71 @@ CurlBubble(
   maxExpandedWidth: 400,
   maxExpandedHeight: 500,
 )
+```
+
+#### Programmatic Control
+
+```dart
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late BubbleOverlayController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = BubbleOverlayController();
+    _controller.configure(
+      snapToEdges: false, // Stays where you drag it
+      enableLogging: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: BubbleOverlay(
+          controller: _controller,
+          body: YourMainContent(),
+          minimizedChild: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.terminal, color: Colors.white),
+          ),
+          expandedChild: const CurlViewer(displayType: CurlViewerDisplayType.bubble),
+        ),
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              onPressed: () => _controller.show(),
+              child: Icon(Icons.visibility),
+            ),
+            SizedBox(height: 10),
+            FloatingActionButton(
+              onPressed: () => _controller.hide(),
+              child: Icon(Icons.visibility_off),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 ```
 
 #### Generic Bubble Overlay
