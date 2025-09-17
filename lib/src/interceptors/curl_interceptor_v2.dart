@@ -11,7 +11,6 @@ import '../options/cache_options.dart';
 import '../inspector/webhook_inspector_base.dart';
 import '../inspector/discord_inspector.dart';
 import '../inspector/telegram_inspector.dart';
-import '../core/types.dart';
 import '../core/utils/curl_utils.dart';
 import '../core/helpers/curl_helper.dart';
 
@@ -73,83 +72,6 @@ class CurlInterceptorV2 extends Interceptor {
         webhookInspectors: inspectorOptions != null ? [inspectorOptions] : null,
       );
 
-  /// Factory constructor to create a CurlInterceptorV2 with Discord webhook enabled
-  /// Creates a [CurlInterceptorV2] instance configured for Discord webhook integration.
-  ///
-  /// This factory simplifies the setup for sending cURL logs and inspection
-  /// data to specified Discord webhook URLs.
-  ///
-  /// [webhookUrls] is a list of Discord webhook URLs where logs will be sent.
-  /// [includeUrls] (optional) specifies a list of URI patterns to include for inspection.
-  /// [excludeUrls] (optional) specifies a list of URI patterns to exclude from inspection.
-  /// [inspectionStatus] (optional) defines which response statuses trigger webhook notifications.
-  /// [curlOptions] (optional) customizes how cURL commands are generated.
-  /// [cacheOptions] (optional) configures caching behavior.
-  factory CurlInterceptorV2.withDiscordInspector(
-    List<String> webhookUrls, {
-    List<String> includeUrls = const [],
-    List<String> excludeUrls = const [],
-    List<ResponseStatus> inspectionStatus = const <ResponseStatus>[
-      ResponseStatus.clientError,
-      ResponseStatus.serverError,
-    ],
-    CurlOptions curlOptions = const CurlOptions(),
-    CacheOptions cacheOptions = const CacheOptions(),
-  }) =>
-      CurlInterceptorV2(
-        curlOptions: curlOptions,
-        cacheOptions: cacheOptions,
-        webhookInspectors: [
-          DiscordInspector(
-            webhookUrls: webhookUrls,
-            includeUrls: includeUrls,
-            excludeUrls: excludeUrls,
-            inspectionStatus: inspectionStatus,
-          ),
-        ],
-      );
-
-  /// Factory constructor to create a CurlInterceptorV2 with Telegram Bot API integration
-  /// Creates a [CurlInterceptorV2] instance configured for Telegram Bot API integration.
-  ///
-  /// This factory simplifies the setup for sending cURL logs and inspection
-  /// data to specified Telegram chats via the Bot API.
-  ///
-  /// [botToken] The Telegram bot token obtained from @BotFather.
-  /// [chatIds] A list of chat IDs where messages will be sent. Can be:
-  ///   - Positive integers for private chats (e.g., 123456789)
-  ///   - Negative integers for groups/supergroups (e.g., -1003019608685)
-  ///   - Channel usernames with @ prefix (e.g., @channelusername)
-  /// [includeUrls] (optional) specifies a list of URI patterns to include for inspection.
-  /// [excludeUrls] (optional) specifies a list of URI patterns to exclude from inspection.
-  /// [inspectionStatus] (optional) defines which response statuses trigger webhook notifications.
-  /// [curlOptions] (optional) customizes how cURL commands are generated.
-  /// [cacheOptions] (optional) configures caching behavior.
-  factory CurlInterceptorV2.withTelegramInspector(
-    String botToken,
-    List<dynamic> chatIds, {
-    List<String> includeUrls = const [],
-    List<String> excludeUrls = const [],
-    List<ResponseStatus> inspectionStatus = const <ResponseStatus>[
-      ResponseStatus.clientError,
-      ResponseStatus.serverError,
-    ],
-    CurlOptions curlOptions = const CurlOptions(),
-    CacheOptions cacheOptions = const CacheOptions(),
-  }) =>
-      CurlInterceptorV2(
-        curlOptions: curlOptions,
-        cacheOptions: cacheOptions,
-        webhookInspectors: [
-          TelegramInspector(
-            botToken: botToken,
-            chatIds: chatIds,
-            includeUrls: includeUrls,
-            excludeUrls: excludeUrls,
-            inspectionStatus: inspectionStatus,
-          ),
-        ],
-      );
   
   /// Initializes cleanup timer for orphaned stopwatches.
   void _initializeCleanup() {

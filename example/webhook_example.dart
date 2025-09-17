@@ -38,19 +38,27 @@ void main() async {
   // Add the interceptor to Dio
   dio.interceptors.add(interceptor);
 
-  // Example 4: Using factory constructors for convenience
+  // Example 4: Using manual webhook configuration
   // Uncomment and use these when you have actual webhook URLs:
-  // final discordOnlyInterceptor = CurlInterceptor.withDiscordInspector(
-  //   ['https://discord.com/api/webhooks/YOUR_WEBHOOK_URL'],
-  //   includeUrls: ['api.example.com'],
-  //   inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+  // final discordOnlyInterceptor = CurlInterceptor(
+  //   webhookInspectors: [
+  //     DiscordInspector(
+  //       webhookUrls: ['https://discord.com/api/webhooks/YOUR_WEBHOOK_URL'],
+  //       includeUrls: ['api.example.com'],
+  //       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+  //     ),
+  //   ],
   // );
 
-  // final telegramOnlyInterceptor = CurlInterceptor.withTelegramInspector(
-  //   'YOUR_BOT_TOKEN', // Bot token from @BotFather
-  //   [-1003019608685], // List of chat IDs
-  //   includeUrls: ['api.example.com'],
-  //   inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+  // final telegramOnlyInterceptor = CurlInterceptor(
+  //   webhookInspectors: [
+  //     TelegramInspector(
+  //       botToken: 'YOUR_BOT_TOKEN', // Bot token from @BotFather
+  //       chatIds: [-1003019608685], // List of chat IDs
+  //       includeUrls: ['api.example.com'],
+  //       inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+  //     ),
+  //   ],
   // );
 
   // Example requests that will trigger webhook notifications

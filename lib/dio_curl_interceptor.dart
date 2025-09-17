@@ -22,7 +22,7 @@ export 'src/inspector/telegram_inspector.dart';
 export 'src/inspector/webhook_inspector_base.dart';
 
 // Interceptors
-export 'src/interceptors/dio_curl_interceptor_base.dart';
+export 'src/interceptors/curl_interceptor_base.dart';
 export 'src/interceptors/curl_interceptor_v2.dart';
 export 'src/interceptors/curl_interceptor_factory.dart';
 

@@ -106,3 +106,7 @@ Successfully added all critical missing functionality to CurlInterceptorV2
 Analysis: Found 1 unused pattern in patterns folder
 Successfully removed unused SimpleErrorIsolator pattern
 Successfully renamed all patterns to remove simple_ prefix with better names
+Renamed dio_curl_interceptor_base.dart to curl_interceptor_base.dart and updated all import references
+Removed all CurlInterceptor.with<...> factory methods from both base and v2 interceptors, updated CHANGELOG.md and README.md
+Updated example files to remove references to removed factory methods and fix deprecated API usage
+Updated telegram test files to remove references to removed factory methods

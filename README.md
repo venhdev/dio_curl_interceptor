@@ -211,19 +211,22 @@ For Telegram integration, you need to:
    - Example: `TelegramInspector(botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatIds: [123456789])`
 
 ```dart
-// Using factory constructors for convenience
-dio.interceptors.add(CurlInterceptor.withDiscordInspector(
-  ['https://discord.com/api/webhooks/your-webhook-url'],
-  includeUrls: ['api.example.com', '/users/'],
-  excludeUrls: ['/healthz'],
-  inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
-));
-
-dio.interceptors.add(CurlInterceptor.withTelegramInspector(
-  'YOUR_BOT_TOKEN', // Get from @BotFather
-  [-1003019608685], // Get from getUpdates API
-  includeUrls: ['api.example.com'],
-  inspectionStatus: [ResponseStatus.serverError], // Only server errors
+// Using manual webhook configuration
+dio.interceptors.add(CurlInterceptor(
+  webhookInspectors: [
+    DiscordInspector(
+      webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+      includeUrls: ['api.example.com', '/users/'],
+      excludeUrls: ['/healthz'],
+      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
+    ),
+    TelegramInspector(
+      botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
+      chatIds: [-1003019608685], // Get from getUpdates API
+      includeUrls: ['api.example.com'],
+      inspectionStatus: [ResponseStatus.serverError], // Only server errors
+    ),
+  ],
 ));
 
 // Manual webhook sending
@@ -255,36 +258,7 @@ await telegramInspector.sendBugReport(
 
 ```
 
-### Option 4: Using factory constructors for quick setup
-
-For quick setup with common configurations, you can use the factory constructors:
-
-```dart
-// Discord-only setup
-dio.interceptors.add(CurlInterceptor.withDiscordInspector(
-  ['https://discord.com/api/webhooks/your-webhook-url'],
-  includeUrls: ['api.example.com'],
-  inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
-));
-
-// Telegram-only setup
-dio.interceptors.add(CurlInterceptor.withTelegramInspector(
-  'YOUR_BOT_TOKEN', // Get from @BotFather
-  [-1003019608685], // Get from getUpdates API
-  includeUrls: ['api.example.com'],
-  inspectionStatus: [ResponseStatus.serverError],
-));
-
-// Multiple webhook setup
-dio.interceptors.add(CurlInterceptor.allEnabled(
-  webhookInspectors: [
-    DiscordInspector(webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url']),
-    TelegramInspector(botToken: 'YOUR_BOT_TOKEN', chatIds: [-1003019608685]),
-  ],
-));
-```
-
-### Option 5: Using utility functions directly
+### Option 4: Using utility functions directly
 
 If you don't want to add a full interceptor, you can use the utility functions directly in your code:
 

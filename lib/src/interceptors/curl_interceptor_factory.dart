@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'dio_curl_interceptor_base.dart';
+import 'curl_interceptor_base.dart';
 import 'curl_interceptor_v2.dart';
 import '../options/curl_options.dart';
 import '../options/cache_options.dart';

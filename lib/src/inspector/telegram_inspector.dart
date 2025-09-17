@@ -8,7 +8,7 @@ import 'package:type_caster/type_caster.dart';
 import '../core/constants.dart';
 import '../core/types.dart';
 import '../data/models/sender_info.dart';
-import '../interceptors/dio_curl_interceptor_base.dart';
+import '../interceptors/curl_interceptor_base.dart';
 import 'webhook_inspector_base.dart';
 
 /// Options for configuring Telegram Bot API integration for cURL logging.

@@ -62,17 +62,20 @@ void main() async {
   }
 
   // Example 5: Using Discord webhook integration
-  dio.interceptors.add(CurlInterceptor.withDiscordInspector(
-    // List of Discord webhook URLs
-    ['https://discord.com/api/webhooks/your-webhook-url'],
-    // Optional: Filter which URIs should trigger webhook notifications
-    includeUrls: ['api.example.com', '/users/'],
-    excludeUrls: ['/healthz'],
-    // Optional: Configure curl options
+  dio.interceptors.add(CurlInterceptor(
     curlOptions: CurlOptions(
       status: true,
       responseTime: true,
     ),
+    webhookInspectors: [
+      DiscordInspector(
+        // List of Discord webhook URLs
+        webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+        // Optional: Filter which URIs should trigger webhook notifications
+        includeUrls: ['api.example.com', '/users/'],
+        excludeUrls: ['/healthz'],
+      ),
+    ],
   ));
 
   // Example 5.1: Using multiple webhook inspectors
@@ -104,13 +107,12 @@ void main() async {
   ));
 
   // Example 6: Manual webhook sending
-  final inspector = DiscordWebhookSender(
-    hookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+  final inspector = DiscordInspector(
+    webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
   );
 
   // Send a simple message
-  await inspector
-      .send(DiscordWebhookMessage.simple('Hello from $kDefaultUsername!'));
+  await inspector.sendMessage(content: 'Hello from $kDefaultUsername!');
 
   // Send a curl log
   await inspector.sendCurlLog(

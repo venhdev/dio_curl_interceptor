@@ -39,17 +39,21 @@ void main() async {
   print('   - Chat IDs: ${telegramInspector.chatIds}');
   print('');
 
-  // Test 2: Factory constructor usage
-  print('📋 Test 2: Using factory constructor');
-  final interceptor = CurlInterceptor.withTelegramInspector(
-    botToken,
-    [chatId],
+  // Test 2: Manual webhook configuration usage
+  print('📋 Test 2: Using manual webhook configuration');
+  final interceptor = CurlInterceptor(
     curlOptions: CurlOptions.allEnabled(),
-    inspectionStatus: [ResponseStatus.success],
+    webhookInspectors: [
+      TelegramInspector(
+        botToken: botToken,
+        chatIds: [chatId],
+        inspectionStatus: [ResponseStatus.success],
+      ),
+    ],
   );
   
   dio.interceptors.add(interceptor);
-  print('✅ Factory constructor works correctly');
+  print('✅ Manual webhook configuration works correctly');
   print('   - Interceptor added to Dio instance');
   print('');
 
@@ -162,8 +166,8 @@ void main() async {
   print('✅ Fixed API structure to use bot token + chat IDs');
   print('✅ Added 4096 character message truncation');
   print('✅ Improved error handling for Telegram API responses');
-  print('✅ Updated factory constructor');
-  print('✅ Updated example files');
+  print('✅ Updated to use manual webhook configuration');
+  print('✅ Updated example files and tests');
 
   exit(0);
 }

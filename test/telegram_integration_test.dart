@@ -70,11 +70,15 @@ void main() {
       expect(inspectorWithMultipleChats.chatIds[2], equals('@channelusername'));
     });
 
-    test('should work with factory constructor', () {
-      final interceptor = CurlInterceptor.withTelegramInspector(
-        testBotToken,
-        [testChatId],
-        inspectionStatus: [ResponseStatus.clientError],
+    test('should work with manual webhook configuration', () {
+      final interceptor = CurlInterceptor(
+        webhookInspectors: [
+          TelegramInspector(
+            botToken: testBotToken,
+            chatIds: [testChatId],
+            inspectionStatus: [ResponseStatus.clientError],
+          ),
+        ],
       );
 
       expect(interceptor.webhookInspectors, isNotNull);

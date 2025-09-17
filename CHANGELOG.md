@@ -3,6 +3,8 @@
 ### Breaking Changes
 - Replaced `CachedCurlStorage` with `CachedCurlService` for better architecture
 - Removed file export functionality from CurlViewer
+- **REMOVED**: `CurlInterceptor.withDiscordInspector()` and `CurlInterceptor.withTelegramInspector()` factory methods
+- **REMOVED**: `CurlInterceptorV2.withDiscordInspector()` and `CurlInterceptorV2.withTelegramInspector()` factory methods
 
 ### Architecture
 - Implemented proper MVC + Service Layer pattern with repository pattern
