@@ -307,6 +307,93 @@ The log viewer supports:
 - Enhanced sharing functionality with improved system integration
 - Better error handling and UI responsiveness
 
+### Floating Bubble Overlay
+
+For a non-intrusive debugging experience, use the floating bubble overlay that wraps your main app content:
+
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: CurlBubble(
+          // Wrap your main app content
+          body: YourMainContent(),
+          initialPosition: const Offset(50, 200),
+          snapToEdges: true,
+          onExpanded: () => debugPrint('Bubble expanded'),
+          onMinimized: () => debugPrint('Bubble minimized'),
+        ),
+      ),
+    );
+  }
+}
+```
+
+#### Bubble Features
+
+- **Draggable**: Drag the bubble around the screen
+- **Edge Snapping**: Automatically snaps to screen edges
+- **Expandable**: Tap to expand and view cURL logs
+- **Non-intrusive**: Stays on top without blocking your app
+- **Customizable**: Use custom minimized/expanded widgets
+
+#### Custom Bubble Widgets
+
+```dart
+CurlBubble(
+  body: YourMainContent(),
+  customMinimizedChild: Container(
+    width: 60,
+    height: 60,
+    decoration: BoxDecoration(
+      color: Colors.blue,
+      shape: BoxShape.circle,
+    ),
+    child: const Icon(Icons.bug_report, color: Colors.white),
+  ),
+  customExpandedChild: Container(
+    child: const CurlViewer(displayType: CurlViewerDisplayType.bubble),
+  ),
+  maxExpandedWidth: 400,
+  maxExpandedHeight: 500,
+)
+```
+
+#### Generic Bubble Overlay
+
+For non-cURL use cases, use the generic `BubbleOverlay`:
+
+```dart
+BubbleOverlay(
+  body: YourMainContent(),
+  minimizedChild: CircleAvatar(
+    radius: 30,
+    backgroundColor: Colors.blue,
+    child: Icon(Icons.chat, color: Colors.white),
+  ),
+  expandedChild: Container(
+    width: 200,
+    height: 150,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+    ),
+    child: const Column(
+      children: [
+        Text("Chat Bubble", style: TextStyle(fontWeight: FontWeight.bold)),
+        Text("This is expanded content"),
+      ],
+    ),
+  ),
+  onExpanded: () => debugPrint("Bubble expanded"),
+  onMinimized: () => debugPrint("Bubble minimized"),
+)
+```
+
 > **Note**: File export functionality has been removed in v3.3.3-alpha. For legacy export features, see the [legacy documentation](.docs/export_file_legacy.md).
 
 ### Cache Storage Initialization

@@ -127,6 +127,7 @@ enum CurlViewerDisplayType {
   dialog,
   bottomSheet,
   fullScreen,
+  bubble,
 }
 
 /// Shows the CurlViewer in different display modes
@@ -156,6 +157,14 @@ void showCurlViewer(
         ),
       );
       break;
+    case CurlViewerDisplayType.bubble:
+      // For bubble display type, we need to use CurlBubble widget
+      // This function is mainly for backward compatibility
+      // For bubble usage, developers should use CurlBubble widget directly
+      throw UnsupportedError(
+        'Bubble display type is not supported in showCurlViewer. '
+        'Use CurlBubble widget directly in your app\'s Stack instead.',
+      );
   }
 }
 
@@ -1504,6 +1513,9 @@ class _CurlViewerState extends State<CurlViewer> {
         return Scaffold(
           body: _buildContent(),
         );
+      case CurlViewerDisplayType.bubble:
+        // For bubble display type, just return the content without additional wrapper
+        return _buildContent();
     }
   }
 }

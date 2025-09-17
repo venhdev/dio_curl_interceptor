@@ -35,3 +35,5 @@ export 'src/options/curl_options.dart';
 
 // UI components
 export 'src/ui/curl_viewer.dart';
+export 'src/ui/bubble_overlay.dart';
+export 'src/ui/curl_bubble.dart';
