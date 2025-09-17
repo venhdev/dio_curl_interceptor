@@ -14,7 +14,7 @@ class InspectorUtils {
   /// [enableCaching] Whether to enable caching of curl requests and responses.
   InspectorUtils({
     this.webhookInspectors,
-    this.enableCaching = true,
+    this.enableCaching = false,
   });
 
   /// The webhook inspectors to use for inspection and file operations.

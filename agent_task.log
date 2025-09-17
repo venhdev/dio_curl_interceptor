@@ -110,3 +110,7 @@ Renamed dio_curl_interceptor_base.dart to curl_interceptor_base.dart and updated
 Removed all CurlInterceptor.with<...> factory methods from both base and v2 interceptors, updated CHANGELOG.md and README.md
 Updated example files to remove references to removed factory methods and fix deprecated API usage
 Updated telegram test files to remove references to removed factory methods
+Updated MIGRATION.md to include information about removed factory methods
+Fixed inspector webhook caching issue - inspector requests are no longer cached in CachedCurlService
+Reverted changes and explained enableCaching parameter usage
+Changed enableCaching default from true to false in InspectorUtils
