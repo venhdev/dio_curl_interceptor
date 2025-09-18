@@ -9,6 +9,107 @@ enum ResizeType {
   bottomEdge,
 }
 
+/// Centralized dimension management for bubble overlay components
+class BubbleDimensions {
+  // ============================================================================
+  // BUBBLE SIZES
+  // ============================================================================
+  
+  /// Default minimized bubble size (circular)
+  static const double minimizedBubbleSize = 48.0;
+  
+  /// Default expanded bubble size
+  static const Size defaultExpandedSize = Size(400.0, 500.0);
+  
+  /// Default minimum expanded size
+  static const Size defaultMinExpandedSize = Size(200.0, 200.0);
+  
+  // ============================================================================
+  // MARGINS AND PADDING
+  // ============================================================================
+  
+  /// Default screen margin (used for max width/height calculations)
+  static const double defaultScreenMargin = 16.0;
+  
+  /// Default edge margin for snapping
+  static const double defaultEdgeMargin = 16.0;
+  
+  /// Default border width
+  static const double defaultBorderWidth = 2.0;
+  
+  /// Default resize border width
+  static const double defaultResizeBorderWidth = 3.0;
+  
+  // ============================================================================
+  // ANIMATION AND INTERACTION
+  // ============================================================================
+  
+  /// Default animation scale range
+  static const double animationScaleBegin = 1.0;
+  static const double animationScaleEnd = 1.1;
+  
+  /// Default elevation
+  static const double defaultElevation = 8.0;
+  
+  /// Default alpha values for visual effects
+  static const double defaultAlpha = 0.3;
+  static const double resizeAlpha = 0.8;
+  
+  // ============================================================================
+  // RESPONSIVE CALCULATIONS
+  // ============================================================================
+  
+  /// Calculate maximum width based on screen width
+  static double calculateMaxWidth(double screenWidth, {double? customMaxWidth, double margin = defaultScreenMargin}) {
+    return customMaxWidth ?? (screenWidth - (margin * 2));
+  }
+  
+  /// Calculate maximum height based on screen height
+  static double calculateMaxHeight(double screenHeight, {double? customMaxHeight, double ratio = 0.8}) {
+    return customMaxHeight ?? (screenHeight * ratio);
+  }
+  
+  /// Calculate minimum width with fallback
+  static double calculateMinWidth({double? customMinWidth}) {
+    return customMinWidth ?? defaultMinExpandedSize.width;
+  }
+  
+  /// Calculate minimum height with fallback
+  static double calculateMinHeight({double? customMinHeight}) {
+    return customMinHeight ?? defaultMinExpandedSize.height;
+  }
+  
+  /// Calculate center position for expanded content
+  static Offset calculateCenterPosition(Size screenSize, Size bubbleSize, {double margin = defaultScreenMargin}) {
+    final centerX = (screenSize.width - bubbleSize.width) / 2;
+    final centerY = (screenSize.height - bubbleSize.height) / 2;
+    
+    final minX = margin;
+    final maxX = (screenSize.width - bubbleSize.width - margin).clamp(minX, screenSize.width);
+    final minY = margin;
+    final maxY = (screenSize.height - bubbleSize.height - margin).clamp(minY, screenSize.height);
+    
+    return Offset(
+      centerX.clamp(minX, maxX),
+      centerY.clamp(minY, maxY),
+    );
+  }
+  
+  /// Calculate clamped position for minimized bubble
+  static Offset calculateClampedPosition(Offset position, Size screenSize, {double bubbleSize = minimizedBubbleSize}) {
+    final newX = position.dx.clamp(0.0, screenSize.width - bubbleSize);
+    final newY = position.dy.clamp(0.0, screenSize.height - bubbleSize);
+    return Offset(newX, newY);
+  }
+  
+  /// Calculate clamped position for expanded bubble
+  static Offset calculateClampedExpandedPosition(Offset position, Size screenSize, Size bubbleSize) {
+    final newX = position.dx.clamp(0.0, screenSize.width - bubbleSize.width);
+    final newY = position.dy.clamp(0.0, screenSize.height - bubbleSize.height);
+    return Offset(newX, newY);
+  }
+}
+
 /// Configuration class for resize handle dimensions and behavior
 class ResizeConfig {
   /// Size of corner resize handles (width and height)
@@ -60,70 +161,13 @@ class ResizeConfig {
   );
 }
 
-/// Border radius configuration for bubble overlay components
-class BubbleBorderRadius {
-  /// Corner radius for bubble components
-  static const double bubbleRadius = 20.0;
-
-  /// Dialog corner radius
-  static const double dialogRadius = 20.0;
-
-  /// Get the border radius for bubble components (all corners same)
-  static const BorderRadius bubbleRadiusValue =
-      BorderRadius.all(Radius.circular(bubbleRadius));
-
-  /// Get the border radius for minimized bubble (circular)
-  static const BorderRadius minimizedRadius =
-      BorderRadius.all(Radius.circular(24.0));
-
-  /// Get the border radius for dialog components
-  static const BorderRadius dialogRadiusValue =
-      BorderRadius.all(Radius.circular(dialogRadius));
-
-  /// Get the border radius for bottom sheet (top only)
-  static const BorderRadius bottomSheetRadius =
-      BorderRadius.vertical(top: Radius.circular(dialogRadius));
-}
-
-/// A reusable Flutter widget that provides a draggable, floating bubble
-/// (similar to Messenger chat heads, but confined inside your app).
-///
-/// It supports:
-/// - **Dragging** around the screen
-/// - **Minimized / Expanded states**
-/// - **Integration with any state management** (GetX, Bloc, Provider, Riverpod, etc.)
-/// - **Lightweight API** (just provide widgets + callbacks)
-/// - **Body wrapping** - wraps your main app content and handles bubble overlay internally
-class BubbleOverlay extends StatefulWidget {
-  /// Main app content body
-  final Widget body;
-
-  /// Widget to display when the bubble is minimized
-  final Widget minimizedChild;
-
-  /// Widget to display when the bubble is expanded
-  final Widget expandedChild;
-
-  /// Controller to manage bubble state (optional)
-  final BubbleOverlayController? controller;
-
+/// Styling configuration for bubble overlay components
+class BubbleStyle {
   /// Initial position of the bubble on the screen
   final Offset initialPosition;
 
   /// Duration of the expand/collapse animation
   final Duration animationDuration;
-
-  /// Callback when bubble is minimized
-  final VoidCallback? onMinimized;
-
-  /// Callback when bubble is expanded
-  final VoidCallback? onExpanded;
-
-  /// Callback when bubble is tapped
-  final VoidCallback? onTap;
-
-  /// Whether the bubble should be visible (ignored if controller is provided)
-  final bool visible;
 
   /// Whether the bubble should snap to screen edges
   final bool snapToEdges;
@@ -146,25 +190,109 @@ class BubbleOverlay extends StatefulWidget {
   /// Configuration for resize handle dimensions and behavior
   final ResizeConfig resizeConfig;
 
-  const BubbleOverlay({
-    super.key,
-    required this.body,
-    required this.minimizedChild,
-    required this.expandedChild,
-    this.controller,
+  const BubbleStyle({
     this.initialPosition = const Offset(50, 200),
     this.animationDuration = const Duration(milliseconds: 250),
-    this.onMinimized,
-    this.onExpanded,
-    this.onTap,
-    this.visible = true,
     this.snapToEdges = true,
-    this.edgeMargin = 16.0,
+    this.edgeMargin = BubbleDimensions.defaultEdgeMargin,
     this.maxExpandedWidth,
     this.maxExpandedHeight,
     this.minExpandedWidth,
     this.minExpandedHeight,
     this.resizeConfig = ResizeConfig.largeConfig,
+  });
+
+  /// Default styling configuration
+  static const BubbleStyle defaultStyle = BubbleStyle();
+
+  /// Styling configuration optimized for mobile devices
+  static const BubbleStyle mobileStyle = BubbleStyle(
+    initialPosition: Offset(20, 150),
+    snapToEdges: true,
+    edgeMargin: 12.0,
+    maxExpandedWidth: 350.0,
+    maxExpandedHeight: 600.0,
+    minExpandedWidth: 280.0,
+    minExpandedHeight: 400.0,
+  );
+
+  /// Styling configuration optimized for desktop devices
+  static const BubbleStyle desktopStyle = BubbleStyle(
+    initialPosition: Offset(100, 200),
+    snapToEdges: false,
+    edgeMargin: 20.0,
+    maxExpandedWidth: 600.0,
+    maxExpandedHeight: 800.0,
+    minExpandedWidth: 400.0,
+    minExpandedHeight: 500.0,
+  );
+
+  /// Styling configuration with debug indicators
+  static const BubbleStyle debugStyle = BubbleStyle(
+    resizeConfig: ResizeConfig.debugConfig,
+  );
+}
+
+/// Border radius configuration for bubble overlay components
+class BubbleBorderRadius {
+  /// Corner radius for bubble components
+  static const double bubbleRadius = 20.0;
+
+  /// Dialog corner radius
+  static const double dialogRadius = 20.0;
+  
+  /// Minimized bubble radius (circular)
+  static const double minimizedRadius = 24.0;
+
+  /// Get the border radius for bubble components (all corners same)
+  static const BorderRadius bubbleRadiusValue =
+      BorderRadius.all(Radius.circular(bubbleRadius));
+
+  /// Get the border radius for minimized bubble (circular)
+  static const BorderRadius minimizedRadiusValue =
+      BorderRadius.all(Radius.circular(minimizedRadius));
+
+  /// Get the border radius for dialog components
+  static const BorderRadius dialogRadiusValue =
+      BorderRadius.all(Radius.circular(dialogRadius));
+
+  /// Get the border radius for bottom sheet (top only)
+  static const BorderRadius bottomSheetRadius =
+      BorderRadius.vertical(top: Radius.circular(dialogRadius));
+}
+
+/// A reusable Flutter widget that provides a draggable, floating bubble
+/// (similar to Messenger chat heads, but confined inside your app).
+///
+/// It supports:
+/// - **Dragging** around the screen
+/// - **Minimized / Expanded states**
+/// - **Integration with any state management** (GetX, Bloc, Provider, Riverpod, etc.)
+/// - **Lightweight API** (just provide widgets + controller + style)
+/// - **Body wrapping** - wraps your main app content and handles bubble overlay internally
+class BubbleOverlay extends StatefulWidget {
+  /// Main app content body
+  final Widget body;
+
+  /// Widget to display when the bubble is minimized
+  final Widget minimizedChild;
+
+  /// Widget to display when the bubble is expanded
+  final Widget expandedChild;
+
+  /// Controller to manage bubble state and behavior
+  final BubbleOverlayController controller;
+
+  /// Styling configuration for the bubble
+  final BubbleStyle style;
+
+  const BubbleOverlay({
+    super.key,
+    required this.body,
+    required this.minimizedChild,
+    required this.expandedChild,
+    required this.controller,
+    this.style = BubbleStyle.defaultStyle,
   });
 
   @override
@@ -184,30 +312,30 @@ class _BubbleOverlayState extends State<BubbleOverlay>
   @override
   void initState() {
     super.initState();
-    _position = ValueNotifier(widget.initialPosition);
+    _position = ValueNotifier(widget.style.initialPosition);
     _expandedPosition =
         ValueNotifier(const Offset(0, 0)); // Will be calculated when expanded
     _expandedSize =
-        ValueNotifier(const Size(400, 500)); // Default expanded size
+        ValueNotifier(BubbleDimensions.defaultExpandedSize);
     _animationController = AnimationController(
-      duration: widget.animationDuration,
+      duration: widget.style.animationDuration,
       vsync: this,
     );
     _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
+      begin: BubbleDimensions.animationScaleBegin,
+      end: BubbleDimensions.animationScaleEnd,
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
 
-    // Listen to controller changes if provided
-    widget.controller?.addListener(_onControllerChanged);
+    // Listen to controller changes
+    widget.controller.addListener(_onControllerChanged);
   }
 
   @override
   void dispose() {
-    widget.controller?.removeListener(_onControllerChanged);
+    widget.controller.removeListener(_onControllerChanged);
     _position.dispose();
     _expandedPosition.dispose();
     _expandedSize.dispose();
@@ -218,7 +346,7 @@ class _BubbleOverlayState extends State<BubbleOverlay>
   void _onControllerChanged() {
     if (!mounted) return;
 
-    final controller = widget.controller!;
+    final controller = widget.controller;
 
     // Update visibility
     if (controller.isVisible != _isVisible) {
@@ -233,16 +361,16 @@ class _BubbleOverlayState extends State<BubbleOverlay>
 
       if (_isExpanded) {
         _animationController.forward();
-        widget.onExpanded?.call();
+        controller.onExpanded?.call();
       } else {
         _animationController.reverse();
-        widget.onMinimized?.call();
+        controller.onMinimized?.call();
       }
     }
   }
 
   bool get _isVisible {
-    return widget.controller?.isVisible ?? widget.visible;
+    return widget.controller.isVisible;
   }
 
   void _toggle() {
@@ -257,10 +385,16 @@ class _BubbleOverlayState extends State<BubbleOverlay>
           final bubbleSize = _expandedSize.value;
 
           // Ensure bubble size doesn't exceed screen size
-          final maxWidth = screenSize.width - 32; // 16px margin on each side
-          final maxHeight = screenSize.height - 32;
-          final finalWidth = bubbleSize.width.clamp(200.0, maxWidth);
-          final finalHeight = bubbleSize.height.clamp(200.0, maxHeight);
+          final maxWidth = BubbleDimensions.calculateMaxWidth(screenSize.width);
+          final maxHeight = BubbleDimensions.calculateMaxHeight(screenSize.height);
+          final finalWidth = bubbleSize.width.clamp(
+            BubbleDimensions.calculateMinWidth(), 
+            maxWidth
+          );
+          final finalHeight = bubbleSize.height.clamp(
+            BubbleDimensions.calculateMinHeight(), 
+            maxHeight
+          );
 
           // Update size if it was clamped
           if (finalWidth != bubbleSize.width ||
@@ -268,67 +402,57 @@ class _BubbleOverlayState extends State<BubbleOverlay>
             _expandedSize.value = Size(finalWidth, finalHeight);
           }
 
-          final centerX = (screenSize.width - finalWidth) / 2;
-          final centerY = (screenSize.height - finalHeight) / 2;
-
-          // Ensure clamp arguments are valid
-          final minX = 16.0;
-          final maxX = (screenSize.width - finalWidth - 16)
-              .clamp(minX, screenSize.width);
-          final minY = 16.0;
-          final maxY = (screenSize.height - finalHeight - 16)
-              .clamp(minY, screenSize.height);
-
-          _expandedPosition.value = Offset(
-            centerX.clamp(minX, maxX),
-            centerY.clamp(minY, maxY),
+          _expandedPosition.value = BubbleDimensions.calculateCenterPosition(
+            screenSize, 
+            Size(finalWidth, finalHeight)
           );
         }
       });
     }
 
-    // Update controller state if provided
-    if (widget.controller != null) {
-      if (_isExpanded) {
-        widget.controller!.expand();
-      } else {
-        widget.controller!.minimize();
-      }
+    // Update controller state
+    if (_isExpanded) {
+      widget.controller.expand();
+    } else {
+      widget.controller.minimize();
     }
 
     if (_isExpanded) {
       _animationController.forward();
-      widget.onExpanded?.call();
+      widget.controller.onExpanded?.call();
     } else {
       _animationController.reverse();
-      widget.onMinimized?.call();
+      widget.controller.onMinimized?.call();
     }
   }
 
   void _onPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
-    final newX = (_position.value.dx + details.delta.dx)
-        .clamp(0.0, constraints.maxWidth - 48);
-    final newY = (_position.value.dy + details.delta.dy)
-        .clamp(0.0, constraints.maxHeight - 48);
-    _position.value = Offset(newX, newY);
+    final newPosition = Offset(
+      _position.value.dx + details.delta.dx,
+      _position.value.dy + details.delta.dy,
+    );
+    _position.value = BubbleDimensions.calculateClampedPosition(
+      newPosition, 
+      Size(constraints.maxWidth, constraints.maxHeight)
+    );
   }
 
   void _onExpandedPanUpdate(
       DragUpdateDetails details, BoxConstraints constraints) {
     final currentPosition = _expandedPosition.value;
-    final newX = (currentPosition.dx + details.delta.dx)
-        .clamp(0.0, constraints.maxWidth - _expandedSize.value.width);
-    final newY = (currentPosition.dy + details.delta.dy)
-        .clamp(0.0, constraints.maxHeight - _expandedSize.value.height);
-    _expandedPosition.value = Offset(newX, newY);
+    final newPosition = Offset(
+      currentPosition.dx + details.delta.dx,
+      currentPosition.dy + details.delta.dy,
+    );
+    _expandedPosition.value = BubbleDimensions.calculateClampedExpandedPosition(
+      newPosition,
+      Size(constraints.maxWidth, constraints.maxHeight),
+      _expandedSize.value,
+    );
   }
 
   void _onExpandedPanEnd(DragEndDetails details, BoxConstraints constraints) {
-    // Use controller's snapToEdges setting if available, otherwise use widget's
-    final shouldSnapToEdges =
-        widget.controller?.snapToEdges ?? widget.snapToEdges;
-
-    if (!shouldSnapToEdges) {
+    if (!widget.style.snapToEdges) {
       // If snapToEdges is false, keep the bubble at its current position
       return;
     }
@@ -354,8 +478,7 @@ class _BubbleOverlayState extends State<BubbleOverlay>
 
     Offset targetPosition;
 
-    // Use controller's edgeMargin setting if available, otherwise use widget's
-    final margin = widget.controller?.edgeMargin ?? widget.edgeMargin;
+    final margin = widget.style.edgeMargin;
 
     if (minDistance == distanceToLeft) {
       // Snap to left edge
@@ -385,10 +508,20 @@ class _BubbleOverlayState extends State<BubbleOverlay>
     double deltaY = details.delta.dy;
 
     // Calculate responsive constraints
-    final maxWidth = widget.maxExpandedWidth ?? (constraints.maxWidth - 32);
-    final maxHeight = widget.maxExpandedHeight ?? (constraints.maxHeight * 0.8);
-    final minWidth = widget.minExpandedWidth ?? 200.0;
-    final minHeight = widget.minExpandedHeight ?? 200.0;
+    final maxWidth = BubbleDimensions.calculateMaxWidth(
+      constraints.maxWidth, 
+      customMaxWidth: widget.style.maxExpandedWidth
+    );
+    final maxHeight = BubbleDimensions.calculateMaxHeight(
+      constraints.maxHeight, 
+      customMaxHeight: widget.style.maxExpandedHeight
+    );
+    final minWidth = BubbleDimensions.calculateMinWidth(
+      customMinWidth: widget.style.minExpandedWidth
+    );
+    final minHeight = BubbleDimensions.calculateMinHeight(
+      customMinHeight: widget.style.minExpandedHeight
+    );
 
     switch (resizeType) {
       case ResizeType.bottomLeftCorner:
@@ -460,11 +593,7 @@ class _BubbleOverlayState extends State<BubbleOverlay>
   }
 
   void _onPanEnd(DragEndDetails details, BoxConstraints constraints) {
-    // Use controller's snapToEdges setting if available, otherwise use widget's
-    final shouldSnapToEdges =
-        widget.controller?.snapToEdges ?? widget.snapToEdges;
-
-    if (!shouldSnapToEdges) {
+    if (!widget.style.snapToEdges) {
       // If snapToEdges is false, keep the bubble at its current position
       // No additional action needed as _position.value is already set during drag
       return;
@@ -489,21 +618,20 @@ class _BubbleOverlayState extends State<BubbleOverlay>
 
     Offset targetPosition;
 
-    // Use controller's edgeMargin setting if available, otherwise use widget's
-    final margin = widget.controller?.edgeMargin ?? widget.edgeMargin;
+    final margin = widget.style.edgeMargin;
 
     if (minDistance == distanceToLeft) {
       // Snap to left edge
       targetPosition = Offset(margin, currentPosition.dy);
     } else if (minDistance == distanceToRight) {
       // Snap to right edge
-      targetPosition = Offset(screenWidth - 48 - margin, currentPosition.dy);
+      targetPosition = Offset(screenWidth - BubbleDimensions.minimizedBubbleSize - margin, currentPosition.dy);
     } else if (minDistance == distanceToTop) {
       // Snap to top edge
       targetPosition = Offset(currentPosition.dx, margin);
     } else {
       // Snap to bottom edge
-      targetPosition = Offset(currentPosition.dx, screenHeight - 48 - margin);
+      targetPosition = Offset(currentPosition.dx, screenHeight - BubbleDimensions.minimizedBubbleSize - margin);
     }
 
     // Animate to the target position
@@ -537,7 +665,7 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                             onPanEnd: (details) =>
                                 _onPanEnd(details, constraints),
                             onTap: () {
-                              widget.onTap?.call();
+                              widget.controller.onTap?.call();
                               _toggle();
                             },
                             child: AnimatedBuilder(
@@ -584,10 +712,20 @@ class _BubbleOverlayState extends State<BubbleOverlay>
         final screenWidth = constraints.maxWidth;
         final screenHeight = constraints.maxHeight;
 
-        final maxWidth = widget.maxExpandedWidth ?? (screenWidth - 32);
-        final maxHeight = widget.maxExpandedHeight ?? (screenHeight * 0.8);
-        final minWidth = widget.minExpandedWidth ?? 200.0;
-        final minHeight = widget.minExpandedHeight ?? 200.0;
+        final maxWidth = BubbleDimensions.calculateMaxWidth(
+          screenWidth, 
+          customMaxWidth: widget.style.maxExpandedWidth
+        );
+        final maxHeight = BubbleDimensions.calculateMaxHeight(
+          screenHeight, 
+          customMaxHeight: widget.style.maxExpandedHeight
+        );
+        final minWidth = BubbleDimensions.calculateMinWidth(
+          customMinWidth: widget.style.minExpandedWidth
+        );
+        final minHeight = BubbleDimensions.calculateMinHeight(
+          customMinHeight: widget.style.minExpandedHeight
+        );
 
         // Use current size but respect min/max constraints
         final finalWidth = size.width.clamp(minWidth, maxWidth);
@@ -595,7 +733,7 @@ class _BubbleOverlayState extends State<BubbleOverlay>
 
         return Material(
           color: Colors.transparent,
-          elevation: 8,
+          elevation: BubbleDimensions.defaultElevation,
           borderRadius: BubbleBorderRadius.bubbleRadiusValue,
           child: Container(
             key: const ValueKey('expanded'),
@@ -604,8 +742,8 @@ class _BubbleOverlayState extends State<BubbleOverlay>
             decoration: BoxDecoration(
               borderRadius: BubbleBorderRadius.bubbleRadiusValue,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 2.0,
+                color: Colors.white.withValues(alpha: BubbleDimensions.defaultAlpha),
+                width: BubbleDimensions.defaultBorderWidth,
               ),
             ),
             child: Stack(
@@ -628,8 +766,8 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                       decoration: BoxDecoration(
                         borderRadius: BubbleBorderRadius.bubbleRadiusValue,
                         border: Border.all(
-                          color: Colors.blue.withValues(alpha: 0.8),
-                          width: 3.0,
+                          color: Colors.blue.withValues(alpha: BubbleDimensions.resizeAlpha),
+                          width: BubbleDimensions.defaultResizeBorderWidth,
                         ),
                       ),
                     ),
@@ -670,11 +808,11 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                           resizeType: ResizeType.bottomRightCorner),
                       onPanEnd: _onResizeEnd,
                       child: Container(
-                        width: widget.resizeConfig.cornerHandleSize,
-                        height: widget.resizeConfig.cornerHandleSize,
-                        color: widget.resizeConfig.showVisualIndicators
-                            ? widget.resizeConfig.indicatorColor
-                                .withValues(alpha: 0.3)
+                        width: widget.style.resizeConfig.cornerHandleSize,
+                        height: widget.style.resizeConfig.cornerHandleSize,
+                        color: widget.style.resizeConfig.showVisualIndicators
+                            ? widget.style.resizeConfig.indicatorColor
+                                .withValues(alpha: BubbleDimensions.defaultAlpha)
                             : Colors.transparent,
                       ),
                     ),
@@ -715,11 +853,11 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                           resizeType: ResizeType.bottomLeftCorner),
                       onPanEnd: _onResizeEnd,
                       child: Container(
-                        width: widget.resizeConfig.cornerHandleSize,
-                        height: widget.resizeConfig.cornerHandleSize,
-                        color: widget.resizeConfig.showVisualIndicators
-                            ? widget.resizeConfig.indicatorColor
-                                .withValues(alpha: 0.3)
+                        width: widget.style.resizeConfig.cornerHandleSize,
+                        height: widget.style.resizeConfig.cornerHandleSize,
+                        color: widget.style.resizeConfig.showVisualIndicators
+                            ? widget.style.resizeConfig.indicatorColor
+                                .withValues(alpha: BubbleDimensions.defaultAlpha)
                             : Colors.transparent,
                       ),
                     ),
@@ -729,8 +867,8 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                 // Left edge resize indicator
                 Positioned(
                   left: 0,
-                  top: widget.resizeConfig.cornerHandleSize,
-                  bottom: widget.resizeConfig.cornerHandleSize,
+                  top: widget.style.resizeConfig.cornerHandleSize,
+                  bottom: widget.style.resizeConfig.cornerHandleSize,
                   child: Listener(
                     onPointerDown: (details) {
                       if (!_isResizing) {
@@ -759,10 +897,10 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                           resizeType: ResizeType.leftEdge),
                       onPanEnd: _onResizeEnd,
                       child: Container(
-                        width: widget.resizeConfig.edgeHandleWidth,
-                        color: widget.resizeConfig.showVisualIndicators
-                            ? widget.resizeConfig.indicatorColor
-                                .withValues(alpha: 0.3)
+                        width: widget.style.resizeConfig.edgeHandleWidth,
+                        color: widget.style.resizeConfig.showVisualIndicators
+                            ? widget.style.resizeConfig.indicatorColor
+                                .withValues(alpha: BubbleDimensions.defaultAlpha)
                             : Colors.transparent,
                       ),
                     ),
@@ -771,8 +909,8 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                 // Right edge resize indicator
                 Positioned(
                   right: 0,
-                  top: widget.resizeConfig.cornerHandleSize,
-                  bottom: widget.resizeConfig.cornerHandleSize,
+                  top: widget.style.resizeConfig.cornerHandleSize,
+                  bottom: widget.style.resizeConfig.cornerHandleSize,
                   child: Listener(
                     onPointerDown: (details) {
                       if (!_isResizing) {
@@ -801,10 +939,10 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                           resizeType: ResizeType.rightEdge),
                       onPanEnd: _onResizeEnd,
                       child: Container(
-                        width: widget.resizeConfig.edgeHandleWidth,
-                        color: widget.resizeConfig.showVisualIndicators
-                            ? widget.resizeConfig.indicatorColor
-                                .withValues(alpha: 0.3)
+                        width: widget.style.resizeConfig.edgeHandleWidth,
+                        color: widget.style.resizeConfig.showVisualIndicators
+                            ? widget.style.resizeConfig.indicatorColor
+                                .withValues(alpha: BubbleDimensions.defaultAlpha)
                             : Colors.transparent,
                       ),
                     ),
@@ -812,8 +950,8 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                 ),
                 // Bottom edge resize indicator
                 Positioned(
-                  left: widget.resizeConfig.cornerHandleSize,
-                  right: widget.resizeConfig.cornerHandleSize,
+                  left: widget.style.resizeConfig.cornerHandleSize,
+                  right: widget.style.resizeConfig.cornerHandleSize,
                   bottom: 0,
                   child: Listener(
                     onPointerDown: (details) {
@@ -843,10 +981,10 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                           resizeType: ResizeType.bottomEdge),
                       onPanEnd: _onResizeEnd,
                       child: Container(
-                        height: widget.resizeConfig.edgeHandleHeight,
-                        color: widget.resizeConfig.showVisualIndicators
-                            ? widget.resizeConfig.indicatorColor
-                                .withValues(alpha: 0.3)
+                        height: widget.style.resizeConfig.edgeHandleHeight,
+                        color: widget.style.resizeConfig.showVisualIndicators
+                            ? widget.style.resizeConfig.indicatorColor
+                                .withValues(alpha: BubbleDimensions.defaultAlpha)
                             : Colors.transparent,
                       ),
                     ),
@@ -861,13 +999,14 @@ class _BubbleOverlayState extends State<BubbleOverlay>
   }
 }
 
-/// Controller to manage bubble overlay state and configuration
+/// Controller to manage bubble overlay state and behavior
 class BubbleOverlayController extends ChangeNotifier {
   bool _isVisible = true;
   bool _isExpanded = false;
-  bool _snapToEdges = false;
-  double _edgeMargin = 16.0;
   bool _enableLogging = true;
+  VoidCallback? _onMinimized;
+  VoidCallback? _onExpanded;
+  VoidCallback? _onTap;
 
   /// Whether the bubble is currently visible
   bool get isVisible => _isVisible;
@@ -887,24 +1026,6 @@ class BubbleOverlayController extends ChangeNotifier {
     }
   }
 
-  /// Whether the bubble should snap to screen edges
-  bool get snapToEdges => _snapToEdges;
-  set snapToEdges(bool value) {
-    if (_snapToEdges != value) {
-      _snapToEdges = value;
-      notifyListeners();
-    }
-  }
-
-  /// Margin from screen edges when snapping
-  double get edgeMargin => _edgeMargin;
-  set edgeMargin(double value) {
-    if (_edgeMargin != value) {
-      _edgeMargin = value;
-      notifyListeners();
-    }
-  }
-
   /// Whether to enable logging for bubble events
   bool get enableLogging => _enableLogging;
   set enableLogging(bool value) {
@@ -912,6 +1033,24 @@ class BubbleOverlayController extends ChangeNotifier {
       _enableLogging = value;
       notifyListeners();
     }
+  }
+
+  /// Callback when bubble is minimized
+  VoidCallback? get onMinimized => _onMinimized;
+  set onMinimized(VoidCallback? value) {
+    _onMinimized = value;
+  }
+
+  /// Callback when bubble is expanded
+  VoidCallback? get onExpanded => _onExpanded;
+  set onExpanded(VoidCallback? value) {
+    _onExpanded = value;
+  }
+
+  /// Callback when bubble is tapped
+  VoidCallback? get onTap => _onTap;
+  set onTap(VoidCallback? value) {
+    _onTap = value;
   }
 
   /// Show the bubble overlay
@@ -936,15 +1075,17 @@ class BubbleOverlayController extends ChangeNotifier {
   void configure({
     bool? visible,
     bool? expanded,
-    bool? snapToEdges,
-    double? edgeMargin,
     bool? enableLogging,
+    VoidCallback? onMinimized,
+    VoidCallback? onExpanded,
+    VoidCallback? onTap,
   }) {
     if (visible != null) _isVisible = visible;
     if (expanded != null) _isExpanded = expanded;
-    if (snapToEdges != null) _snapToEdges = snapToEdges;
-    if (edgeMargin != null) _edgeMargin = edgeMargin;
     if (enableLogging != null) _enableLogging = enableLogging;
+    if (onMinimized != null) _onMinimized = onMinimized;
+    if (onExpanded != null) _onExpanded = onExpanded;
+    if (onTap != null) _onTap = onTap;
     notifyListeners();
   }
 
@@ -952,9 +1093,10 @@ class BubbleOverlayController extends ChangeNotifier {
   void resetToDefaults() {
     _isVisible = true;
     _isExpanded = false;
-    _snapToEdges = false;
-    _edgeMargin = 16.0;
     _enableLogging = true;
+    _onMinimized = null;
+    _onExpanded = null;
+    _onTap = null;
     notifyListeners();
   }
 }

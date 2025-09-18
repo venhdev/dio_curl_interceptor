@@ -135,26 +135,40 @@ enum CurlViewerDisplayType {
 void showCurlViewer(
   BuildContext context, {
   CurlViewerDisplayType displayType = CurlViewerDisplayType.dialog,
+  VoidCallback? onClose,
+  bool showCloseButton = false,
 }) async {
   switch (displayType) {
     case CurlViewerDisplayType.dialog:
       showDialog(
         context: context,
-        builder: (_) => const CurlViewer(),
+        builder: (_) => CurlViewer(
+          displayType: displayType,
+          onClose: onClose,
+          showCloseButton: showCloseButton,
+        ),
       );
       break;
     case CurlViewerDisplayType.bottomSheet:
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder: (_) => const CurlViewer(),
+        builder: (_) => CurlViewer(
+          displayType: displayType,
+          onClose: onClose,
+          showCloseButton: showCloseButton,
+        ),
       );
       break;
     case CurlViewerDisplayType.fullScreen:
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const CurlViewer(),
+          builder: (_) => CurlViewer(
+            displayType: displayType,
+            onClose: onClose,
+            showCloseButton: showCloseButton,
+          ),
         ),
       );
       break;
@@ -173,9 +187,13 @@ class CurlViewer extends StatefulWidget {
   const CurlViewer({
     super.key,
     this.displayType = CurlViewerDisplayType.dialog,
+    this.onClose,
+    this.showCloseButton = false,
   });
 
   final CurlViewerDisplayType displayType;
+  final VoidCallback? onClose;
+  final bool showCloseButton;
 
   @override
   State<CurlViewer> createState() => _CurlViewerState();
@@ -579,6 +597,44 @@ class _CurlViewerState extends State<CurlViewer> {
                             ),
                           ),
                         ),
+                        // Optional close button
+                        if (widget.showCloseButton) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            height: 36,
+                            width: 36,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.red.withValues(alpha: 0.2),
+                                  Colors.red.withValues(alpha: 0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.4),
+                                  width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: widget.onClose ?? () => Navigator.pop(context),
+                                child: Icon(Icons.close,
+                                    size: 18, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

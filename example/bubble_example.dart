@@ -30,6 +30,24 @@ class BubbleExampleHome extends StatefulWidget {
 
 class _BubbleExampleHomeState extends State<BubbleExampleHome> {
   bool _showBubble = true;
+  late BubbleOverlayController _bubbleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _bubbleController = BubbleOverlayController();
+    _bubbleController.configure(
+      onExpanded: () => debugPrint('Curl bubble expanded'),
+      onMinimized: () => debugPrint('Curl bubble minimized'),
+      onTap: () => debugPrint('Curl bubble tapped'),
+    );
+  }
+
+  @override
+  void dispose() {
+    _bubbleController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,20 +60,14 @@ class _BubbleExampleHomeState extends State<BubbleExampleHome> {
           ? CurlBubble(
               // Wrap the main content with CurlBubble
               body: _buildMainContent(),
-              initialPosition: const Offset(50, 200),
-              snapToEdges: true,
-              edgeMargin: 16.0,
-              maxExpandedWidth: MediaQuery.of(context).size.width - 32,
-              maxExpandedHeight: MediaQuery.of(context).size.height * 0.8,
-              onExpanded: () {
-                debugPrint('Curl bubble expanded');
-              },
-              onMinimized: () {
-                debugPrint('Curl bubble minimized');
-              },
-              onTap: () {
-                debugPrint('Curl bubble tapped');
-              },
+              controller: _bubbleController,
+              style: BubbleStyle(
+                initialPosition: const Offset(50, 200),
+                snapToEdges: true,
+                edgeMargin: 16.0,
+                maxExpandedWidth: MediaQuery.of(context).size.width - 32,
+                maxExpandedHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
             )
           : _buildMainContent(),
     );
@@ -151,6 +163,8 @@ class CustomBubbleExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = BubbleOverlayController();
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Custom Bubble Example'),
@@ -163,6 +177,7 @@ class CustomBubbleExample extends StatelessWidget {
             style: TextStyle(fontSize: 24),
           ),
         ),
+        controller: controller,
         customMinimizedChild: Container(
           width: 70,
           height: 70,
@@ -217,6 +232,13 @@ class DirectBubbleExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = BubbleOverlayController();
+    controller.configure(
+      onExpanded: () => debugPrint('Custom bubble expanded'),
+      onMinimized: () => debugPrint('Custom bubble minimized'),
+      onTap: () => debugPrint('Custom bubble tapped'),
+    );
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Direct Bubble Example'),
@@ -229,6 +251,7 @@ class DirectBubbleExample extends StatelessWidget {
             style: TextStyle(fontSize: 24),
           ),
         ),
+        controller: controller,
         minimizedChild: Container(
           width: 60,
           height: 60,
@@ -285,9 +308,6 @@ class DirectBubbleExample extends StatelessWidget {
             ),
           ),
         ),
-        onExpanded: () => debugPrint('Custom bubble expanded'),
-        onMinimized: () => debugPrint('Custom bubble minimized'),
-        onTap: () => debugPrint('Custom bubble tapped'),
       ),
     );
   }

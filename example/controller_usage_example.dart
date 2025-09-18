@@ -26,14 +26,17 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
 
   @override
   Widget build(BuildContext context) {
+    _controller.configure(
+      onExpanded: () => print('Bubble expanded'),
+      onMinimized: () => print('Bubble minimized'),
+    );
+    
     return BubbleOverlay(
       // Pass the controller to connect it to the UI
       controller: _controller,
       body: _buildMainContent(),
       minimizedChild: _buildMinimizedBubble(),
       expandedChild: _buildExpandedContent(),
-      onExpanded: () => print('Bubble expanded'),
-      onMinimized: () => print('Bubble minimized'),
     );
   }
 
@@ -239,7 +242,9 @@ class _MultipleControllerExampleState extends State<MultipleControllerExample> {
               color: Colors.green[100],
               child: const Center(child: Text('API Logs')),
             ),
-            initialPosition: const Offset(50, 100),
+            style: BubbleStyle(
+              initialPosition: const Offset(50, 100),
+            ),
           ),
 
           // Debug Logs Bubble
@@ -261,7 +266,9 @@ class _MultipleControllerExampleState extends State<MultipleControllerExample> {
               color: Colors.orange[100],
               child: const Center(child: Text('Debug Logs')),
             ),
-            initialPosition: const Offset(50, 200),
+            style: BubbleStyle(
+              initialPosition: const Offset(50, 200),
+            ),
           ),
         ],
       ),

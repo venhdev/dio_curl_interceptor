@@ -185,3 +185,10 @@ Enhanced curl_bubble.dart with external controller support and debug mode integr
 Removed enhanced_curl_bubble_example.dart file as requested
 Removed withController and debugOnly factory methods from curl_bubble.dart - kept only main constructor and configured factory
 Changed enableDebugMode default from true to false in CurlBubble
+Updated CurlViewer header: added optional close button with customizable behavior and wrapped search bar with Expanded widget
+Refactored BubbleOverlay and CurlBubble architecture: moved behavior to controller, styling to BubbleStyle class, simplified widget parameters
+Created BubbleDimensions class to centralize all fixed sizes and dimension calculations, eliminating hardcoded values throughout the codebase
+Removed bubble_dimensions_example.dart file as requested
+Fixed all linting errors in example files by updating them to use the new refactored BubbleOverlay and CurlBubble APIs
+Fixed close button positioning in CurlBubble by adding padding to CurlViewer to prevent overlap
+Refactored CurlBubble to use CurlViewer's built-in close button instead of custom Stack overlay
