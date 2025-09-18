@@ -1,5 +1,65 @@
 import 'package:flutter/material.dart';
 
+/// Enum to define different resize types for the bubble overlay
+enum ResizeType {
+  bottomLeftCorner,
+  bottomRightCorner,
+  leftEdge,
+  rightEdge,
+  bottomEdge,
+}
+
+/// Configuration class for resize handle dimensions and behavior
+class ResizeConfig {
+  /// Size of corner resize handles (width and height)
+  final double cornerHandleSize;
+  
+  /// Width of left/right edge resize handles
+  final double edgeHandleWidth;
+  
+  /// Height of bottom edge resize handle
+  final double edgeHandleHeight;
+  
+  /// Whether to show visual indicators for resize handles (for debugging)
+  final bool showVisualIndicators;
+  
+  /// Color of visual indicators when showVisualIndicators is true
+  final Color indicatorColor;
+  
+  const ResizeConfig({
+    this.cornerHandleSize = 30.0,
+    this.edgeHandleWidth = 16.0,
+    this.edgeHandleHeight = 16.0,
+    this.showVisualIndicators = false,
+    this.indicatorColor = Colors.blue,
+  });
+  
+  /// Default configuration with larger, more usable drag areas
+  static const ResizeConfig defaultConfig = ResizeConfig(
+    cornerHandleSize: 30.0,
+    edgeHandleWidth: 16.0,
+    edgeHandleHeight: 16.0,
+    showVisualIndicators: false,
+  );
+  
+  /// Configuration with even larger drag areas for better usability
+  static const ResizeConfig largeConfig = ResizeConfig(
+    cornerHandleSize: 40.0,
+    edgeHandleWidth: 24.0,
+    edgeHandleHeight: 24.0,
+    showVisualIndicators: false,
+  );
+  
+  /// Configuration with visual indicators for debugging
+  static const ResizeConfig debugConfig = ResizeConfig(
+    cornerHandleSize: 30.0,
+    edgeHandleWidth: 16.0,
+    edgeHandleHeight: 16.0,
+    showVisualIndicators: true,
+    indicatorColor: Colors.red,
+  );
+}
+
 /// Border radius configuration for bubble overlay components
 class BubbleBorderRadius {
   /// Corner radius for bubble components
@@ -83,6 +143,9 @@ class BubbleOverlay extends StatefulWidget {
   /// Minimum height for expanded content (defaults to 200)
   final double? minExpandedHeight;
 
+  /// Configuration for resize handle dimensions and behavior
+  final ResizeConfig resizeConfig;
+
   const BubbleOverlay({
     super.key,
     required this.body,
@@ -101,6 +164,7 @@ class BubbleOverlay extends StatefulWidget {
     this.maxExpandedHeight,
     this.minExpandedWidth,
     this.minExpandedHeight,
+    this.resizeConfig = ResizeConfig.largeConfig,
   });
 
   @override
@@ -314,7 +378,7 @@ class _BubbleOverlayState extends State<BubbleOverlay>
   }
 
   void _onResizeUpdate(DragUpdateDetails details, BoxConstraints constraints,
-      {bool isLeftCorner = false}) {
+      {ResizeType resizeType = ResizeType.bottomRightCorner}) {
     final currentSize = _expandedSize.value;
     final currentPosition = _expandedPosition.value;
     double deltaX = details.delta.dx;
@@ -326,33 +390,70 @@ class _BubbleOverlayState extends State<BubbleOverlay>
     final minWidth = widget.minExpandedWidth ?? 200.0;
     final minHeight = widget.minExpandedHeight ?? 200.0;
 
-    if (isLeftCorner) {
-      // For left corner resize: dragging left makes bubble bigger, dragging right makes it smaller
-      // We need to invert the deltaX because dragging left should increase width
-      final newWidth =
-          (currentSize.width - deltaX).clamp(minWidth, maxWidth);
-      final newHeight = (currentSize.height + deltaY)
-          .clamp(minHeight, maxHeight);
+    switch (resizeType) {
+      case ResizeType.bottomLeftCorner:
+        // For left corner resize: dragging left makes bubble bigger, dragging right makes it smaller
+        // We need to invert the deltaX because dragging left should increase width
+        final newWidth =
+            (currentSize.width - deltaX).clamp(minWidth, maxWidth);
+        final newHeight = (currentSize.height + deltaY)
+            .clamp(minHeight, maxHeight);
 
-      // Calculate how much the width changed
-      final widthDelta = newWidth - currentSize.width;
+        // Calculate how much the width changed
+        final widthDelta = newWidth - currentSize.width;
 
-      // Adjust position to keep the right edge fixed (move left edge)
-      final newX = currentPosition.dx - widthDelta;
+        // Adjust position to keep the right edge fixed (move left edge)
+        final newX = currentPosition.dx - widthDelta;
 
-      // Update position and size
-      _expandedPosition.value = Offset(
-        newX.clamp(0.0, constraints.maxWidth - newWidth),
-        currentPosition.dy,
-      );
-      _expandedSize.value = Size(newWidth, newHeight);
-    } else {
-      // For right corner resize: normal behavior
-      final newWidth =
-          (currentSize.width + deltaX).clamp(minWidth, maxWidth);
-      final newHeight = (currentSize.height + deltaY)
-          .clamp(minHeight, maxHeight);
-      _expandedSize.value = Size(newWidth, newHeight);
+        // Update position and size
+        _expandedPosition.value = Offset(
+          newX.clamp(0.0, constraints.maxWidth - newWidth),
+          currentPosition.dy,
+        );
+        _expandedSize.value = Size(newWidth, newHeight);
+        break;
+
+      case ResizeType.bottomRightCorner:
+        // For right corner resize: normal behavior
+        final newWidth =
+            (currentSize.width + deltaX).clamp(minWidth, maxWidth);
+        final newHeight = (currentSize.height + deltaY)
+            .clamp(minHeight, maxHeight);
+        _expandedSize.value = Size(newWidth, newHeight);
+        break;
+
+      case ResizeType.leftEdge:
+        // For left edge resize: dragging left makes bubble bigger, dragging right makes it smaller
+        final newWidth =
+            (currentSize.width - deltaX).clamp(minWidth, maxWidth);
+
+        // Calculate how much the width changed
+        final widthDelta = newWidth - currentSize.width;
+
+        // Adjust position to keep the right edge fixed (move left edge)
+        final newX = currentPosition.dx - widthDelta;
+
+        // Update position and size
+        _expandedPosition.value = Offset(
+          newX.clamp(0.0, constraints.maxWidth - newWidth),
+          currentPosition.dy,
+        );
+        _expandedSize.value = Size(newWidth, currentSize.height);
+        break;
+
+      case ResizeType.rightEdge:
+        // For right edge resize: normal behavior (only width changes)
+        final newWidth =
+            (currentSize.width + deltaX).clamp(minWidth, maxWidth);
+        _expandedSize.value = Size(newWidth, currentSize.height);
+        break;
+
+      case ResizeType.bottomEdge:
+        // For bottom edge resize: normal behavior (only height changes)
+        final newHeight = (currentSize.height + deltaY)
+            .clamp(minHeight, maxHeight);
+        _expandedSize.value = Size(currentSize.width, newHeight);
+        break;
     }
   }
 
@@ -570,12 +671,14 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                     child: GestureDetector(
                       onPanUpdate: (details) => _onResizeUpdate(
                           details, constraints,
-                          isLeftCorner: false),
+                          resizeType: ResizeType.bottomRightCorner),
                       onPanEnd: _onResizeEnd,
                       child: Container(
-                        width: 30,
-                        height: 30,
-                        color: Colors.transparent,
+                        width: widget.resizeConfig.cornerHandleSize,
+                        height: widget.resizeConfig.cornerHandleSize,
+                        color: widget.resizeConfig.showVisualIndicators 
+                            ? widget.resizeConfig.indicatorColor.withValues(alpha: 0.3)
+                            : Colors.transparent,
                       ),
                     ),
                   ),
@@ -612,12 +715,138 @@ class _BubbleOverlayState extends State<BubbleOverlay>
                     child: GestureDetector(
                       onPanUpdate: (details) => _onResizeUpdate(
                           details, constraints,
-                          isLeftCorner: true),
+                          resizeType: ResizeType.bottomLeftCorner),
                       onPanEnd: _onResizeEnd,
                       child: Container(
-                        width: 30,
-                        height: 30,
-                        color: Colors.transparent,
+                        width: widget.resizeConfig.cornerHandleSize,
+                        height: widget.resizeConfig.cornerHandleSize,
+                        color: widget.resizeConfig.showVisualIndicators 
+                            ? widget.resizeConfig.indicatorColor.withValues(alpha: 0.3)
+                            : Colors.transparent,
+                      ),
+                    ),
+                  ),
+                ),
+                // Edge resize indicators
+                // Left edge resize indicator
+                Positioned(
+                  left: 0,
+                  top: widget.resizeConfig.cornerHandleSize,
+                  bottom: widget.resizeConfig.cornerHandleSize,
+                  child: Listener(
+                    onPointerDown: (details) {
+                      if (!_isResizing) {
+                        setState(() {
+                          _isResizing = true;
+                        });
+                      }
+                    },
+                    onPointerUp: (details) {
+                      if (_isResizing) {
+                        setState(() {
+                          _isResizing = false;
+                        });
+                      }
+                    },
+                    onPointerCancel: (details) {
+                      if (_isResizing) {
+                        setState(() {
+                          _isResizing = false;
+                        });
+                      }
+                    },
+                    child: GestureDetector(
+                      onPanUpdate: (details) => _onResizeUpdate(
+                          details, constraints,
+                          resizeType: ResizeType.leftEdge),
+                      onPanEnd: _onResizeEnd,
+                      child: Container(
+                        width: widget.resizeConfig.edgeHandleWidth,
+                        color: widget.resizeConfig.showVisualIndicators 
+                            ? widget.resizeConfig.indicatorColor.withValues(alpha: 0.3)
+                            : Colors.transparent,
+                      ),
+                    ),
+                  ),
+                ),
+                // Right edge resize indicator
+                Positioned(
+                  right: 0,
+                  top: widget.resizeConfig.cornerHandleSize,
+                  bottom: widget.resizeConfig.cornerHandleSize,
+                  child: Listener(
+                    onPointerDown: (details) {
+                      if (!_isResizing) {
+                        setState(() {
+                          _isResizing = true;
+                        });
+                      }
+                    },
+                    onPointerUp: (details) {
+                      if (_isResizing) {
+                        setState(() {
+                          _isResizing = false;
+                        });
+                      }
+                    },
+                    onPointerCancel: (details) {
+                      if (_isResizing) {
+                        setState(() {
+                          _isResizing = false;
+                        });
+                      }
+                    },
+                    child: GestureDetector(
+                      onPanUpdate: (details) => _onResizeUpdate(
+                          details, constraints,
+                          resizeType: ResizeType.rightEdge),
+                      onPanEnd: _onResizeEnd,
+                      child: Container(
+                        width: widget.resizeConfig.edgeHandleWidth,
+                        color: widget.resizeConfig.showVisualIndicators 
+                            ? widget.resizeConfig.indicatorColor.withValues(alpha: 0.3)
+                            : Colors.transparent,
+                      ),
+                    ),
+                  ),
+                ),
+                // Bottom edge resize indicator
+                Positioned(
+                  left: widget.resizeConfig.cornerHandleSize,
+                  right: widget.resizeConfig.cornerHandleSize,
+                  bottom: 0,
+                  child: Listener(
+                    onPointerDown: (details) {
+                      if (!_isResizing) {
+                        setState(() {
+                          _isResizing = true;
+                        });
+                      }
+                    },
+                    onPointerUp: (details) {
+                      if (_isResizing) {
+                        setState(() {
+                          _isResizing = false;
+                        });
+                      }
+                    },
+                    onPointerCancel: (details) {
+                      if (_isResizing) {
+                        setState(() {
+                          _isResizing = false;
+                        });
+                      }
+                    },
+                    child: GestureDetector(
+                      onPanUpdate: (details) => _onResizeUpdate(
+                          details, constraints,
+                          resizeType: ResizeType.bottomEdge),
+                      onPanEnd: _onResizeEnd,
+                      child: Container(
+                        height: widget.resizeConfig.edgeHandleHeight,
+                        color: widget.resizeConfig.showVisualIndicators 
+                            ? widget.resizeConfig.indicatorColor.withValues(alpha: 0.3)
+                            : Colors.transparent,
                       ),
                     ),
                   ),

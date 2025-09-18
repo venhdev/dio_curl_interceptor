@@ -169,3 +169,11 @@ Fixed right corner resize stuck issue by adding proper pointer event handling an
 Removed over-engineered timeout mechanism, kept simple pointer event handling solution
 Fixed resize direction logic - left corner now properly shrinks from left edge, right corner from right edge
 Fixed bubble overlay resize issues: left corner now resizes left edge correctly, right corner resize now works properly by disabling main content gesture during resize
+Added comprehensive resize functionality: left edge, right edge, and bottom edge resize handles with proper constraint handling
+Enhanced resize functionality with configurable drag areas: increased from 8px to 16px/24px for better usability, added ResizeConfig class for easy maintenance
+Made dropdown status filter smaller - reduced width, padding, border radius, and simplified labels
+Made search bar UI more compact in curl_viewer.dart - reduced padding, margins, font sizes, and border radius for a smaller appearance
+Verified that hint text 'Search by status, cURL, response, URL...' accurately matches the _performSearch function which searches curlCommand, responseBody, statusCode, and url fields
+Moved search bar to app bar header, removed package name and count entries to reduce space for user
+Removed leading search icon from compact search bar in header
+Set search bar height to 36px to match terminal icon container height (icon 20px + padding 16px)
