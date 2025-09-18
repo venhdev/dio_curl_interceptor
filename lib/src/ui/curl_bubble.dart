@@ -11,7 +11,10 @@ import 'curl_viewer.dart';
 ///
 /// The bubble can be controlled externally via [BubbleOverlayController] and
 /// supports debug mode integration for production-safe usage.
-class CurlBubble extends StatefulWidget {
+///
+/// **Performance Optimized**: Uses StatelessWidget with RepaintBoundary
+/// for better performance and reduced widget rebuilds.
+class CurlBubble extends StatelessWidget {
   /// Main app content body
   final Widget body;
 
@@ -61,46 +64,27 @@ class CurlBubble extends StatefulWidget {
     );
   }
 
-
-  @override
-  State<CurlBubble> createState() => _CurlBubbleState();
-}
-
-class _CurlBubbleState extends State<CurlBubble> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  /// Get the controller for external control
-  BubbleOverlayController get controller => widget.controller;
-
   /// Check if the bubble should be visible based on debug mode settings
-  bool get _shouldShowBubble {
-    if (widget.enableDebugMode) {
+  bool _shouldShowBubble() {
+    if (enableDebugMode) {
       // In debug mode, only show in debug builds
-      return kDebugMode && widget.controller.isVisible;
+      return kDebugMode && controller.isVisible;
     } else {
       // Always show if debug mode is disabled
-      return widget.controller.isVisible;
+      return controller.isVisible;
     }
   }
 
   Widget _buildMinimizedChild() {
-    if (widget.customMinimizedChild != null) {
-      return widget.customMinimizedChild!;
+    if (customMinimizedChild != null) {
+      return customMinimizedChild!;
     }
 
     return Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
@@ -127,15 +111,15 @@ class _CurlBubbleState extends State<CurlBubble> {
           width: 2,
         ),
       ),
-      child: Center(
+      child: const Center(
         child: Icon(
           Icons.terminal,
           color: Colors.white,
           size: 24,
           shadows: [
             Shadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              offset: const Offset(0, 1),
+              color: Colors.black,
+              offset: Offset(0, 1),
               blurRadius: 2,
             ),
           ],
@@ -145,8 +129,8 @@ class _CurlBubbleState extends State<CurlBubble> {
   }
 
   Widget _buildExpandedChild() {
-    if (widget.customExpandedChild != null) {
-      return widget.customExpandedChild!;
+    if (customExpandedChild != null) {
+      return customExpandedChild!;
     }
 
     return Material(
@@ -188,8 +172,8 @@ class _CurlBubbleState extends State<CurlBubble> {
             showCloseButton: true,
             onClose: () {
               // Close the expanded bubble
-              widget.controller.onMinimized?.call();
-              widget.controller.minimize();
+              controller.onMinimized?.call();
+              controller.minimize();
             },
           ),
         ),
@@ -199,18 +183,26 @@ class _CurlBubbleState extends State<CurlBubble> {
 
   @override
   Widget build(BuildContext context) {
-    // Check if we should show the bubble based on debug mode
-    if (!_shouldShowBubble) {
-      // Return just the body without bubble overlay
-      return widget.body;
-    }
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        // Check if we should show the bubble based on debug mode
+        if (!_shouldShowBubble()) {
+          // Return just the body without bubble overlay
+          return body;
+        }
 
-    return BubbleOverlay(
-      controller: widget.controller,
-      style: widget.style,
-      body: widget.body,
-      minimizedChild: _buildMinimizedChild(),
-      expandedChild: _buildExpandedChild(),
+        // Use RepaintBoundary to isolate repaints for better performance
+        return RepaintBoundary(
+          child: BubbleOverlay(
+            controller: controller,
+            style: style,
+            body: body,
+            minimizedChild: _buildMinimizedChild(),
+            expandedChild: _buildExpandedChild(),
+          ),
+        );
+      },
     );
   }
 }
