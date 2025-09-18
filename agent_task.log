@@ -177,3 +177,6 @@ Verified that hint text 'Search by status, cURL, response, URL...' accurately ma
 Moved search bar to app bar header, removed package name and count entries to reduce space for user
 Removed leading search icon from compact search bar in header
 Set search bar height to 36px to match terminal icon container height (icon 20px + padding 16px)
+Made copy and share icons smaller - reduced icon size from 18px to 14px, padding from 4px to 2px, border radius from 8px to 6px, and added constraints for 20x20 minimum size
+Completed bubble implementation documentation and integration guide creation. Updated README.md and example/USAGE.md with references to new comprehensive bubble integration guide. Fixed outdated CachedCurlStorage references to CachedCurlService.
+Moved BUBBLE_INTEGRATION_GUIDE.md to docs/ directory and updated all references in README.md and example/USAGE.md

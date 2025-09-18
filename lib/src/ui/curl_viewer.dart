@@ -1261,7 +1261,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                                           'GET')
                                                   .lighter,
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                                  BorderRadius.circular(6),
                                               border: Border.all(
                                                 color: UiHelper
                                                         .getMethodColorPalette(
@@ -1272,12 +1272,14 @@ class _CurlViewerState extends State<CurlViewer> {
                                             ),
                                             child: IconButton(
                                               icon: Icon(Icons.copy,
-                                                  size: 18,
+                                                  size: 14,
                                                   color:
                                                       UiHelper.getMethodColor(
                                                           'GET')),
                                               tooltip: 'Copy cURL',
-                                              padding: const EdgeInsets.all(4),
+                                              padding: const EdgeInsets.all(2),
+                                              constraints: const BoxConstraints(
+                                                  minWidth: 20, minHeight: 20),
                                               onPressed: () async {
                                                 await Clipboard.setData(
                                                     ClipboardData(
@@ -1294,7 +1296,7 @@ class _CurlViewerState extends State<CurlViewer> {
                                                           200)
                                                   .lighter,
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                                  BorderRadius.circular(6),
                                               border: Border.all(
                                                 color: UiHelper
                                                         .getStatusColorPalette(
@@ -1305,12 +1307,14 @@ class _CurlViewerState extends State<CurlViewer> {
                                             ),
                                             child: IconButton(
                                               icon: Icon(Icons.share,
-                                                  size: 18,
+                                                  size: 14,
                                                   color:
                                                       UiHelper.getStatusColor(
                                                           200)),
                                               tooltip: 'Share cURL',
-                                              padding: const EdgeInsets.all(4),
+                                              padding: const EdgeInsets.all(2),
+                                              constraints: const BoxConstraints(
+                                                  minWidth: 20, minHeight: 20),
                                               onPressed: () =>
                                                   _shareCurlCommand(entry),
                                             ),

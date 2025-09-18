@@ -25,7 +25,7 @@ dio.interceptors.add(
 
 #### Initialize Cached cURL Storage
 
-Before using the caching features, you must initialize the `CachedCurlStorage` in your `main()` function. This ensures that Hive (the underlying storage mechanism) is properly set up.
+Before using the caching features, you must initialize the `CachedCurlService` in your `main()` function. This ensures that Hive (the underlying storage mechanism) is properly set up.
 
 ```dart
 import 'package:flutter/material.dart';
@@ -33,7 +33,7 @@ import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await CachedCurlStorage.init(); // Initialize the cURL cache storage
+  await CachedCurlService.init(); // Initialize the cURL cache service
   runApp(const MyApp());
 }
 ```
@@ -188,6 +188,31 @@ try {
   CurlUtils.handleOnError(e);
 }
 ```
+
+## Bubble Integration
+
+For a non-intrusive debugging experience, you can integrate a floating bubble overlay into your app. This allows you to view cURL logs without interrupting your app flow.
+
+### Quick Bubble Setup
+
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: CurlBubble(
+          body: YourMainContent(),
+          initialPosition: const Offset(50, 200),
+          snapToEdges: false,
+        ),
+      ),
+    );
+  }
+}
+```
+
+> **📖 Complete Bubble Guide**: For detailed bubble integration instructions, custom configurations, programmatic control, and best practices, see our comprehensive [Bubble Integration Guide](../docs/BUBBLE_INTEGRATION_GUIDE.md).
 
 ## Available Utility Methods
 
