@@ -275,8 +275,9 @@ class UiHelper {
 
   /// Get duration color palette based on performance thresholds
   static MethodColorPalette getDurationColorPalette(int? durationMs) {
-    if (durationMs == null)
+    if (durationMs == null) {
       return getMethodColorPalette('GET'); // Default to GET colors
+    }
 
     if (durationMs <= 500) {
       return MethodColorPalette(

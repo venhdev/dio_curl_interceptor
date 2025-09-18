@@ -211,3 +211,4 @@ Prepared v3.3.3 documentation: streamlined CHANGELOG, updated BUBBLE_INTEGRATION
 Simplified BUBBLE_INTEGRATION_GUIDE.md - removed verbose programmatic control section, made it optional advanced usage
 Removed verbose sections from BUBBLE_INTEGRATION_GUIDE.md - kept only essential Quick Start, Advanced Usage, and Troubleshooting
 Kept user-relevant troubleshooting section, removed verbose complete example from BUBBLE_INTEGRATION_GUIDE.md
+Fixed all linter issues in dio_curl_interceptor: curly braces, unnecessary getters/setters, unused import, and SizedBox usage

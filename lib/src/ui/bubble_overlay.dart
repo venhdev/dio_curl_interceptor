@@ -1001,9 +1001,6 @@ class BubbleOverlayController extends ChangeNotifier {
   bool _isVisible = true;
   bool _isExpanded = false;
   bool _enableLogging = true;
-  VoidCallback? _onMinimized;
-  VoidCallback? _onExpanded;
-  VoidCallback? _onTap;
 
   /// Whether the bubble is currently visible
   bool get isVisible => _isVisible;
@@ -1033,22 +1030,13 @@ class BubbleOverlayController extends ChangeNotifier {
   }
 
   /// Callback when bubble is minimized
-  VoidCallback? get onMinimized => _onMinimized;
-  set onMinimized(VoidCallback? value) {
-    _onMinimized = value;
-  }
+  VoidCallback? onMinimized;
 
   /// Callback when bubble is expanded
-  VoidCallback? get onExpanded => _onExpanded;
-  set onExpanded(VoidCallback? value) {
-    _onExpanded = value;
-  }
+  VoidCallback? onExpanded;
 
   /// Callback when bubble is tapped
-  VoidCallback? get onTap => _onTap;
-  set onTap(VoidCallback? value) {
-    _onTap = value;
-  }
+  VoidCallback? onTap;
 
   /// Show the bubble overlay
   void show() => isVisible = true;
@@ -1080,9 +1068,9 @@ class BubbleOverlayController extends ChangeNotifier {
     if (visible != null) _isVisible = visible;
     if (expanded != null) _isExpanded = expanded;
     if (enableLogging != null) _enableLogging = enableLogging;
-    if (onMinimized != null) _onMinimized = onMinimized;
-    if (onExpanded != null) _onExpanded = onExpanded;
-    if (onTap != null) _onTap = onTap;
+    if (onMinimized != null) this.onMinimized = onMinimized;
+    if (onExpanded != null) this.onExpanded = onExpanded;
+    if (onTap != null) this.onTap = onTap;
     notifyListeners();
   }
 
@@ -1091,9 +1079,9 @@ class BubbleOverlayController extends ChangeNotifier {
     _isVisible = true;
     _isExpanded = false;
     _enableLogging = true;
-    _onMinimized = null;
-    _onExpanded = null;
-    _onTap = null;
+    onMinimized = null;
+    onExpanded = null;
+    onTap = null;
     notifyListeners();
   }
 }

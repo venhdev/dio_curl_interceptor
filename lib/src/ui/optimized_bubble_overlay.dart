@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'bubble_overlay.dart';
 import 'bubble_animation_service.dart';
-import 'bubble_painter.dart';
 
 /// Performance-optimized version of BubbleOverlay using StatelessWidget
 /// with CustomPainter and shared animation service
@@ -192,7 +191,7 @@ class _ExpandedBubbleContent extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
-        return Container(
+        return SizedBox(
           width: _getExpandedWidth(),
           height: _getExpandedHeight(),
           child: Stack(
