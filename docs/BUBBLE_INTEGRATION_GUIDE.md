@@ -257,6 +257,41 @@ CurlBubble(
 
 ## Troubleshooting
 
+### "No Overlay widget found" Error
+
+**Problem:** Getting "No Overlay widget found" error when using `CurlBubble`.
+
+**Cause:** This happens when using `MaterialApp.router` and placing `CurlBubble` in the `builder` function.
+
+**Solutions:**
+- **Option 1 (Recommended):** Move `CurlBubble` to individual pages instead of wrapping the entire app
+- **Option 2:** Wrap pages individually in your router configuration
+
+```dart
+// ❌ Wrong - Causes "No Overlay widget found" error
+MaterialApp.router(
+  builder: (context, child) {
+    if (kDebugMode) {
+      return CurlBubble(body: child); // Error here
+    }
+    return child;
+  },
+)
+
+// ✅ Correct - Wrap individual pages
+class MyPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    Widget content = Scaffold(/* your content */);
+    
+    if (kDebugMode) {
+      return CurlBubble(body: content);
+    }
+    return content;
+  }
+}
+```
+
 ### Bubble Not Appearing
 
 - Check if `CachedCurlService.init()` is called in `main()`

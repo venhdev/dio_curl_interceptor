@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'bubble_overlay.dart';
 import 'curl_viewer.dart';
@@ -7,11 +8,18 @@ import 'curl_viewer.dart';
 ///
 /// This widget wraps your main app content and provides a floating bubble
 /// for accessing cURL logs without interrupting the app flow.
+///
+/// The bubble can be controlled externally via [BubbleOverlayController] and
+/// supports debug mode integration for production-safe usage.
 class CurlBubble extends StatefulWidget {
   /// Main app content body
   final Widget body;
 
-  /// Whether the bubble should be visible initially
+  /// External controller for managing bubble state (optional)
+  /// If not provided, an internal controller will be created
+  final BubbleOverlayController? controller;
+
+  /// Whether the bubble should be visible initially (ignored if controller is provided)
   final bool initialVisible;
 
   /// Initial position of the bubble
@@ -50,9 +58,14 @@ class CurlBubble extends StatefulWidget {
   /// Minimum height for expanded content (defaults to 200)
   final double? minExpandedHeight;
 
+  /// Whether to enable debug mode integration (defaults to false)
+  /// When true, the bubble will only be visible in debug builds
+  final bool enableDebugMode;
+
   const CurlBubble({
     super.key,
     required this.body,
+    this.controller,
     this.initialVisible = true,
     this.initialPosition = const Offset(50, 200),
     this.snapToEdges = false,
@@ -66,12 +79,14 @@ class CurlBubble extends StatefulWidget {
     this.maxExpandedHeight,
     this.minExpandedWidth,
     this.minExpandedHeight,
+    this.enableDebugMode = false,
   });
 
   /// Factory method to create a CurlBubble with custom configuration
   /// This is the recommended way to create a CurlBubble with specific settings
   factory CurlBubble.configured({
     required Widget body,
+    BubbleOverlayController? controller,
     bool initialVisible = true,
     Offset initialPosition = const Offset(50, 200),
     bool snapToEdges = false,
@@ -86,9 +101,11 @@ class CurlBubble extends StatefulWidget {
     double? maxExpandedHeight,
     double? minExpandedWidth,
     double? minExpandedHeight,
+    bool enableDebugMode = false,
   }) {
     return CurlBubble(
       body: body,
+      controller: controller,
       initialVisible: initialVisible,
       initialPosition: initialPosition,
       snapToEdges: snapToEdges,
@@ -102,8 +119,10 @@ class CurlBubble extends StatefulWidget {
       maxExpandedHeight: maxExpandedHeight,
       minExpandedWidth: minExpandedWidth,
       minExpandedHeight: minExpandedHeight,
+      enableDebugMode: enableDebugMode,
     );
   }
+
 
   @override
   State<CurlBubble> createState() => _CurlBubbleState();
@@ -111,26 +130,49 @@ class CurlBubble extends StatefulWidget {
 
 class _CurlBubbleState extends State<CurlBubble> {
   late BubbleOverlayController _controller;
+  bool _isInternalController = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = BubbleOverlayController();
-    _controller.configure(
-      visible: widget.initialVisible,
-      snapToEdges: widget.snapToEdges,
-      edgeMargin: widget.edgeMargin,
-    );
+    
+    // Use external controller if provided, otherwise create internal one
+    if (widget.controller != null) {
+      _controller = widget.controller!;
+      _isInternalController = false;
+    } else {
+      _controller = BubbleOverlayController();
+      _isInternalController = true;
+      _controller.configure(
+        visible: widget.initialVisible,
+        snapToEdges: widget.snapToEdges,
+        edgeMargin: widget.edgeMargin,
+      );
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // Only dispose if we created the controller internally
+    if (_isInternalController) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
   /// Get the controller for external control
   BubbleOverlayController get controller => _controller;
+
+  /// Check if the bubble should be visible based on debug mode settings
+  bool get _shouldShowBubble {
+    if (widget.enableDebugMode) {
+      // In debug mode, only show in debug builds
+      return kDebugMode && _controller.isVisible;
+    } else {
+      // Always show if debug mode is disabled
+      return _controller.isVisible;
+    }
+  }
 
   Widget _buildMinimizedChild() {
     if (widget.customMinimizedChild != null) {
@@ -276,6 +318,12 @@ class _CurlBubbleState extends State<CurlBubble> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if we should show the bubble based on debug mode
+    if (!_shouldShowBubble) {
+      // Return just the body without bubble overlay
+      return widget.body;
+    }
+
     return BubbleOverlay(
       controller: _controller,
       body: widget.body,
