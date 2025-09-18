@@ -168,3 +168,4 @@ Fixed resize logic: left corner now keeps left edge fixed, right corner uses Lis
 Fixed right corner resize stuck issue by adding proper pointer event handling and timeout mechanism
 Removed over-engineered timeout mechanism, kept simple pointer event handling solution
 Fixed resize direction logic - left corner now properly shrinks from left edge, right corner from right edge
+Fixed bubble overlay resize issues: left corner now resizes left edge correctly, right corner resize now works properly by disabling main content gesture during resize

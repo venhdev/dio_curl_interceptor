@@ -320,19 +320,25 @@ class _BubbleOverlayState extends State<BubbleOverlay>
     double deltaX = details.delta.dx;
     double deltaY = details.delta.dy;
 
+    // Calculate responsive constraints
+    final maxWidth = widget.maxExpandedWidth ?? (constraints.maxWidth - 32);
+    final maxHeight = widget.maxExpandedHeight ?? (constraints.maxHeight * 0.8);
+    final minWidth = widget.minExpandedWidth ?? 200.0;
+    final minHeight = widget.minExpandedHeight ?? 200.0;
+
     if (isLeftCorner) {
-      // For left corner resize: dragging left makes bubble smaller, dragging right makes it bigger
-      // We need to invert the deltaX because dragging left should reduce width
+      // For left corner resize: dragging left makes bubble bigger, dragging right makes it smaller
+      // We need to invert the deltaX because dragging left should increase width
       final newWidth =
-          (currentSize.width - deltaX).clamp(200.0, constraints.maxWidth - 32);
+          (currentSize.width - deltaX).clamp(minWidth, maxWidth);
       final newHeight = (currentSize.height + deltaY)
-          .clamp(200.0, constraints.maxHeight - 32);
+          .clamp(minHeight, maxHeight);
 
       // Calculate how much the width changed
       final widthDelta = newWidth - currentSize.width;
 
-      // Adjust position to keep the right edge fixed
-      final newX = currentPosition.dx + widthDelta;
+      // Adjust position to keep the right edge fixed (move left edge)
+      final newX = currentPosition.dx - widthDelta;
 
       // Update position and size
       _expandedPosition.value = Offset(
@@ -343,9 +349,9 @@ class _BubbleOverlayState extends State<BubbleOverlay>
     } else {
       // For right corner resize: normal behavior
       final newWidth =
-          (currentSize.width + deltaX).clamp(200.0, constraints.maxWidth - 32);
+          (currentSize.width + deltaX).clamp(minWidth, maxWidth);
       final newHeight = (currentSize.height + deltaY)
-          .clamp(200.0, constraints.maxHeight - 32);
+          .clamp(minHeight, maxHeight);
       _expandedSize.value = Size(newWidth, newHeight);
     }
   }
@@ -507,14 +513,17 @@ class _BubbleOverlayState extends State<BubbleOverlay>
             ),
             child: Stack(
               children: [
-                // Main content with drag functionality
-                GestureDetector(
-                  onPanUpdate: (details) =>
-                      _onExpandedPanUpdate(details, constraints),
-                  onPanEnd: (details) =>
-                      _onExpandedPanEnd(details, constraints),
-                  child: widget.expandedChild,
-                ),
+                // Main content with drag functionality (only when not resizing)
+                if (!_isResizing)
+                  GestureDetector(
+                    onPanUpdate: (details) =>
+                        _onExpandedPanUpdate(details, constraints),
+                    onPanEnd: (details) =>
+                        _onExpandedPanEnd(details, constraints),
+                    child: widget.expandedChild,
+                  )
+                else
+                  widget.expandedChild,
                 // Resize border overlay (only visible when resizing)
                 if (_isResizing)
                   Positioned.fill(
