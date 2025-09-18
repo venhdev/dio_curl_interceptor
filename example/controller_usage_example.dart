@@ -30,7 +30,7 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
       onExpanded: () => print('Bubble expanded'),
       onMinimized: () => print('Bubble minimized'),
     );
-    
+
     return BubbleOverlay(
       // Pass the controller to connect it to the UI
       controller: _controller,

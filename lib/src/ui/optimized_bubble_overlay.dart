@@ -43,8 +43,7 @@ class OptimizedBubbleOverlay extends StatelessWidget {
                 body,
 
                 // Bubble overlay (only show if visible)
-                if (controller.isVisible)
-                  _buildBubbleOverlay(constraints),
+                if (controller.isVisible) _buildBubbleOverlay(constraints),
               ],
             );
           },
@@ -71,7 +70,8 @@ class OptimizedBubbleOverlay extends StatelessWidget {
       child: _BubblePositioned(
         position: _getMinimizedPosition(constraints),
         child: GestureDetector(
-          onPanUpdate: (details) => _handleMinimizedPanUpdate(details, constraints),
+          onPanUpdate: (details) =>
+              _handleMinimizedPanUpdate(details, constraints),
           onPanEnd: (details) => _handleMinimizedPanEnd(details, constraints),
           onTap: () {
             controller.onTap?.call();
@@ -111,12 +111,14 @@ class OptimizedBubbleOverlay extends StatelessWidget {
     return const Offset(100, 100);
   }
 
-  void _handleMinimizedPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
+  void _handleMinimizedPanUpdate(
+      DragUpdateDetails details, BoxConstraints constraints) {
     // Handle pan update for minimized bubble
     // This would update the controller's position
   }
 
-  void _handleMinimizedPanEnd(DragEndDetails details, BoxConstraints constraints) {
+  void _handleMinimizedPanEnd(
+      DragEndDetails details, BoxConstraints constraints) {
     // Handle pan end for minimized bubble
     // This would handle edge snapping
   }
@@ -151,7 +153,7 @@ class _AnimatedBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final animationService = BubbleAnimationService();
-    
+
     if (!animationService.isInitialized) {
       // Initialize with a dummy ticker provider if needed
       // In a real implementation, this would be handled by the parent
@@ -201,7 +203,7 @@ class _ExpandedBubbleContent extends StatelessWidget {
                 onPanEnd: (details) => _handleExpandedPanEnd(details),
                 child: child,
               ),
-              
+
               // Resize handles
               ..._buildResizeHandles(),
             ],
@@ -242,7 +244,8 @@ class _ExpandedBubbleContent extends StatelessWidget {
         child: _ResizeHandle(
           type: ResizeType.bottomRightCorner,
           config: style.resizeConfig,
-          onResize: (details) => _handleResize(details, ResizeType.bottomRightCorner),
+          onResize: (details) =>
+              _handleResize(details, ResizeType.bottomRightCorner),
         ),
       ),
       // Bottom-left resize handle
@@ -252,7 +255,8 @@ class _ExpandedBubbleContent extends StatelessWidget {
         child: _ResizeHandle(
           type: ResizeType.bottomLeftCorner,
           config: style.resizeConfig,
-          onResize: (details) => _handleResize(details, ResizeType.bottomLeftCorner),
+          onResize: (details) =>
+              _handleResize(details, ResizeType.bottomLeftCorner),
         ),
       ),
     ];

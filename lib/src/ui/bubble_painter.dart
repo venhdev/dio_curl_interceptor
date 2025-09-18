@@ -37,14 +37,15 @@ class BubblePainter extends CustomPainter {
         colors: [Colors.black, Colors.white],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
-    final rect = Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
+    final rect =
+        Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
     final radius = Radius.circular(size.width / 2);
 
     // Draw shadow
     final shadowPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
       shadowPaint,
@@ -61,7 +62,7 @@ class BubblePainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
       borderPaint,
@@ -72,14 +73,15 @@ class BubblePainter extends CustomPainter {
   }
 
   void _paintExpandedBubble(Canvas canvas) {
-    final rect = Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
+    final rect =
+        Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
     final radius = const Radius.circular(20.0);
 
     // Draw shadow
     final shadowPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.4)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
       shadowPaint,
@@ -95,7 +97,7 @@ class BubblePainter extends CustomPainter {
           Colors.grey.shade900.withValues(alpha: 0.95),
         ],
       ).createShader(rect);
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
       backgroundPaint,
@@ -106,7 +108,7 @@ class BubblePainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
       borderPaint,
@@ -133,7 +135,7 @@ class BubblePainter extends CustomPainter {
 
     // Draw terminal icon (simplified as a rectangle with lines)
     final iconPath = Path();
-    
+
     // Terminal window frame
     iconPath.addRRect(RRect.fromRectAndRadius(
       iconRect,
@@ -144,7 +146,7 @@ class BubblePainter extends CustomPainter {
     final lineHeight = 2.0;
     final lineSpacing = 3.0;
     final startY = center.dy - 6.0;
-    
+
     for (int i = 0; i < 3; i++) {
       final lineY = startY + (i * (lineHeight + lineSpacing));
       iconPath.addRect(Rect.fromLTWH(
@@ -202,10 +204,10 @@ class BubblePainter extends CustomPainter {
   @override
   bool shouldRepaint(BubblePainter oldDelegate) {
     return position != oldDelegate.position ||
-           size != oldDelegate.size ||
-           isExpanded != oldDelegate.isExpanded ||
-           isResizing != oldDelegate.isResizing ||
-           animationValue != oldDelegate.animationValue;
+        size != oldDelegate.size ||
+        isExpanded != oldDelegate.isExpanded ||
+        isResizing != oldDelegate.isResizing ||
+        animationValue != oldDelegate.animationValue;
   }
 }
 
@@ -234,8 +236,7 @@ class ResizeHandlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(ResizeHandlePainter oldDelegate) {
-    return handles != oldDelegate.handles ||
-           config != oldDelegate.config;
+    return handles != oldDelegate.handles || config != oldDelegate.config;
   }
 }
 
@@ -252,9 +253,7 @@ class ResizeHandle {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ResizeHandle &&
-           other.rect == rect &&
-           other.type == type;
+    return other is ResizeHandle && other.rect == rect && other.type == type;
   }
 
   @override

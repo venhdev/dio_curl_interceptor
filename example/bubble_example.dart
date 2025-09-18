@@ -164,7 +164,7 @@ class CustomBubbleExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = BubbleOverlayController();
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Custom Bubble Example'),
@@ -238,7 +238,7 @@ class DirectBubbleExample extends StatelessWidget {
       onMinimized: () => debugPrint('Custom bubble minimized'),
       onTap: () => debugPrint('Custom bubble tapped'),
     );
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Direct Bubble Example'),

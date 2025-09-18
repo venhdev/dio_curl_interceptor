@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 /// Shared animation service for bubble components to improve performance
 /// by avoiding multiple AnimationController instances
 class BubbleAnimationService extends ChangeNotifier {
-  static final BubbleAnimationService _instance = BubbleAnimationService._internal();
+  static final BubbleAnimationService _instance =
+      BubbleAnimationService._internal();
   factory BubbleAnimationService() => _instance;
   BubbleAnimationService._internal();
 

@@ -1,50 +1,20 @@
-## v3.3.3-alpha8
+## v3.3.3
 
-### New Features
-- **NEW**: `CurlBubble` - Floating bubble overlay for non-intrusive cURL log viewing
-- **NEW**: `BubbleOverlay` - Generic draggable bubble widget for any content
-- **NEW**: `BubbleOverlayController` - Simple controller following Flutter's standard patterns (ChangeNotifier + listeners)
-- **NEW**: Programmatic control of bubble visibility and expansion states
+### 🆕 New Features
+- **CurlBubble**: Floating bubble overlay for non-intrusive cURL log viewing
+- **BubbleOverlay**: Generic draggable bubble widget for any content
+- **BubbleOverlayController**: Programmatic control of bubble visibility and expansion
 
-### Architecture Improvements
-- Applied KISS (Keep It Simple, Stupid) principle for clean, maintainable code
-- Controller-to-UI connection follows Flutter's standard patterns
-- Direct property access for simple state management
-- Clean separation of concerns between UI and business logic
-
-### Breaking Changes
-- Replaced `CachedCurlStorage` with `CachedCurlService` for better architecture
-- Removed file export functionality from CurlViewer
+### ⚠️ Breaking Changes
+- `CachedCurlStorage` → `CachedCurlService` (see [MIGRATION.md](MIGRATION.md))
 - **REMOVED**: `CurlInterceptor.withDiscordInspector()` and `CurlInterceptor.withTelegramInspector()` factory methods
-- **REMOVED**: `CurlInterceptorV2.withDiscordInspector()` and `CurlInterceptorV2.withTelegramInspector()` factory methods
+- **REMOVED**: File export functionality from CurlViewer
 
-### Architecture
-- Implemented proper MVC + Service Layer pattern with repository pattern
-
-### Features
-- Added `enableCaching` parameter to `InspectorUtils` for controlling curl request/response caching
-
-### Enhancements
+### 🔧 Improvements
 - Enhanced FormData handling with detailed file info in cURL output
 - Improved CurlViewer UI and error handling
-- Updated cURL sharing logic and Telegram webhook integration
-- Improved code organization and maintainability
-
-### Refactoring
-- Cleaned up unused dependencies (`codekit`, `file_saver`) from pubspec.yaml
-- Refactored `CurlViewerPopup` to `CurlViewer` with improved UI and display logic
-- **REFACTORED**: Moved Discord-specific utilities (`formatEmbedValue`, `_wrapWithBackticks`) from `webhook_utils.dart` to `discord_inspector.dart`
-- **REMOVED**: `webhook_utils.dart` file as utilities are now properly organized by platform
-- **IMPROVED**: Code organization with platform-specific utility methods
-
-### Documentation
-- Added comprehensive migration guide in [MIGRATION.md](MIGRATION.md)
-- Added legacy documentation for removed export file functionality
-- **ADDED**: TLDR sections to Telegram API documentation and fix documentation
-
-### Fixes
-- **FIXED**: Telegram HTML parsing error - resolved "can't parse entities" error by removing markdown code blocks from HTML context
-- **FIXED**: Created separate formatting methods for Telegram vs Discord to prevent mixing markdown and HTML
+- Fixed Telegram HTML parsing errors
+- Better code organization and maintainability
 
 ## v3.3.2
 

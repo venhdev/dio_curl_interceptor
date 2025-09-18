@@ -251,4 +251,105 @@ class UiHelper {
         return Emojis.unknown;
     }
   }
+
+  // ============================================================================
+  // DURATION COLORS
+  // ============================================================================
+
+  /// Get color for duration based on performance thresholds
+  static Color getDurationColor(int? durationMs) {
+    if (durationMs == null) return Colors.grey;
+
+    if (durationMs <= 500) {
+      return Colors.green; // Excellent - <= 500ms
+    } else if (durationMs <= 1000) {
+      return Colors.lightGreen; // Good - <= 1000ms
+    } else if (durationMs <= 2000) {
+      return Colors.orange; // Normal - <= 2000ms
+    } else if (durationMs <= 4000) {
+      return Colors.deepOrange; // Poor - <= 4000ms
+    } else {
+      return Colors.red; // Very poor - > 4000ms
+    }
+  }
+
+  /// Get duration color palette based on performance thresholds
+  static MethodColorPalette getDurationColorPalette(int? durationMs) {
+    if (durationMs == null)
+      return getMethodColorPalette('GET'); // Default to GET colors
+
+    if (durationMs <= 500) {
+      return MethodColorPalette(
+        primary: Colors.green[600]!,
+        secondary: Colors.green[400]!,
+        light: Colors.green[100]!,
+        lighter: Colors.green[50]!,
+        dark: Colors.green[800]!,
+        background: Colors.green[50]!,
+        border: Colors.green[200]!,
+        shadow: Colors.green.withValues(alpha: 0.1),
+      );
+    } else if (durationMs <= 1000) {
+      return MethodColorPalette(
+        primary: Colors.lightGreen[600]!,
+        secondary: Colors.lightGreen[400]!,
+        light: Colors.lightGreen[100]!,
+        lighter: Colors.lightGreen[50]!,
+        dark: Colors.lightGreen[800]!,
+        background: Colors.lightGreen[50]!,
+        border: Colors.lightGreen[200]!,
+        shadow: Colors.lightGreen.withValues(alpha: 0.1),
+      );
+    } else if (durationMs <= 2000) {
+      return MethodColorPalette(
+        primary: Colors.orange[600]!,
+        secondary: Colors.orange[400]!,
+        light: Colors.orange[100]!,
+        lighter: Colors.orange[50]!,
+        dark: Colors.orange[800]!,
+        background: Colors.orange[50]!,
+        border: Colors.orange[200]!,
+        shadow: Colors.orange.withValues(alpha: 0.1),
+      );
+    } else if (durationMs <= 4000) {
+      return MethodColorPalette(
+        primary: Colors.deepOrange[600]!,
+        secondary: Colors.deepOrange[400]!,
+        light: Colors.deepOrange[100]!,
+        lighter: Colors.deepOrange[50]!,
+        dark: Colors.deepOrange[800]!,
+        background: Colors.deepOrange[50]!,
+        border: Colors.deepOrange[200]!,
+        shadow: Colors.deepOrange.withValues(alpha: 0.1),
+      );
+    } else {
+      return MethodColorPalette(
+        primary: Colors.red[600]!,
+        secondary: Colors.red[400]!,
+        light: Colors.red[100]!,
+        lighter: Colors.red[50]!,
+        dark: Colors.red[800]!,
+        background: Colors.red[50]!,
+        border: Colors.red[200]!,
+        shadow: Colors.red.withValues(alpha: 0.1),
+      );
+    }
+  }
+
+  /// Get emoji for duration based on performance thresholds
+  static String getDurationEmoji(int? durationMs) {
+    if (durationMs == null) return Emojis.clock;
+
+    if (durationMs <= 500) {
+      return '⚡'; // Excellent - Lightning fast
+    } else if (durationMs <= 1000) {
+      return '🚀'; // Good - Fast
+    } else if (durationMs <= 2000) {
+      return '🏃'; // Normal - Running
+    } else if (durationMs <= 4000) {
+      return '🚶'; // Poor - Walking
+    } else {
+      return '🐌'; // Very poor - Slow
+    }
+  }
 }

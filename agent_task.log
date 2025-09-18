@@ -193,3 +193,21 @@ Fixed all linting errors in example files by updating them to use the new refact
 Fixed close button positioning in CurlBubble by adding padding to CurlViewer to prevent overlap
 Refactored CurlBubble to use CurlViewer's built-in close button instead of custom Stack overlay
 Fixed PCCC app linting errors by updating CurlBubble API usage to use new controller and style pattern
+Added reload icon button to curl_viewer.dart header - positioned to the left of close button with green styling and refresh functionality
+Made copy and share icon buttons bigger in curl_viewer.dart - increased icon size from 14 to 18, padding from 2 to 4, and constraints from 20x20 to 28x28
+Reduced ExpansionTile border radius from 16 to 12 pixels for less rounded appearance
+Moved copy/share buttons to start and time to end of title row in curl_viewer.dart
+Made response body collapsible like response headers to handle long content in curl_viewer.dart
+Added vertical divider between copy/share buttons and remaining content in title row
+Added copy button icon to cURL section, replacing TODO comment
+Reduced left/right edge touchable areas from 24.0 to 12.0 pixels in bubble overlay ResizeConfig.largeConfig
+Moved copy and share buttons to the right side of ExpansionTile title, after status/method/duration/time widgets
+Set uniform height of 40 for Enhanced summary and controls section, removed individual height configurations from children
+Fixed children height issue - wrapped all children in SizedBox(height: 40) and updated _buildStatusChip to accept height parameter
+Created CurlViewerSummaryConfig global style configuration and applied consistent border radius (12.0) to all Enhanced summary controls
+Enhanced entry.duration with color coding based on performance thresholds and added duration-based color logic to UiHelper
+Updated duration color coding ranges: <=500ms Excellent (Green), <=1000ms Good (Light Green), <=2000ms Normal (Orange), <=4000ms Poor (Deep Orange), >4000ms Very Poor (Red)
+Prepared v3.3.3 documentation: streamlined CHANGELOG, updated BUBBLE_INTEGRATION_GUIDE with real-world examples, simplified MIGRATION.md, merged factory migration, and reviewed README.md
+Simplified BUBBLE_INTEGRATION_GUIDE.md - removed verbose programmatic control section, made it optional advanced usage
+Removed verbose sections from BUBBLE_INTEGRATION_GUIDE.md - kept only essential Quick Start, Advanced Usage, and Troubleshooting
+Kept user-relevant troubleshooting section, removed verbose complete example from BUBBLE_INTEGRATION_GUIDE.md

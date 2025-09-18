@@ -343,7 +343,7 @@ class MyApp extends StatelessWidget {
 
 > **📖 Complete Integration Guide**: For detailed bubble integration instructions, custom configurations, programmatic control, and best practices, see our comprehensive [Bubble Integration Guide](docs/BUBBLE_INTEGRATION_GUIDE.md).
 
-> **Note**: File export functionality has been removed in v3.3.3-alpha. For legacy export features, see the [legacy documentation](.docs/export_file_legacy.md).
+> **Note**: File export functionality has been removed in v3.3.3. Use copy/share features instead.
 
 ### Cache Storage Initialization
 
@@ -356,6 +356,8 @@ void main() async {
   runApp(const MyApp());
 }
 ```
+
+> **Note**: In v3.3.3, `CachedCurlStorage` was renamed to `CachedCurlService`. See [MIGRATION.md](MIGRATION.md) for details.
 
 ## Screenshots
 
