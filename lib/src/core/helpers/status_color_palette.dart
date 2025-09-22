@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-class StatusColorPalette {
+import '../interfaces/color_palette.dart';
+
+class StatusColorPalette implements ColorPalette {
   const StatusColorPalette({
     required this.primary,
     required this.secondary,

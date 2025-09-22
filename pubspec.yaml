@@ -26,6 +26,7 @@ dependencies:
 
   flutter_secure_storage: ^8.0.0
   share_plus: ^11.0.0
+  shared_preferences: ^2.5.3
   type_caster: ^0.1.4
 
 dev_dependencies:

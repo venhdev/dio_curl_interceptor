@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-class MethodColorPalette {
+import '../interfaces/color_palette.dart';
+
+class MethodColorPalette implements ColorPalette {
   const MethodColorPalette({
     required this.primary,
     required this.secondary,
