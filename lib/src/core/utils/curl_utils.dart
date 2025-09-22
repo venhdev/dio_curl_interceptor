@@ -24,12 +24,19 @@ import '../types.dart';
 /// Returns a [String] representing the cURL command.
 String? genCurl(RequestOptions options) {
   try {
-    return CurlHelper.generateCurlFromRequestOptions(
+    final curl = CurlHelper.generateCurlFromRequestOptions(
       options,
     );
+    // Only return null if curl is truly empty or just whitespace
+    if (curl.trim().isEmpty) {
+      ColoredLogger.warning(
+          '$kPrefix Generated empty cURL for ${options.uri.toString()}');
+      return null;
+    }
+    return curl;
   } catch (e) {
-    ColoredLogger.info(
-        '$kPrefix Unable to create a cURL representation to ${options.uri.toString()}');
+    ColoredLogger.error(
+        '$kPrefix Unable to create a cURL representation to ${options.uri.toString()}: $e');
     return null;
   }
 }

@@ -25,18 +25,10 @@ For detailed migration instructions, breaking changes, and code examples, please
 
 Below is a compatibility table for different terminals and their support for printing and ANSI colors:
 
-> `--` currently being tested
-
-| Terminal/Console         | print/debugPrint | log (dart:developer) | ANSI Colors Support |
-| ------------------------ | :--------------: | :------------------: | :-----------------: |
-| VS Code Debug Console    |        ✅        |          ✅          |         ✅          |
-| Android Studio Logcat    |        --        |          --          |         --          |
-| Android Studio Debug Tab |        --        |          --          |         --          |
-| IntelliJ IDEA Console    |        --        |          --          |         --          |
-| Flutter DevTools Console |        --        |          --          |         --          |
-| Terminal/CMD             |        --        |          --          |         --          |
-| PowerShell               |        --        |          --          |         --          |
-| Xcode Console            |        --        |          --          |         --          |
+| Terminal/Console      | print | debugPrint | log (dart:developer) | ANSI Colors Support |
+| --------------------- | :---: | :--------: | :------------------: | :-----------------: |
+| VS Code Debug Console |   ✅  |     ✅     |          ✅          |         ✅          |
+| IntelliJ IDEA Console |   ❌  |     ❌     |          ❌          |         ❌          |
 
 ## Usage
 

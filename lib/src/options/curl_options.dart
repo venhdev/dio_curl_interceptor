@@ -36,7 +36,6 @@ class CurlOptions {
         ),
         prettyConfig: PrettyConfig(
           blockEnabled: true,
-          disabledSuggestions: true,
           colorEnabled: true,
           emojiEnabled: true,
         ),
@@ -199,7 +198,6 @@ class PrettyConfig {
   const PrettyConfig({
     this.blockEnabled = true,
     this.lineLength = 80,
-    this.disabledSuggestions = false,
     this.colorEnabled = true,
     this.emojiEnabled = true,
     this.jsonIndent = '  ',
@@ -214,9 +212,6 @@ class PrettyConfig {
 
   /// Show emoji output, set to false if you want to disable emoji output.
   final bool emojiEnabled;
-
-  /// Disable suggestions, set to true if you want to disable all suggestions setup.
-  final bool disabledSuggestions;
 
   /// Length of separator lines in pretty printing.
   final int lineLength;

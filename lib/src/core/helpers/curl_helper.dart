@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:type_caster/type_caster.dart';
 
 class CurlHelper {
   const CurlHelper._();
@@ -75,8 +76,14 @@ class CurlHelper {
         options.data = dataMap;
       }
 
-      final data = json.encode(options.data).replaceAll('"', '\\"');
-      components.add('-d "$data"');
+      try {
+        final data = json.encode(options.data).replaceAll('"', '\\"');
+        components.add('-d "$data"');
+      } catch (e) {
+        // If JSON encoding fails, use string representation
+        final data = stringify(options.data, replacements: {'"': '\\"'});
+        components.add('-d "$data"');
+      }
     }
 
     components.add('"${options.uri.toString()}"');
