@@ -40,9 +40,12 @@ class CurlEntryItem extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            childrenPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            childrenPadding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             iconColor: UiHelper.getStatusColor(entry.statusCode ?? 200),
-            collapsedIconColor: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).secondary,
+            collapsedIconColor:
+                UiHelper.getStatusColorPalette(entry.statusCode ?? 200)
+                    .secondary,
             title: _buildTitle(context),
             subtitle: _buildSubtitle(context),
             children: _buildChildren(context),
@@ -241,7 +244,8 @@ class CurlEntryItem extends StatelessWidget {
             const Text('cURL', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             IconButton(
-              icon: Icon(Icons.copy, size: 16, color: UiHelper.getMethodColor('GET')),
+              icon: Icon(Icons.copy,
+                  size: 16, color: UiHelper.getMethodColor('GET')),
               onPressed: onCopy,
               padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -260,7 +264,8 @@ class CurlEntryItem extends StatelessWidget {
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
       dense: true,
-      title: const Text('Response Headers:', style: TextStyle(fontWeight: FontWeight.bold)),
+      title: const Text('Response Headers:',
+          style: TextStyle(fontWeight: FontWeight.bold)),
       children: [
         Align(
           alignment: Alignment.centerLeft,
@@ -277,7 +282,8 @@ class CurlEntryItem extends StatelessWidget {
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
       dense: true,
-      title: const Text('Response Body:', style: TextStyle(fontWeight: FontWeight.bold)),
+      title: const Text('Response Body:',
+          style: TextStyle(fontWeight: FontWeight.bold)),
       children: [
         Align(
           alignment: Alignment.centerLeft,

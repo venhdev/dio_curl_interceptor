@@ -6,7 +6,7 @@ import '../core/types.dart';
 class DateRange {
   final DateTime? start;
   final DateTime? end;
-  
+
   DateRange(this.start, this.end);
 }
 
@@ -16,8 +16,9 @@ class CurlViewerPersistenceService {
   static const String _keyStartDate = 'curl_viewer_start_date';
   static const String _keyEndDate = 'curl_viewer_end_date';
   static const String _keyStatusGroup = 'curl_viewer_status_group';
-  static const String _keySelectedStatusChip = 'curl_viewer_selected_status_chip';
-  
+  static const String _keySelectedStatusChip =
+      'curl_viewer_selected_status_chip';
+
   /// Safe operation wrapper with error handling
   static Future<T?> _safeOperation<T>(Future<T> Function() operation) async {
     try {
@@ -50,16 +51,17 @@ class CurlViewerPersistenceService {
   }
 
   /// Save date range
-  static Future<void> saveDateRange(DateTime? startDate, DateTime? endDate) async {
+  static Future<void> saveDateRange(
+      DateTime? startDate, DateTime? endDate) async {
     await _safeOperation(() async {
       final prefs = await SharedPreferences.getInstance();
-      
+
       if (startDate == null) {
         await prefs.remove(_keyStartDate);
       } else {
         await prefs.setInt(_keyStartDate, startDate.millisecondsSinceEpoch);
       }
-      
+
       if (endDate == null) {
         await prefs.remove(_keyEndDate);
       } else {
@@ -72,16 +74,20 @@ class CurlViewerPersistenceService {
   static Future<DateRange> loadDateRange() async {
     final result = await _safeOperation(() async {
       final prefs = await SharedPreferences.getInstance();
-      
+
       final startMillis = prefs.getInt(_keyStartDate);
       final endMillis = prefs.getInt(_keyEndDate);
-      
-      final startDate = startMillis != null ? DateTime.fromMillisecondsSinceEpoch(startMillis) : null;
-      final endDate = endMillis != null ? DateTime.fromMillisecondsSinceEpoch(endMillis) : null;
-      
+
+      final startDate = startMillis != null
+          ? DateTime.fromMillisecondsSinceEpoch(startMillis)
+          : null;
+      final endDate = endMillis != null
+          ? DateTime.fromMillisecondsSinceEpoch(endMillis)
+          : null;
+
       return DateRange(startDate, endDate);
     });
-    
+
     return result ?? DateRange(null, null);
   }
 
@@ -103,9 +109,10 @@ class CurlViewerPersistenceService {
       final prefs = await SharedPreferences.getInstance();
       final statusGroupName = prefs.getString(_keyStatusGroup);
       if (statusGroupName == null) return null;
-      
+
       try {
-        return ResponseStatus.values.firstWhere((e) => e.name == statusGroupName);
+        return ResponseStatus.values
+            .firstWhere((e) => e.name == statusGroupName);
       } catch (e) {
         return null;
       }

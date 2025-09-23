@@ -1,3 +1,13 @@
+## v3.3.4
+
+### 🆕 New Features
+- **State Persistence**: CurlViewer now remembers your search queries, filters, and preferences between sessions
+
+### 🔧 Improvements
+- **Significantly faster CurlViewer**: Much faster loading and smoother scrolling
+- **Better UI responsiveness**: More responsive interface with improved error handling
+- **Reduced memory usage**: More efficient memory usage for better app performance
+
 ## v3.3.3
 
 ### 🆕 New Features

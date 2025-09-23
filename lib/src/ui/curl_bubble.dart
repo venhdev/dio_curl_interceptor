@@ -81,7 +81,7 @@ class _CurlBubbleState extends State<CurlBubble> {
   @override
   void initState() {
     super.initState();
-    _curlViewerController = widget.curlViewerController ?? 
+    _curlViewerController = widget.curlViewerController ??
         CurlViewerController(enablePersistence: true);
     _curlViewerController.initialize();
   }

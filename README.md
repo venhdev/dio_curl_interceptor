@@ -312,8 +312,11 @@ class MyApp extends StatelessWidget {
         body: CurlBubble(
           // Wrap your main app content
           body: YourMainContent(),
-          initialPosition: const Offset(50, 200),
-          snapToEdges: false, // Stays where you drag it
+          controller: BubbleOverlayController(),
+          style: BubbleStyle(
+            initialPosition: const Offset(50, 200),
+            snapToEdges: false, // Stays where you drag it
+          ),
           onExpanded: () => debugPrint('Bubble expanded'),
           onMinimized: () => debugPrint('Bubble minimized'),
         ),

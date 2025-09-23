@@ -31,19 +31,19 @@ class StatusSummary extends StatelessWidget {
   String _getCountKey() {
     final informational = statusCounts[ResponseStatus.informational] ?? 0;
     final done = statusCounts[ResponseStatus.success] ?? 0;
-    final fail = (statusCounts[ResponseStatus.clientError] ?? 0) + 
-                 (statusCounts[ResponseStatus.serverError] ?? 0);
+    final fail = (statusCounts[ResponseStatus.clientError] ?? 0) +
+        (statusCounts[ResponseStatus.serverError] ?? 0);
     final redirection = statusCounts[ResponseStatus.redirection] ?? 0;
     return '$informational-$done-$fail-$redirection';
   }
 
   List<Widget> _buildStatusChips() {
     final chips = <Widget>[];
-    
+
     final informational = statusCounts[ResponseStatus.informational] ?? 0;
     final done = statusCounts[ResponseStatus.success] ?? 0;
-    final fail = (statusCounts[ResponseStatus.clientError] ?? 0) + 
-                 (statusCounts[ResponseStatus.serverError] ?? 0);
+    final fail = (statusCounts[ResponseStatus.clientError] ?? 0) +
+        (statusCounts[ResponseStatus.serverError] ?? 0);
     final redirection = statusCounts[ResponseStatus.redirection] ?? 0;
 
     if (informational > 0) {
@@ -87,7 +87,7 @@ class StatusSummary extends StatelessWidget {
 
   Widget _buildStatusChip(String text, Color color, String statusType) {
     final isSelected = selectedStatusChip == statusType;
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -99,8 +99,14 @@ class StatusSummary extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: isSelected
-                  ? [color.withValues(alpha: 0.2), color.withValues(alpha: 0.15)]
-                  : [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
+                  ? [
+                      color.withValues(alpha: 0.2),
+                      color.withValues(alpha: 0.15)
+                    ]
+                  : [
+                      color.withValues(alpha: 0.1),
+                      color.withValues(alpha: 0.05)
+                    ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

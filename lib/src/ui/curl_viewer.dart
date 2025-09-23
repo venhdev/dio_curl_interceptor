@@ -243,7 +243,8 @@ class _CurlViewerState extends State<CurlViewer> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? CurlViewerController(enablePersistence: widget.enablePersistence);
+    _controller = widget.controller ??
+        CurlViewerController(enablePersistence: widget.enablePersistence);
     _controller.initialize();
   }
 
@@ -351,14 +352,15 @@ class _CurlViewerState extends State<CurlViewer> {
     buffer.writeln('Method: ${entry.method ?? 'N/A'}');
     buffer.writeln('Duration: ${entry.duration ?? 'N/A'} ms');
     buffer.writeln('URL: ${entry.url ?? 'N/A'}');
-    buffer.writeln('Timestamp: ${_formatDateTime(entry.timestamp, includeTime: true)}');
-    
+    buffer.writeln(
+        'Timestamp: ${_formatDateTime(entry.timestamp, includeTime: true)}');
+
     if (entry.responseBody != null && entry.responseBody!.isNotEmpty) {
       buffer.writeln();
       buffer.writeln('Response Body:');
       buffer.writeln(entry.responseBody);
     }
-    
+
     return buffer.toString();
   }
 
@@ -409,6 +411,8 @@ class _CurlViewerState extends State<CurlViewer> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
+            _buildStatusFilter(),
+            const SizedBox(width: 8),
             ValueListenableBuilder<Map<ResponseStatus, int>>(
               valueListenable: _controller.statusCounts,
               builder: (context, statusCounts, child) {
@@ -427,8 +431,6 @@ class _CurlViewerState extends State<CurlViewer> {
               },
             ),
             const SizedBox(width: 8),
-            _buildStatusFilter(),
-            const SizedBox(width: 8),
             _buildDateRangePicker(),
           ],
         ),
@@ -443,14 +445,14 @@ class _CurlViewerState extends State<CurlViewer> {
         if (isLoading && _controller.entries.value.isEmpty) {
           return _buildLoadingIndicator();
         }
-        
+
         return ValueListenableBuilder<List<CachedCurlEntry>>(
           valueListenable: _controller.entries,
           builder: (context, entries, child) {
             if (entries.isEmpty && !isLoading) {
               return _buildEmptyState();
             }
-            
+
             return Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -496,7 +498,8 @@ class _CurlViewerState extends State<CurlViewer> {
                 return CurlEntryItem(
                   entry: entries[index],
                   onCopy: () async {
-                    await Clipboard.setData(ClipboardData(text: entries[index].curlCommand));
+                    await Clipboard.setData(
+                        ClipboardData(text: entries[index].curlCommand));
                   },
                   onShare: () => _shareCurlCommand(entries[index]),
                 );
@@ -530,66 +533,52 @@ class _CurlViewerState extends State<CurlViewer> {
   }
 
   Widget _buildStatusFilter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.1),
-            Colors.white.withOpacity(0.05),
+    return ValueListenableBuilder<ResponseStatus?>(
+      valueListenable: _controller.statusGroup,
+      builder: (context, statusGroup, child) {
+        return DropdownMenu<int>(
+          width: 150,
+          initialSelection: statusGroup == null
+              ? null
+              : statusGroup == ResponseStatus.informational
+                  ? 1
+                  : statusGroup == ResponseStatus.success
+                      ? 2
+                      : statusGroup == ResponseStatus.redirection
+                          ? 3
+                          : statusGroup == ResponseStatus.clientError
+                              ? 4
+                              : statusGroup == ResponseStatus.serverError
+                                  ? 5
+                                  : null,
+          hintText: 'All Status',
+          textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+          dropdownMenuEntries: const [
+            DropdownMenuEntry<int>(value: 1, label: 'Informational (1xx)'),
+            DropdownMenuEntry<int>(value: 2, label: 'Success (2xx)'),
+            DropdownMenuEntry<int>(value: 3, label: 'Redirection (3xx)'),
+            DropdownMenuEntry<int>(value: 4, label: 'Client Error (4xx)'),
+            DropdownMenuEntry<int>(value: 5, label: 'Server Error (5xx)'),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ValueListenableBuilder<ResponseStatus?>(
-        valueListenable: _controller.statusGroup,
-        builder: (context, statusGroup, child) {
-          return DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: statusGroup == null
-                  ? null
-                  : statusGroup == ResponseStatus.informational
-                      ? 1
-                      : statusGroup == ResponseStatus.success
-                          ? 2
-                          : statusGroup == ResponseStatus.redirection
-                              ? 3
-                              : statusGroup == ResponseStatus.clientError
-                                  ? 4
-                                  : statusGroup == ResponseStatus.serverError
-                                      ? 5
-                                      : null,
-              hint: Text(
-                'All Status',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 12,
-                ),
-              ),
-              dropdownColor: Colors.grey.shade800,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-              items: const [
-                DropdownMenuItem<int>(value: 1, child: Text('Informational (1xx)')),
-                DropdownMenuItem<int>(value: 2, child: Text('Success (2xx)')),
-                DropdownMenuItem<int>(value: 3, child: Text('Redirection (3xx)')),
-                DropdownMenuItem<int>(value: 4, child: Text('Client Error (4xx)')),
-                DropdownMenuItem<int>(value: 5, child: Text('Server Error (5xx)')),
-              ],
-              onChanged: _onStatusChanged,
+          onSelected: _onStatusChanged,
+          inputDecorationTheme: InputDecorationTheme(
+            hintStyle: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 12,
             ),
-          );
-        },
-      ),
+            filled: true,
+            isCollapsed: true,
+            isDense: true,
+            fillColor: Colors.grey.shade800,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+        );
+      },
     );
   }
 
@@ -700,7 +689,8 @@ class _CurlViewerState extends State<CurlViewer> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: UiHelper.getStatusColor(500),
                       side: BorderSide(color: UiHelper.getStatusColor(500)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -719,7 +709,8 @@ class _CurlViewerState extends State<CurlViewer> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: UiHelper.getStatusColor(200),
                       side: BorderSide(color: UiHelper.getStatusColor(200)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -739,7 +730,8 @@ class _CurlViewerState extends State<CurlViewer> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: UiHelper.getStatusColor(500),
                       side: BorderSide(color: UiHelper.getStatusColor(500)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -757,7 +749,8 @@ class _CurlViewerState extends State<CurlViewer> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: UiHelper.getStatusColor(200),
                       side: BorderSide(color: UiHelper.getStatusColor(200)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

@@ -156,17 +156,20 @@ class CurlViewerHeader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.clear, color: Colors.white, size: 14),
+                      icon: const Icon(Icons.clear,
+                          color: Colors.white, size: 14),
                       onPressed: () {
                         searchController.clear();
                       },
                       padding: const EdgeInsets.all(4),
-                      constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                      constraints:
+                          const BoxConstraints(minWidth: 24, minHeight: 24),
                     ),
                   )
                 : null,
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             isDense: true,
           ),
           style: const TextStyle(color: Colors.white, fontSize: 12),
