@@ -363,407 +363,291 @@ class _CurlViewerState extends State<CurlViewer> {
   }
 
   Widget _buildContent() {
-    final colors = CurlViewerColors.theme(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
+    return ValueListenableBuilder<List<CachedCurlEntry>>(
+      valueListenable: _controller.entries,
+      builder: (context, entries, child) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: _controller.isLoading,
+          builder: (context, isLoading, child) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildHeader(),
+                    _buildSummaryAndControls(),
+                    _buildMainContent(),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader() {
+    return ValueListenableBuilder<String>(
+      valueListenable: _controller.searchQuery,
+      builder: (context, searchQuery, child) {
+        return CurlViewerHeader(
+          searchController: _controller.searchController,
+          searchQuery: searchQuery,
+          onReload: () => _controller.loadEntries(reset: true),
+          onClose: widget.onClose ?? (() => Navigator.pop(context)),
+          showCloseButton: widget.showCloseButton,
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryAndControls() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
           children: [
-            // Header with search and controls
-            ValueListenableBuilder<String>(
-              valueListenable: _controller.searchQuery,
-              builder: (context, searchQuery, child) {
-                return CurlViewerHeader(
-                  searchController: _controller.searchController,
-                  searchQuery: searchQuery,
-                  onReload: () => _controller.loadEntries(reset: true),
-                  onClose: widget.onClose ?? (() => Navigator.pop(context)),
-                  showCloseButton: widget.showCloseButton,
+            ValueListenableBuilder<Map<ResponseStatus, int>>(
+              valueListenable: _controller.statusCounts,
+              builder: (context, statusCounts, child) {
+                return ValueListenableBuilder<String?>(
+                  valueListenable: _controller.selectedStatusChip,
+                  builder: (context, selectedStatusChip, child) {
+                    return StatusSummary(
+                      statusCounts: statusCounts,
+                      selectedStatusChip: selectedStatusChip,
+                      onStatusChipTapped: (statusType) {
+                        _onStatusChipTapped(statusType);
+                      },
+                    );
+                  },
                 );
               },
             ),
-            // Status summary and controls
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    ValueListenableBuilder<Map<ResponseStatus, int>>(
-                      valueListenable: _controller.statusCounts,
-                      builder: (context, statusCounts, child) {
-                        return ValueListenableBuilder<String?>(
-                          valueListenable: _controller.selectedStatusChip,
-                          builder: (context, selectedStatusChip, child) {
-                            return StatusSummary(
-                              statusCounts: statusCounts,
-                              selectedStatusChip: selectedStatusChip,
-                              onStatusChipTapped: (statusType) {
-                                _onStatusChipTapped(statusType);
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    // Status filter dropdown
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.1),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ValueListenableBuilder<ResponseStatus?>(
-                        valueListenable: _controller.statusGroup,
-                        builder: (context, statusGroup, child) {
-                          return DropdownButtonHideUnderline(
-                            child: DropdownButton<int>(
-                              value: statusGroup == null
-                                  ? null
-                                  : statusGroup == ResponseStatus.informational
-                                      ? 1
-                                      : statusGroup == ResponseStatus.success
-                                          ? 2
-                                          : statusGroup == ResponseStatus.redirection
-                                              ? 3
-                                              : statusGroup == ResponseStatus.clientError
-                                                  ? 4
-                                                  : statusGroup == ResponseStatus.serverError
-                                                      ? 5
-                                                      : null,
-                              hint: Text(
-                                'All Status',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 12,
-                                ),
-                              ),
-                              dropdownColor: Colors.grey.shade800,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                              items: const [
-                                DropdownMenuItem<int>(
-                                  value: 1,
-                                  child: Text('Informational (1xx)'),
-                                ),
-                                DropdownMenuItem<int>(
-                                  value: 2,
-                                  child: Text('Success (2xx)'),
-                                ),
-                                DropdownMenuItem<int>(
-                                  value: 3,
-                                  child: Text('Redirection (3xx)'),
-                                ),
-                                DropdownMenuItem<int>(
-                                  value: 4,
-                                  child: Text('Client Error (4xx)'),
-                                ),
-                                DropdownMenuItem<int>(
-                                  value: 5,
-                                  child: Text('Server Error (5xx)'),
-                                ),
-                              ],
-                              onChanged: _onStatusChanged,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Date range picker
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.1),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ValueListenableBuilder<DateTime?>(
-                        valueListenable: _controller.startDate,
-                        builder: (context, startDate, child) {
-                          return ValueListenableBuilder<DateTime?>(
-                            valueListenable: _controller.endDate,
-                            builder: (context, endDate, child) {
-                              return GestureDetector(
-                                onTap: _pickDateRange,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_today,
-                                      color: Colors.white.withOpacity(0.7),
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      startDate == null
-                                          ? 'All Dates'
-                                          : '${_formatDateTime(startDate)} - ${_formatDateTime(endDate!)}',
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.8),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Main content area
-            Expanded(
+            const SizedBox(width: 8),
+            _buildStatusFilter(),
+            const SizedBox(width: 8),
+            _buildDateRangePicker(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _controller.isLoading,
+      builder: (context, isLoading, child) {
+        if (isLoading && _controller.entries.value.isEmpty) {
+          return _buildLoadingIndicator();
+        }
+        
+        return ValueListenableBuilder<List<CachedCurlEntry>>(
+          valueListenable: _controller.entries,
+          builder: (context, entries, child) {
+            if (entries.isEmpty && !isLoading) {
+              return _buildEmptyState();
+            }
+            
+            return Expanded(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      colors.surface,
-                      colors.surfaceContainer,
+                      CurlViewerColors.theme(context).surface,
+                      CurlViewerColors.theme(context).surfaceContainer,
                     ],
                   ),
                 ),
                 child: Column(
                   children: [
-                    // Loading indicator
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _controller.isLoading,
-                      builder: (context, isLoading, child) {
-                        if (isLoading) {
-                          return Container(
-                            padding: const EdgeInsets.all(20),
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                    // Entries list
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _controller.isLoading,
-                      builder: (context, isLoading, child) {
-                        if (isLoading) {
-                          return const SizedBox.shrink();
-                        }
-                        return Expanded(
-                          child: ValueListenableBuilder<List<CachedCurlEntry>>(
-                            valueListenable: _controller.entries,
-                            builder: (context, entries, child) {
-                              return ValueListenableBuilder<bool>(
-                                valueListenable: _controller.isLoadingMore,
-                                builder: (context, isLoadingMore, child) {
-                                  return ListView.builder(
-                                    padding: EdgeInsets.zero,
-                                    controller: _controller.scrollController,
-                                    itemCount: entries.length + (isLoadingMore ? 1 : 0),
-                                    itemBuilder: (context, index) {
-                                      if (index == entries.length) {
-                                        return _buildLoadingMoreIndicator();
-                                      }
-                                      final entry = entries[index];
-                                      return CurlEntryItem(
-                                        entry: entry,
-                                        onCopy: () async {
-                                          await Clipboard.setData(ClipboardData(text: entry.curlCommand));
-                                        },
-                                        onShare: () => _shareCurlCommand(entry),
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                    // Bottom action buttons
+                    Expanded(child: _buildEntriesList()),
                     if (widget.displayType != CurlViewerDisplayType.bubble)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colors.surface,
-                              colors.surfaceContainer,
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          border: Border(
-                            top: BorderSide(
-                                color: colors.outlineLight, width: 1.5),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.shadowLight,
-                              blurRadius: 10,
-                              offset: const Offset(0, -4),
-                            ),
-                          ],
-                        ),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            if (constraints.maxWidth < 200) {
-                              return const SizedBox.shrink();
-                            }
-
-                            if (constraints.maxWidth < 300) {
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor:
-                                            UiHelper.getStatusColor(500),
-                                        side: BorderSide(
-                                            color: UiHelper.getStatusColor(500)),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      icon: const Icon(Icons.clear_all,
-                                          size: 18),
-                                      label: const Text('Clear All'),
-                                      onPressed: () async {
-                                        await _controller.clearAllEntries();
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor:
-                                            UiHelper.getStatusColor(200),
-                                        side: BorderSide(
-                                            color: UiHelper.getStatusColor(200)),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      icon: const Icon(Icons.refresh,
-                                          size: 18),
-                                      label: const Text('Reload'),
-                                      onPressed: () => _controller.loadEntries(reset: true),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            } else {
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor:
-                                            UiHelper.getStatusColor(500),
-                                        side: BorderSide(
-                                            color: UiHelper.getStatusColor(500)),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      icon: const Icon(Icons.clear_all,
-                                          size: 18),
-                                      label: const Text('Clear All'),
-                                      onPressed: () async {
-                                        await _controller.clearAllEntries();
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor:
-                                            UiHelper.getStatusColor(200),
-                                        side: BorderSide(
-                                            color: UiHelper.getStatusColor(200)),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      icon: const Icon(Icons.refresh,
-                                          size: 18),
-                                      label: const Text('Reload'),
-                                      onPressed: () => _controller.loadEntries(reset: true),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                          },
-                        ),
-                      ),
+                      _buildBottomActionButtons(),
                   ],
                 ),
               ),
-            ),
-          ],
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildEntriesList() {
+    return ValueListenableBuilder<List<CachedCurlEntry>>(
+      valueListenable: _controller.entries,
+      builder: (context, entries, child) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: _controller.isLoadingMore,
+          builder: (context, isLoadingMore, child) {
+            return ListView.builder(
+              padding: EdgeInsets.zero,
+              controller: _controller.scrollController,
+              itemCount: entries.length + (isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == entries.length) {
+                  return _buildLoadingMoreIndicator();
+                }
+                return CurlEntryItem(
+                  entry: entries[index],
+                  onCopy: () async {
+                    await Clipboard.setData(ClipboardData(text: entries[index].curlCommand));
+                  },
+                  onShare: () => _shareCurlCommand(entries[index]),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: const Center(
+        child: Text(
+          'No cURL entries found',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusFilter() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ValueListenableBuilder<ResponseStatus?>(
+        valueListenable: _controller.statusGroup,
+        builder: (context, statusGroup, child) {
+          return DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: statusGroup == null
+                  ? null
+                  : statusGroup == ResponseStatus.informational
+                      ? 1
+                      : statusGroup == ResponseStatus.success
+                          ? 2
+                          : statusGroup == ResponseStatus.redirection
+                              ? 3
+                              : statusGroup == ResponseStatus.clientError
+                                  ? 4
+                                  : statusGroup == ResponseStatus.serverError
+                                      ? 5
+                                      : null,
+              hint: Text(
+                'All Status',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 12,
+                ),
+              ),
+              dropdownColor: Colors.grey.shade800,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+              items: const [
+                DropdownMenuItem<int>(value: 1, child: Text('Informational (1xx)')),
+                DropdownMenuItem<int>(value: 2, child: Text('Success (2xx)')),
+                DropdownMenuItem<int>(value: 3, child: Text('Redirection (3xx)')),
+                DropdownMenuItem<int>(value: 4, child: Text('Client Error (4xx)')),
+                DropdownMenuItem<int>(value: 5, child: Text('Server Error (5xx)')),
+              ],
+              onChanged: _onStatusChanged,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDateRangePicker() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ValueListenableBuilder<DateTime?>(
+        valueListenable: _controller.startDate,
+        builder: (context, startDate, child) {
+          return ValueListenableBuilder<DateTime?>(
+            valueListenable: _controller.endDate,
+            builder: (context, endDate, child) {
+              return GestureDetector(
+                onTap: _pickDateRange,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      color: Colors.white.withOpacity(0.7),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      startDate == null
+                          ? 'All Dates'
+                          : '${_formatDateTime(startDate)} - ${_formatDateTime(endDate!)}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -772,6 +656,121 @@ class _CurlViewerState extends State<CurlViewer> {
       child: Padding(
         padding: EdgeInsets.all(16),
         child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Widget _buildBottomActionButtons() {
+    final colors = CurlViewerColors.theme(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colors.surface,
+            colors.surfaceContainer,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border(
+          top: BorderSide(color: colors.outlineLight, width: 1.5),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadowLight,
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 200) {
+            return const SizedBox.shrink();
+          }
+
+          if (constraints.maxWidth < 300) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: UiHelper.getStatusColor(500),
+                      side: BorderSide(color: UiHelper.getStatusColor(500)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.clear_all, size: 18),
+                    label: const Text('Clear All'),
+                    onPressed: () async {
+                      await _controller.clearAllEntries();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: UiHelper.getStatusColor(200),
+                      side: BorderSide(color: UiHelper.getStatusColor(200)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Reload'),
+                    onPressed: () => _controller.loadEntries(reset: true),
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: UiHelper.getStatusColor(500),
+                      side: BorderSide(color: UiHelper.getStatusColor(500)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.clear_all, size: 18),
+                    label: const Text('Clear All'),
+                    onPressed: () async {
+                      await _controller.clearAllEntries();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: UiHelper.getStatusColor(200),
+                      side: BorderSide(color: UiHelper.getStatusColor(200)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Reload'),
+                    onPressed: () => _controller.loadEntries(reset: true),
+                  ),
+                ),
+              ],
+            );
+          }
+        },
       ),
     );
   }

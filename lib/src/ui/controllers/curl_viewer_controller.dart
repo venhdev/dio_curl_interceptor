@@ -68,6 +68,10 @@ class CurlViewerController {
   /// Whether to enable state persistence using SharedPreferences
   final bool enablePersistence;
   
+  /// Debounced state saving timer
+  Timer? _persistenceTimer;
+  static const Duration _persistenceDebounce = Duration(seconds: 2);
+  
   // ============================================================================
   // INITIALIZATION
   // ============================================================================
@@ -179,7 +183,7 @@ class CurlViewerController {
   void updateSearch(String query) {
     searchQuery.value = query;
     if (enablePersistence) {
-      CurlViewerPersistenceService.saveSearchQuery(query.isEmpty ? null : query);
+      _scheduleStateSave();
     }
   }
 
@@ -188,7 +192,7 @@ class CurlViewerController {
     startDate.value = start;
     endDate.value = end;
     if (enablePersistence) {
-      CurlViewerPersistenceService.saveDateRange(start, end);
+      _scheduleStateSave();
     }
   }
 
@@ -196,7 +200,7 @@ class CurlViewerController {
   void updateStatusGroup(ResponseStatus? status) {
     statusGroup.value = status;
     if (enablePersistence) {
-      CurlViewerPersistenceService.saveStatusGroup(status);
+      _scheduleStateSave();
     }
   }
 
@@ -204,7 +208,7 @@ class CurlViewerController {
   void updateSelectedStatusChip(String? chip) {
     selectedStatusChip.value = chip;
     if (enablePersistence) {
-      CurlViewerPersistenceService.saveSelectedStatusChip(chip);
+      _scheduleStateSave();
     }
   }
   
@@ -218,7 +222,7 @@ class CurlViewerController {
     searchController.clear();
     
     if (enablePersistence) {
-      CurlViewerPersistenceService.clearAllPreferences();
+      _scheduleStateSave();
     }
   }
   
@@ -260,12 +264,41 @@ class CurlViewerController {
     );
   }
   
+  /// Save current state to persistence with debouncing
+  Future<void> _saveState() async {
+    if (!enablePersistence) return;
+    
+    try {
+      await CurlViewerPersistenceService.saveSearchQuery(searchQuery.value);
+      await CurlViewerPersistenceService.saveDateRange(startDate.value, endDate.value);
+      await CurlViewerPersistenceService.saveStatusGroup(statusGroup.value);
+      await CurlViewerPersistenceService.saveSelectedStatusChip(selectedStatusChip.value);
+    } catch (e) {
+      // Log error but don't fail the operation
+      print('Failed to save state: $e');
+    }
+  }
+  
+  /// Schedule debounced state saving
+  void _scheduleStateSave() {
+    if (!enablePersistence) return;
+    
+    _persistenceTimer?.cancel();
+    _persistenceTimer = Timer(_persistenceDebounce, _saveState);
+  }
+  
   // ============================================================================
   // DISPOSAL
   // ============================================================================
   
   void dispose() {
     _searchTimer?.cancel();
+    _persistenceTimer?.cancel();
+    
+    // Save final state before disposal
+    if (enablePersistence) {
+      _saveState();
+    }
     
     // Dispose notifiers
     entries.dispose();

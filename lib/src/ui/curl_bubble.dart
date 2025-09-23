@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'bubble_overlay.dart';
 import 'curl_viewer.dart';
+import 'controllers/curl_viewer_controller.dart';
 
 /// A specialized bubble overlay that integrates CurlViewer functionality
 /// with the draggable bubble interface.
@@ -14,7 +15,7 @@ import 'curl_viewer.dart';
 ///
 /// **Performance Optimized**: Uses StatelessWidget with RepaintBoundary
 /// for better performance and reduced widget rebuilds.
-class CurlBubble extends StatelessWidget {
+class CurlBubble extends StatefulWidget {
   /// Main app content body
   final Widget body;
 
@@ -34,6 +35,9 @@ class CurlBubble extends StatelessWidget {
   /// When true, the bubble will only be visible in debug builds
   final bool enableDebugMode;
 
+  /// Optional CurlViewerController to use (if not provided, one will be created)
+  final CurlViewerController? curlViewerController;
+
   const CurlBubble({
     super.key,
     required this.body,
@@ -42,6 +46,7 @@ class CurlBubble extends StatelessWidget {
     this.customMinimizedChild,
     this.customExpandedChild,
     this.enableDebugMode = false,
+    this.curlViewerController,
   });
 
   /// Factory method to create a CurlBubble with custom configuration
@@ -53,6 +58,7 @@ class CurlBubble extends StatelessWidget {
     Widget? customMinimizedChild,
     Widget? customExpandedChild,
     bool enableDebugMode = false,
+    CurlViewerController? curlViewerController,
   }) {
     return CurlBubble(
       body: body,
@@ -61,23 +67,48 @@ class CurlBubble extends StatelessWidget {
       customMinimizedChild: customMinimizedChild,
       customExpandedChild: customExpandedChild,
       enableDebugMode: enableDebugMode,
+      curlViewerController: curlViewerController,
     );
+  }
+
+  @override
+  State<CurlBubble> createState() => _CurlBubbleState();
+}
+
+class _CurlBubbleState extends State<CurlBubble> {
+  late CurlViewerController _curlViewerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _curlViewerController = widget.curlViewerController ?? 
+        CurlViewerController(enablePersistence: true);
+    _curlViewerController.initialize();
+  }
+
+  @override
+  void dispose() {
+    // Only dispose if we created the controller
+    if (widget.curlViewerController == null) {
+      _curlViewerController.dispose();
+    }
+    super.dispose();
   }
 
   /// Check if the bubble should be visible based on debug mode settings
   bool _shouldShowBubble() {
-    if (enableDebugMode) {
+    if (widget.enableDebugMode) {
       // In debug mode, only show in debug builds
-      return kDebugMode && controller.isVisible;
+      return kDebugMode && widget.controller.isVisible;
     } else {
       // Always show if debug mode is disabled
-      return controller.isVisible;
+      return widget.controller.isVisible;
     }
   }
 
   Widget _buildMinimizedChild() {
-    if (customMinimizedChild != null) {
-      return customMinimizedChild!;
+    if (widget.customMinimizedChild != null) {
+      return widget.customMinimizedChild!;
     }
 
     return Container(
@@ -129,8 +160,8 @@ class CurlBubble extends StatelessWidget {
   }
 
   Widget _buildExpandedChild() {
-    if (customExpandedChild != null) {
-      return customExpandedChild!;
+    if (widget.customExpandedChild != null) {
+      return widget.customExpandedChild!;
     }
 
     return Material(
@@ -170,10 +201,11 @@ class CurlBubble extends StatelessWidget {
           child: CurlViewer(
             displayType: CurlViewerDisplayType.bubble,
             showCloseButton: true,
+            controller: _curlViewerController,
             onClose: () {
               // Close the expanded bubble
-              controller.onMinimized?.call();
-              controller.minimize();
+              widget.controller.onMinimized?.call();
+              widget.controller.minimize();
             },
           ),
         ),
@@ -184,20 +216,20 @@ class CurlBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: controller,
+      animation: widget.controller,
       builder: (context, child) {
         // Check if we should show the bubble based on debug mode
         if (!_shouldShowBubble()) {
           // Return just the body without bubble overlay
-          return body;
+          return widget.body;
         }
 
         // Use RepaintBoundary to isolate repaints for better performance
         return RepaintBoundary(
           child: BubbleOverlay(
-            controller: controller,
-            style: style,
-            body: body,
+            controller: widget.controller,
+            style: widget.style,
+            body: widget.body,
             minimizedChild: _buildMinimizedChild(),
             expandedChild: _buildExpandedChild(),
           ),
