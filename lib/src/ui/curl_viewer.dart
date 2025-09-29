@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:dio/dio.dart';
 
 import '../core/helpers/ui_helper.dart';
 import '../core/types.dart';
@@ -13,6 +14,9 @@ import 'controllers/curl_viewer_controller.dart';
 import 'widgets/curl_entry_item.dart';
 import 'widgets/status_summary.dart';
 import 'widgets/curl_viewer_header.dart';
+import 'widgets/filter_rule_editor.dart';
+import '../options/filter_options.dart';
+import '../services/filter_management_service.dart';
 
 /// Global configuration style for CurlViewer
 class CurlViewerStyle {
@@ -239,22 +243,36 @@ class CurlViewer extends StatefulWidget {
 
 class _CurlViewerState extends State<CurlViewer> {
   late CurlViewerController _controller;
+  late FilterManagementService _filterService;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ??
         CurlViewerController(enablePersistence: widget.enablePersistence);
+    _filterService = FilterManagementService();
     _controller.initialize();
+    
+    // Sync filter changes with the filter service
+    _controller.activeFilters.addListener(_onFiltersChanged);
   }
 
   @override
   void dispose() {
+    // Remove listener
+    _controller.activeFilters.removeListener(_onFiltersChanged);
+    
     // Only dispose if we created the controller
     if (widget.controller == null) {
       _controller.dispose();
     }
     super.dispose();
+  }
+
+  void _onFiltersChanged() {
+    // Update the filter service when filters change
+    final filterOptions = _controller.getCurrentFilterOptions();
+    _filterService.updateFilters(filterOptions);
   }
 
   void _onStatusChanged(int? val) {
@@ -271,6 +289,410 @@ class _CurlViewerState extends State<CurlViewer> {
       status = ResponseStatus.serverError;
     }
     _controller.updateStatusGroup(status);
+  }
+
+  void _showFiltersDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CurlViewerStyle.borderRadius),
+        ),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          height: MediaQuery.of(context).size.height * 0.8,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.filter_alt,
+                    color: CurlViewerColors.theme(context).primary,
+                    size: CurlViewerStyle.iconSize * 1.5,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Filter Rules',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: CurlViewerColors.theme(context).onSurface,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _buildFiltersContent(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFiltersContent() {
+    return ValueListenableBuilder<List<FilterRule>>(
+      valueListenable: _controller.activeFilters,
+      builder: (context, filters, child) {
+        return Column(
+          children: [
+            // Add new filter button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _showAddFilterDialog(),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Filter Rule'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CurlViewerColors.theme(context).primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Filters list
+            Expanded(
+              child: filters.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.filter_alt_outlined,
+                            size: 64,
+                            color: CurlViewerColors.theme(context).onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No filter rules configured',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: CurlViewerColors.theme(context).onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Add a filter rule to block specific API requests',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: CurlViewerColors.theme(context).onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: filters.length,
+                      itemBuilder: (context, index) {
+                        final filter = filters[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.filter_alt,
+                              color: CurlViewerColors.theme(context).primary,
+                            ),
+                            title: Text(
+                              filter.pathPattern,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: CurlViewerColors.theme(context).onSurface,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${filter.matchType.name} • ${filter.statusCode}',
+                              style: TextStyle(
+                                color: CurlViewerColors.theme(context).onSurfaceVariant,
+                              ),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () => _showTestFilterDialog(filter),
+                                  icon: const Icon(Icons.play_arrow),
+                                  tooltip: 'Test Filter',
+                                ),
+                                IconButton(
+                                  onPressed: () => _showEditFilterDialog(index, filter),
+                                  icon: const Icon(Icons.edit),
+                                  tooltip: 'Edit',
+                                ),
+                                IconButton(
+                                  onPressed: () => _controller.removeFilter(index),
+                                  icon: const Icon(Icons.delete),
+                                  tooltip: 'Delete',
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: SingleChildScrollView(
+          child: FilterRuleEditor(
+            onSave: (rule) {
+              if (_controller.validateFilter(rule)) {
+                _controller.addFilter(rule);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Filter rule added successfully')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(_controller.filterValidationError.value ?? 'Invalid filter rule'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            onCancel: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditFilterDialog(int index, FilterRule rule) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: SingleChildScrollView(
+          child: FilterRuleEditor(
+            initialRule: rule,
+            onSave: (updatedRule) {
+              if (_controller.validateFilter(updatedRule)) {
+                _controller.updateFilter(index, updatedRule);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Filter rule updated successfully')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(_controller.filterValidationError.value ?? 'Invalid filter rule'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            onCancel: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showTestFilterDialog(FilterRule rule) {
+    final testUrlController = TextEditingController(text: '/api/test');
+    final testMethodController = TextEditingController(text: 'GET');
+    
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.6,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.play_arrow,
+                    color: CurlViewerColors.theme(context).primary,
+                    size: CurlViewerStyle.iconSize * 1.5,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Test Filter Rule',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: CurlViewerColors.theme(context).onSurface,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Test this filter rule against a sample request:',
+                style: TextStyle(
+                  color: CurlViewerColors.theme(context).onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: testUrlController,
+                decoration: const InputDecoration(
+                  labelText: 'Test URL Path',
+                  hintText: '/api/users/123',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: testMethodController,
+                decoration: const InputDecoration(
+                  labelText: 'HTTP Method',
+                  hintText: 'GET',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final testRequest = RequestOptions(
+                        path: testUrlController.text,
+                        method: testMethodController.text,
+                      );
+                      
+                      final result = await _filterService.testFilterRule(rule, testRequest);
+                      
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                        _showTestResultDialog(result);
+                      }
+                    },
+                    child: const Text('Test'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showTestResultDialog(FilterTestResult result) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.6,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    result.matches ? Icons.check_circle : Icons.cancel,
+                    color: result.matches ? Colors.green : Colors.red,
+                    size: CurlViewerStyle.iconSize * 1.5,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Test Result',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: CurlViewerColors.theme(context).onSurface,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: result.matches ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: result.matches ? Colors.green : Colors.red,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      result.matches ? 'Filter would BLOCK this request' : 'Filter would ALLOW this request',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: result.matches ? Colors.green : Colors.red,
+                      ),
+                    ),
+                    if (result.errorMessage != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Error: ${result.errorMessage}',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ],
+                    if (result.response != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Response Status: ${result.response!.statusCode}',
+                        style: TextStyle(
+                          color: CurlViewerColors.theme(context).onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Response Data: ${result.response!.data}',
+                        style: TextStyle(
+                          color: CurlViewerColors.theme(context).onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _onStatusChipTapped(String statusType) {
@@ -399,6 +821,7 @@ class _CurlViewerState extends State<CurlViewer> {
           onReload: () => _controller.loadEntries(reset: true),
           onClose: widget.onClose ?? (() => Navigator.pop(context)),
           showCloseButton: widget.showCloseButton,
+          onFiltersPressed: _showFiltersDialog,
         );
       },
     );

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/types.dart';
+import '../options/filter_options.dart';
 
 /// Simple class to hold a date range
 class DateRange {
@@ -18,6 +20,8 @@ class CurlViewerPersistenceService {
   static const String _keyStatusGroup = 'curl_viewer_status_group';
   static const String _keySelectedStatusChip =
       'curl_viewer_selected_status_chip';
+  static const String _keyActiveFilters = 'curl_viewer_active_filters';
+  static const String _keyFilterEditingMode = 'curl_viewer_filter_editing_mode';
 
   /// Safe operation wrapper with error handling
   static Future<T?> _safeOperation<T>(Future<T> Function() operation) async {
@@ -141,6 +145,76 @@ class CurlViewerPersistenceService {
     return result;
   }
 
+  /// Save active filters
+  static Future<void> saveActiveFilters(List<FilterRule> filters) async {
+    await _safeOperation(() async {
+      final prefs = await SharedPreferences.getInstance();
+      if (filters.isEmpty) {
+        await prefs.remove(_keyActiveFilters);
+      } else {
+        final filtersJson = filters.map((filter) => {
+          'pathPattern': filter.pathPattern,
+          'matchType': filter.matchType.name,
+          'methods': filter.methods,
+          'statusCode': filter.statusCode,
+          'responseData': filter.responseData,
+          'headers': filter.headers,
+        }).toList();
+        await prefs.setString(_keyActiveFilters, jsonEncode(filtersJson));
+      }
+    });
+  }
+
+  /// Load active filters
+  static Future<List<FilterRule>> loadActiveFilters() async {
+    final result = await _safeOperation(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final filtersJson = prefs.getString(_keyActiveFilters);
+      if (filtersJson == null) return <FilterRule>[];
+
+      try {
+        final List<dynamic> filtersList = jsonDecode(filtersJson);
+        return filtersList.map((filterMap) {
+          return FilterRule(
+            pathPattern: filterMap['pathPattern'] as String,
+            matchType: PathMatchType.values.firstWhere(
+              (e) => e.name == filterMap['matchType'],
+              orElse: () => PathMatchType.exact,
+            ),
+            methods: filterMap['methods'] != null 
+                ? List<String>.from(filterMap['methods'])
+                : null,
+            statusCode: filterMap['statusCode'] as int? ?? 403,
+            responseData: filterMap['responseData'],
+            headers: filterMap['headers'] != null
+                ? Map<String, dynamic>.from(filterMap['headers'])
+                : null,
+          );
+        }).toList();
+      } catch (e) {
+        return <FilterRule>[];
+      }
+    });
+    return result ?? <FilterRule>[];
+  }
+
+  /// Save filter editing mode
+  static Future<void> saveFilterEditingMode(bool editingMode) async {
+    await _safeOperation(() async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyFilterEditingMode, editingMode);
+    });
+  }
+
+  /// Load filter editing mode
+  static Future<bool> loadFilterEditingMode() async {
+    final result = await _safeOperation(() async {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_keyFilterEditingMode) ?? false;
+    });
+    return result ?? false;
+  }
+
   /// Clear all saved preferences
   static Future<void> clearAllPreferences() async {
     await _safeOperation(() async {
@@ -151,6 +225,8 @@ class CurlViewerPersistenceService {
         prefs.remove(_keyEndDate),
         prefs.remove(_keyStatusGroup),
         prefs.remove(_keySelectedStatusChip),
+        prefs.remove(_keyActiveFilters),
+        prefs.remove(_keyFilterEditingMode),
       ]);
     });
   }

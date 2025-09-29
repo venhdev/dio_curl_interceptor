@@ -4,7 +4,11 @@
 - **Path Filtering**: Stop specific API calls and return custom responses
 - **Filter Rules**: Support for exact, regex, and glob pattern matching
 - **Mock Responses**: Return custom responses for filtered paths
-- **Filter Behaviors**: Log-only, mock response, or block completely
+- **Real-time Filter Editing**: Interactive filter management directly in CurlViewer UI
+  - Add, edit, and delete filter rules in real-time
+  - Test filter rules against sample requests
+  - Filter persistence across app sessions
+  - Integrated filter testing tools with visual feedback
 - **Path Exclusions**: Specify paths to never filter
 
 ### 🔧 Improvements

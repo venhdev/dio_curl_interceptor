@@ -14,6 +14,7 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, clear, copy, etc).
 - 🔔 Webhook integration for remote logging and team collaboration (Discord & Telegram support, including bug and exception reporting).
 - 🛑 Path filtering to stop specific API calls and return custom responses.
+- ⚡ Real-time filter editing with test functionality directly in the CurlViewer UI.
 - 📝 Utility methods for custom interceptors and direct use.
 
 For detailed screenshots of the interceptor's behavior, including simultaneous and chronological logging, please refer to the [Screenshots](#screenshots) section at the bottom of this README.
@@ -191,7 +192,7 @@ final dio = Dio();
 final filterOptions = FilterOptions(
   rules: [
     // Block access to a specific endpoint
-    FilterRule.block('/api/sensitive-data'),
+    FilterRule.exact('/api/sensitive-data'),
     
     // Mock a response for a specific endpoint
     FilterRule.exact(
@@ -222,7 +223,30 @@ dio.interceptors.add(
 
 For more detailed documentation on path filtering, see [Path Filtering Guide](doc/PATH_FILTERING.md).
 
-### Option 4: Using webhook integration
+### Option 4: Real-time filter editing with CurlViewer
+
+You can now edit filter rules directly in the CurlViewer interface:
+
+```dart
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+
+// Show CurlViewer with filter editing capabilities
+showDialog(
+  context: context,
+  builder: (context) => CurlViewer(
+    displayType: CurlViewerDisplayType.dialog,
+    enablePersistence: true, // Enable filter persistence
+  ),
+);
+
+// Users can now:
+// 1. Click the filters button (🔍) in the CurlViewer header
+// 2. Add, edit, and delete filter rules in real-time
+// 3. Test filter rules against sample requests
+// 4. See immediate effects on API blocking
+```
+
+### Option 5: Using webhook integration
 
 You can use webhook integration to send cURL logs to Discord channels or Telegram chats for remote logging and team collaboration:
 

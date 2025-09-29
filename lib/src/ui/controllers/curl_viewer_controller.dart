@@ -4,6 +4,7 @@ import '../../core/types.dart';
 import '../../data/models/cached_curl_entry.dart';
 import '../../services/cached_curl_service.dart';
 import '../../services/curl_viewer_persistence_service.dart';
+import '../../options/filter_options.dart';
 
 class CurlViewerController {
   // ============================================================================
@@ -43,6 +44,15 @@ class CurlViewerController {
   /// Status counts for summary display
   final ValueNotifier<Map<ResponseStatus, int>> statusCounts =
       ValueNotifier({});
+
+  /// List of active filter rules
+  final ValueNotifier<List<FilterRule>> activeFilters = ValueNotifier([]);
+
+  /// Whether filter editing mode is active
+  final ValueNotifier<bool> filterEditingMode = ValueNotifier(false);
+
+  /// Filter validation errors
+  final ValueNotifier<String?> filterValidationError = ValueNotifier(null);
 
   // ============================================================================
   // CONTROLLERS
@@ -89,6 +99,9 @@ class CurlViewerController {
     startDate.addListener(_onFilterChanged);
     endDate.addListener(_onFilterChanged);
     statusGroup.addListener(_onFilterChanged);
+
+    // Listen to filter editing mode changes
+    filterEditingMode.addListener(_onFilterEditingModeChanged);
   }
 
   // ============================================================================
@@ -136,6 +149,14 @@ class CurlViewerController {
       if (persistedSelectedStatusChip != null) {
         selectedStatusChip.value = persistedSelectedStatusChip;
       }
+
+      // Load active filters
+      final persistedFilters = await CurlViewerPersistenceService.loadActiveFilters();
+      activeFilters.value = persistedFilters;
+
+      // Load filter editing mode
+      final persistedEditingMode = await CurlViewerPersistenceService.loadFilterEditingMode();
+      filterEditingMode.value = persistedEditingMode;
     } catch (e) {
       // Ignore persistence errors and continue with default values
     }
@@ -236,6 +257,111 @@ class CurlViewerController {
   }
 
   // ============================================================================
+  // FILTER MANAGEMENT METHODS
+  // ============================================================================
+
+  /// Add a new filter rule
+  void addFilter(FilterRule filter) {
+    final currentFilters = List<FilterRule>.from(activeFilters.value);
+    currentFilters.add(filter);
+    activeFilters.value = currentFilters;
+    
+    if (enablePersistence) {
+      _scheduleStateSave();
+    }
+  }
+
+  /// Remove a filter rule by index
+  void removeFilter(int index) {
+    if (index >= 0 && index < activeFilters.value.length) {
+      final currentFilters = List<FilterRule>.from(activeFilters.value);
+      currentFilters.removeAt(index);
+      activeFilters.value = currentFilters;
+      
+      if (enablePersistence) {
+        _scheduleStateSave();
+      }
+    }
+  }
+
+  /// Update a filter rule at specific index
+  void updateFilter(int index, FilterRule filter) {
+    if (index >= 0 && index < activeFilters.value.length) {
+      final currentFilters = List<FilterRule>.from(activeFilters.value);
+      currentFilters[index] = filter;
+      activeFilters.value = currentFilters;
+      
+      if (enablePersistence) {
+        _scheduleStateSave();
+      }
+    }
+  }
+
+  /// Clear all filter rules
+  void clearAllFilters() {
+    activeFilters.value = [];
+    
+    if (enablePersistence) {
+      _scheduleStateSave();
+    }
+  }
+
+  /// Toggle filter editing mode
+  void toggleFilterEditingMode() {
+    filterEditingMode.value = !filterEditingMode.value;
+    
+    if (enablePersistence) {
+      _scheduleStateSave();
+    }
+  }
+
+  /// Set filter editing mode
+  void setFilterEditingMode(bool editing) {
+    filterEditingMode.value = editing;
+    
+    if (enablePersistence) {
+      _scheduleStateSave();
+    }
+  }
+
+  /// Validate a filter rule
+  bool validateFilter(FilterRule filter) {
+    filterValidationError.value = null;
+    
+    // Check if path pattern is empty
+    if (filter.pathPattern.trim().isEmpty) {
+      filterValidationError.value = 'Path pattern cannot be empty';
+      return false;
+    }
+    
+    // Validate regex pattern if match type is regex
+    if (filter.matchType == PathMatchType.regex) {
+      try {
+        RegExp(filter.pathPattern);
+      } catch (e) {
+        filterValidationError.value = 'Invalid regex pattern: ${e.toString()}';
+        return false;
+      }
+    }
+    
+    // Validate status code
+    if (filter.statusCode < 100 || filter.statusCode > 599) {
+      filterValidationError.value = 'Status code must be between 100 and 599';
+      return false;
+    }
+    
+    return true;
+  }
+
+  /// Get current filter options
+  FilterOptions getCurrentFilterOptions() {
+    return FilterOptions(
+      rules: activeFilters.value,
+      enabled: activeFilters.value.isNotEmpty,
+    );
+  }
+
+  // ============================================================================
   // PRIVATE METHODS
   // ============================================================================
 
@@ -259,6 +385,12 @@ class CurlViewerController {
     loadEntries(reset: true);
   }
 
+  void _onFilterEditingModeChanged() {
+    if (enablePersistence) {
+      _scheduleStateSave();
+    }
+  }
+
   void _updateStatusCounts() {
     statusCounts.value = CachedCurlService.countByStatusGroup(
       search: searchQuery.value,
@@ -278,6 +410,8 @@ class CurlViewerController {
       await CurlViewerPersistenceService.saveStatusGroup(statusGroup.value);
       await CurlViewerPersistenceService.saveSelectedStatusChip(
           selectedStatusChip.value);
+      await CurlViewerPersistenceService.saveActiveFilters(activeFilters.value);
+      await CurlViewerPersistenceService.saveFilterEditingMode(filterEditingMode.value);
     } catch (e) {
       // Log error but don't fail the operation
       print('Failed to save state: $e');
@@ -317,6 +451,9 @@ class CurlViewerController {
     statusGroup.dispose();
     selectedStatusChip.dispose();
     statusCounts.dispose();
+    activeFilters.dispose();
+    filterEditingMode.dispose();
+    filterValidationError.dispose();
 
     // Dispose controllers
     searchController.dispose();

@@ -8,6 +8,7 @@ class CurlViewerHeader extends StatelessWidget {
   final VoidCallback onReload;
   final VoidCallback? onClose;
   final bool showCloseButton;
+  final VoidCallback? onFiltersPressed;
 
   const CurlViewerHeader({
     super.key,
@@ -16,6 +17,7 @@ class CurlViewerHeader extends StatelessWidget {
     required this.onReload,
     this.onClose,
     this.showCloseButton = false,
+    this.onFiltersPressed,
   });
 
   @override
@@ -34,6 +36,10 @@ class CurlViewerHeader extends StatelessWidget {
                   _buildSearchBar(),
                   const SizedBox(width: 8),
                   _buildReloadButton(),
+                  if (onFiltersPressed != null) ...[
+                    const SizedBox(width: 8),
+                    _buildFiltersButton(),
+                  ],
                   if (showCloseButton) ...[
                     const SizedBox(width: 8),
                     _buildCloseButton(),
@@ -210,6 +216,43 @@ class CurlViewerHeader extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: onReload,
           child: const Icon(Icons.refresh, size: 18, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFiltersButton() {
+    return Container(
+      height: 36,
+      width: 36,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.orange.withValues(alpha: 0.2),
+            Colors.orange.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.orange.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onFiltersPressed,
+          child: const Icon(Icons.filter_alt, size: 18, color: Colors.white),
         ),
       ),
     );
