@@ -23,7 +23,8 @@ class CachedCurlEntryAdapter extends TypeAdapter<CachedCurlEntry> {
       timestamp: fields[3] as DateTime,
       url: fields[4] as String?,
       duration: fields[5] as int?,
-      responseHeaders: (fields[6] as Map?)?.cast<String, List<String>>(),
+      responseHeaders: (fields[6] as Map?)?.map((dynamic k, dynamic v) =>
+          MapEntry(k as String, (v as List).cast<String>())),
       method: fields[7] as String?,
     );
   }

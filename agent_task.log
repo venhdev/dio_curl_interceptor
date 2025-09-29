@@ -228,3 +228,9 @@ Fixed curl bubble status selection reset issue - converted CurlBubble to Statefu
 Bubble feature production readiness check completed
 Updated status filter dropdown to DropdownMenu with proper height alignment
 Updated DropdownMenu to fit content naturally without fixed height constraints
+Added path filtering feature to stop specific API calls and return custom responses
+Simplified path blocking feature by removing FilterBehavior options and created plan for CurlViewer integration
+Fixed linting errors in test files for simplified path blocking feature
+Fixed linting errors in test files for simplified path blocking feature
+Created comprehensive test suite for path blocking API features with 95 passing tests
+Created comprehensive plan for CurlViewer filter editing functionality with 18 detailed steps across 3 phases

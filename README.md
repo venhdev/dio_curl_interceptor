@@ -13,6 +13,7 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 💾 Caches cURL commands and responses with filtering and search options.
 - 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, clear, copy, etc).
 - 🔔 Webhook integration for remote logging and team collaboration (Discord & Telegram support, including bug and exception reporting).
+- 🛑 Path filtering to stop specific API calls and return custom responses.
 - 📝 Utility methods for custom interceptors and direct use.
 
 For detailed screenshots of the interceptor's behavior, including simultaneous and chronological logging, please refer to the [Screenshots](#screenshots) section at the bottom of this README.
@@ -179,7 +180,49 @@ dio.interceptors.add(CurlInterceptor(
 ));
 ```
 
-### Option 3: Using webhook integration
+### Option 3: Using path filtering
+
+You can use path filtering to stop specific API calls and return custom responses:
+
+```dart
+final dio = Dio();
+
+// Create filter options
+final filterOptions = FilterOptions(
+  rules: [
+    // Block access to a specific endpoint
+    FilterRule.block('/api/sensitive-data'),
+    
+    // Mock a response for a specific endpoint
+    FilterRule.exact(
+      '/api/users/profile',
+      responseData: {
+        'id': 'mock-user-123',
+        'name': 'Mock User',
+        'email': 'mock@example.com',
+      },
+    ),
+    
+    // Use regex pattern to match multiple endpoints
+    FilterRule.regex(
+      r'/api/v1/.*',
+      responseData: {'message': 'API v1 is deprecated'},
+      statusCode: 410,
+    ),
+  ],
+  // Never filter these paths
+  exclusions: ['/api/health', '/api/version'],
+);
+
+// Add the interceptor with filtering
+dio.interceptors.add(
+  CurlInterceptorFactory.withFilters(filterOptions: filterOptions),
+);
+```
+
+For more detailed documentation on path filtering, see [Path Filtering Guide](doc/PATH_FILTERING.md).
+
+### Option 4: Using webhook integration
 
 You can use webhook integration to send cURL logs to Discord channels or Telegram chats for remote logging and team collaboration:
 
@@ -336,7 +379,7 @@ class MyApp extends StatelessWidget {
 - **Resizable**: Expand and resize the bubble content
 - **Customizable**: Use custom widgets for minimized and expanded states
 
-> **📖 Complete Integration Guide**: For detailed bubble integration instructions, custom configurations, programmatic control, and best practices, see our comprehensive [Bubble Integration Guide](docs/BUBBLE_INTEGRATION_GUIDE.md).
+> **📖 Complete Integration Guide**: For detailed bubble integration instructions, custom configurations, programmatic control, and best practices, see our comprehensive [Bubble Integration Guide](doc/BUBBLE_INTEGRATION_GUIDE.md).
 
 > **Note**: File export functionality has been removed in v3.3.3. Use copy/share features instead.
 

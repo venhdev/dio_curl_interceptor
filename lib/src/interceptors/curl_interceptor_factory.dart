@@ -4,6 +4,7 @@ import 'curl_interceptor_base.dart';
 import 'curl_interceptor_v2.dart';
 import '../options/curl_options.dart';
 import '../options/cache_options.dart';
+import '../options/filter_options.dart';
 import '../inspector/webhook_inspector_base.dart';
 
 /// Available CurlInterceptor versions for different use cases
@@ -50,9 +51,17 @@ class CurlInterceptorFactory {
   static Interceptor create({
     CurlOptions? curlOptions,
     CacheOptions? cacheOptions,
+    FilterOptions? filterOptions,
     List<WebhookInspectorBase>? webhookInspectors,
     CurlInterceptorVersion version = CurlInterceptorVersion.auto,
   }) {
+    // Apply filter options if provided
+    if (filterOptions != null && curlOptions != null) {
+      curlOptions = curlOptions.copyWith(filterOptions: filterOptions);
+    } else if (filterOptions != null) {
+      curlOptions = CurlOptions(filterOptions: filterOptions);
+    }
+    
     switch (version) {
       case CurlInterceptorVersion.v1:
         return _createV1(curlOptions, cacheOptions, webhookInspectors);
@@ -69,8 +78,16 @@ class CurlInterceptorFactory {
   static Interceptor createV1({
     CurlOptions? curlOptions,
     CacheOptions? cacheOptions,
+    FilterOptions? filterOptions,
     List<WebhookInspectorBase>? webhookInspectors,
   }) {
+    // Apply filter options if provided
+    if (filterOptions != null && curlOptions != null) {
+      curlOptions = curlOptions.copyWith(filterOptions: filterOptions);
+    } else if (filterOptions != null) {
+      curlOptions = CurlOptions(filterOptions: filterOptions);
+    }
+    
     return _createV1(curlOptions, cacheOptions, webhookInspectors);
   }
 
@@ -80,9 +97,42 @@ class CurlInterceptorFactory {
   static Interceptor createV2({
     CurlOptions? curlOptions,
     CacheOptions? cacheOptions,
+    FilterOptions? filterOptions,
     List<WebhookInspectorBase>? webhookInspectors,
   }) {
+    // Apply filter options if provided
+    if (filterOptions != null && curlOptions != null) {
+      curlOptions = curlOptions.copyWith(filterOptions: filterOptions);
+    } else if (filterOptions != null) {
+      curlOptions = CurlOptions(filterOptions: filterOptions);
+    }
+    
     return _createV2(curlOptions, cacheOptions, webhookInspectors);
+  }
+  
+  /// Creates a CurlInterceptor with path filtering enabled
+  ///
+  /// This is a convenience method for creating an interceptor with path filtering.
+  /// It automatically selects the best version based on the configuration.
+  static Interceptor withFilters({
+    required FilterOptions filterOptions,
+    CurlOptions? curlOptions,
+    CacheOptions? cacheOptions,
+    List<WebhookInspectorBase>? webhookInspectors,
+    CurlInterceptorVersion version = CurlInterceptorVersion.auto,
+  }) {
+    // Create or update curlOptions with filter options
+    final options = curlOptions != null
+        ? curlOptions.copyWith(filterOptions: filterOptions)
+        : CurlOptions(filterOptions: filterOptions);
+    
+    // Use the regular create method with the updated options
+    return create(
+      curlOptions: options,
+      cacheOptions: cacheOptions,
+      webhookInspectors: webhookInspectors,
+      version: version,
+    );
   }
 
   /// Auto-detects the best interceptor version based on configuration
@@ -118,14 +168,15 @@ class CurlInterceptorFactory {
     final options = curlOptions ?? const CurlOptions();
     final cache = cacheOptions ?? const CacheOptions();
 
-    // Complex: detailed logging, caching, or custom configurations
+    // Complex: detailed logging, caching, filtering, or custom configurations
     return (options.onRequest?.visible ?? false) == true ||
         (options.onResponse?.visible ?? false) == true ||
         (options.onError?.visible ?? false) == true ||
         cache.cacheResponse == true ||
         cache.cacheError == true ||
         options.behavior != null ||
-        options.prettyConfig.blockEnabled == true;
+        options.prettyConfig.blockEnabled == true ||
+        options.filterOptions.enabled == true;
   }
 
   /// Creates CurlInterceptorV1 instance
@@ -160,12 +211,13 @@ class CurlInterceptorFactory {
       'availableVersions':
           CurlInterceptorVersion.values.map((v) => v.name).toList(),
       'defaultVersion': CurlInterceptorVersion.auto.name,
-      'factoryVersion': '2.0.0',
+      'factoryVersion': '2.1.0',
       'supportedFeatures': {
         'autoDetection': true,
         'webhookOptimization': true,
         'asyncPatterns': true,
         'backwardCompatibility': true,
+        'pathFiltering': true,
       },
     };
   }

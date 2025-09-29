@@ -12,6 +12,7 @@ import '../inspector/webhook_inspector_base.dart';
 import '../inspector/discord_inspector.dart';
 import '../inspector/telegram_inspector.dart';
 import '../core/utils/curl_utils.dart';
+import '../core/utils/filter_utils.dart';
 import '../core/helpers/curl_helper.dart';
 
 /// CurlInterceptorV2 - A production-ready interceptor with essential async patterns
@@ -90,6 +91,33 @@ class CurlInterceptorV2 extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     try {
+      // Check if request should be blocked
+      if (curlOptions.filterOptions.enabled) {
+        final matchingRule = FilterUtils.getMatchingRule(options, curlOptions.filterOptions);
+        if (matchingRule != null) {
+          // Log the blocked request
+          developer.log(
+            'Request blocked: ${options.method} ${options.uri}',
+            name: 'CurlInterceptorV2',
+          );
+
+          // Generate blocked response and return early
+          FilterUtils.generateBlockedResponse(options, matchingRule).then((response) {
+            // Log the blocked response
+            CurlUtils.handleOnResponse(
+              response,
+              curlOptions: curlOptions,
+              webhookInspectors: webhookInspectors,
+              stopwatch: null,
+            );
+            
+            // Return the blocked response
+            handler.resolve(response);
+          });
+          return; // Exit early
+        }
+      }
+
       // Handle request logging using CurlUtils (synchronous)
       CurlUtils.handleOnRequest(
         options,
@@ -112,7 +140,7 @@ class CurlInterceptorV2 extends Interceptor {
       developer.log('Request processing error: $e', name: 'CurlInterceptorV2');
     }
 
-    // Always continue main flow
+    // Continue main flow if not filtered
     return handler.next(options);
   }
 

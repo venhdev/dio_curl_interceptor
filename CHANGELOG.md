@@ -1,3 +1,16 @@
+## v3.4.0
+
+### 🆕 New Features
+- **Path Filtering**: Stop specific API calls and return custom responses
+- **Filter Rules**: Support for exact, regex, and glob pattern matching
+- **Mock Responses**: Return custom responses for filtered paths
+- **Filter Behaviors**: Log-only, mock response, or block completely
+- **Path Exclusions**: Specify paths to never filter
+
+### 🔧 Improvements
+- **Enhanced Factory**: Updated CurlInterceptorFactory with filter support
+- **Better Documentation**: Added comprehensive path filtering guide
+
 ## v3.3.4
 
 ### 🆕 New Features

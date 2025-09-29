@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:colored_logger/colored_logger.dart';
 
 import '../core/types.dart';
+import 'filter_options.dart';
 
 class CurlOptions {
   const CurlOptions({
@@ -14,6 +15,7 @@ class CurlOptions {
     this.behavior = CurlBehavior.simultaneous,
     this.printer = log,
     this.prettyConfig = const PrettyConfig(),
+    this.filterOptions = const FilterOptions.disabled(),
   });
 
   factory CurlOptions.allEnabled() => const CurlOptions(
@@ -39,6 +41,12 @@ class CurlOptions {
           colorEnabled: true,
           emojiEnabled: true,
         ),
+        filterOptions: FilterOptions.disabled(),
+      );
+      
+  /// Creates CurlOptions with path filtering enabled
+  factory CurlOptions.withFilters(FilterOptions filterOptions) => CurlOptions(
+        filterOptions: filterOptions,
       );
 
   /// Show the result summary _(include: status code, status name, method, uri, response time)_
@@ -56,6 +64,9 @@ class CurlOptions {
   /// Configuration for pretty printing HTTP requests and responses.
   /// Controls the visual appearance of the output when pretty printing is enabled.
   final PrettyConfig prettyConfig;
+
+  /// Configuration for path filtering to stop specific API calls
+  final FilterOptions filterOptions;
 
   final RequestDetails? onRequest;
   final ResponseDetails? onResponse;
@@ -99,6 +110,7 @@ class CurlOptions {
     CurlBehavior? behavior,
     Printer? printer,
     PrettyConfig? prettyConfig,
+    FilterOptions? filterOptions,
     RequestDetails? onRequest,
     ResponseDetails? onResponse,
     ErrorDetails? onError,
@@ -109,6 +121,7 @@ class CurlOptions {
       behavior: behavior ?? this.behavior,
       printer: printer ?? this.printer,
       prettyConfig: prettyConfig ?? this.prettyConfig,
+      filterOptions: filterOptions ?? this.filterOptions,
       onRequest: onRequest ?? this.onRequest,
       onResponse: onResponse ?? this.onResponse,
       onError: onError ?? this.onError,
