@@ -10,8 +10,9 @@ import 'controllers/curl_viewer_controller.dart';
 /// This widget wraps your main app content and provides a floating bubble
 /// for accessing cURL logs without interrupting the app flow.
 ///
-/// The bubble can be controlled externally via [BubbleOverlayController] and
-/// supports debug mode integration for production-safe usage.
+/// The bubble can be controlled externally via [BubbleOverlayController] (optional)
+/// or will create an internal controller automatically. Supports debug mode 
+/// integration for production-safe usage.
 ///
 /// **Performance Optimized**: Uses StatelessWidget with RepaintBoundary
 /// for better performance and reduced widget rebuilds.
@@ -19,8 +20,9 @@ class CurlBubble extends StatefulWidget {
   /// Main app content body
   final Widget body;
 
-  /// External controller for managing bubble state and behavior
-  final BubbleOverlayController controller;
+  /// External controller for managing bubble state and behavior (optional)
+  /// If not provided, an internal controller will be created automatically
+  final BubbleOverlayController? controller;
 
   /// Styling configuration for the bubble
   final BubbleStyle style;
@@ -41,7 +43,7 @@ class CurlBubble extends StatefulWidget {
   const CurlBubble({
     super.key,
     required this.body,
-    required this.controller,
+    this.controller,
     this.style = BubbleStyle.defaultStyle,
     this.customMinimizedChild,
     this.customExpandedChild,
@@ -53,7 +55,7 @@ class CurlBubble extends StatefulWidget {
   /// This is the recommended way to create a CurlBubble with specific settings
   factory CurlBubble.configured({
     required Widget body,
-    required BubbleOverlayController controller,
+    BubbleOverlayController? controller,
     BubbleStyle? style,
     Widget? customMinimizedChild,
     Widget? customExpandedChild,
@@ -77,6 +79,7 @@ class CurlBubble extends StatefulWidget {
 
 class _CurlBubbleState extends State<CurlBubble> {
   late CurlViewerController _curlViewerController;
+  late BubbleOverlayController _bubbleController;
 
   @override
   void initState() {
@@ -84,6 +87,9 @@ class _CurlBubbleState extends State<CurlBubble> {
     _curlViewerController = widget.curlViewerController ??
         CurlViewerController(enablePersistence: true);
     _curlViewerController.initialize();
+    
+    // Create internal controller if not provided
+    _bubbleController = widget.controller ?? BubbleOverlayController();
   }
 
   @override
@@ -92,6 +98,10 @@ class _CurlBubbleState extends State<CurlBubble> {
     if (widget.curlViewerController == null) {
       _curlViewerController.dispose();
     }
+    // Only dispose bubble controller if we created it
+    if (widget.controller == null) {
+      _bubbleController.dispose();
+    }
     super.dispose();
   }
 
@@ -99,10 +109,10 @@ class _CurlBubbleState extends State<CurlBubble> {
   bool _shouldShowBubble() {
     if (widget.enableDebugMode) {
       // In debug mode, only show in debug builds
-      return kDebugMode && widget.controller.isVisible;
+      return kDebugMode && _bubbleController.isVisible;
     } else {
       // Always show if debug mode is disabled
-      return widget.controller.isVisible;
+      return _bubbleController.isVisible;
     }
   }
 
@@ -204,8 +214,8 @@ class _CurlBubbleState extends State<CurlBubble> {
             controller: _curlViewerController,
             onClose: () {
               // Close the expanded bubble
-              widget.controller.onMinimized?.call();
-              widget.controller.minimize();
+              _bubbleController.onMinimized?.call();
+              _bubbleController.minimize();
             },
           ),
         ),
@@ -216,7 +226,7 @@ class _CurlBubbleState extends State<CurlBubble> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.controller,
+      animation: _bubbleController,
       builder: (context, child) {
         // Check if we should show the bubble based on debug mode
         if (!_shouldShowBubble()) {
@@ -227,7 +237,7 @@ class _CurlBubbleState extends State<CurlBubble> {
         // Use RepaintBoundary to isolate repaints for better performance
         return RepaintBoundary(
           child: BubbleOverlay(
-            controller: widget.controller,
+            controller: _bubbleController,
             style: widget.style,
             body: widget.body,
             minimizedChild: _buildMinimizedChild(),

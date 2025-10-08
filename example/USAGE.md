@@ -203,8 +203,11 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: CurlBubble(
           body: YourMainContent(),
-          initialPosition: const Offset(50, 200),
-          snapToEdges: false,
+          // No controller needed - internal controller will be created automatically
+          style: BubbleStyle(
+            initialPosition: const Offset(50, 200),
+            snapToEdges: false,
+          ),
         ),
       ),
     );

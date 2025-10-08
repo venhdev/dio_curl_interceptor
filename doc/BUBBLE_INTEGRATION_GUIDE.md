@@ -29,8 +29,11 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: CurlBubble(
           body: YourMainContent(),
-          initialPosition: const Offset(50, 200),
-          snapToEdges: false,
+          // No controller needed - internal controller will be created automatically
+          style: BubbleStyle(
+            initialPosition: const Offset(50, 200),
+            snapToEdges: false,
+          ),
         ),
       ),
     );
@@ -55,10 +58,13 @@ class ScaffoldWithNavBarBuilder extends StatefulWidget {
     if (kDebugMode) {
       return CurlBubble(
         body: scaffoldContent,
-        initialPosition: const Offset(50, 200),
-        snapToEdges: false,
-        maxExpandedWidth: MediaQuery.of(context).size.width - 32,
-        maxExpandedHeight: MediaQuery.of(context).size.height * 0.8,
+        enableDebugMode: true, // Only show in debug builds
+        style: BubbleStyle(
+          initialPosition: const Offset(50, 200),
+          snapToEdges: false,
+          maxExpandedWidth: MediaQuery.of(context).size.width - 32,
+          maxExpandedHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
       );
     }
     
@@ -69,6 +75,69 @@ class ScaffoldWithNavBarBuilder extends StatefulWidget {
 
 That's it! You now have a floating bubble that shows cURL logs.
 
+## Controller Usage
+
+### Simple Usage (No Controller)
+
+The simplest way to use `CurlBubble` is without an external controller. The widget will create an internal controller automatically:
+
+```dart
+CurlBubble(
+  body: YourMainContent(),
+  // No controller needed - internal controller will be created automatically
+  style: BubbleStyle(
+    initialPosition: const Offset(50, 200),
+    snapToEdges: false,
+  ),
+)
+```
+
+### Advanced Usage (With External Controller)
+
+For advanced control over the bubble behavior, you can provide your own `BubbleOverlayController`:
+
+```dart
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late BubbleOverlayController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = BubbleOverlayController();
+    _controller.configure(
+      onExpanded: () => print('Bubble expanded'),
+      onMinimized: () => print('Bubble minimized'),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: CurlBubble(
+          body: YourMainContent(),
+          controller: _controller, // External controller for advanced control
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _controller.toggleVisibility(),
+          child: const Icon(Icons.visibility),
+        ),
+      ),
+    );
+  }
+}
+```
 
 ## Advanced Usage (Optional)
 

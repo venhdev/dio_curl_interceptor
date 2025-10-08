@@ -239,3 +239,4 @@ Completed Phase 2: UI Components and Integration - Added filters button to CurlV
 Completed Phase 3: Real-time Integration and Testing - Connected filter changes to active interceptors, added filter testing tools, created comprehensive tests, and updated documentation
 Implementation complete: CurlViewer filter editing functionality with real-time filter management, testing tools, and comprehensive test coverage
 Implementation complete: CurlViewer filter editing functionality with real-time filter management, testing tools, and comprehensive test coverage
+Made BubbleOverlayController optional in CurlBubble widget - internal controller created automatically when not provided
