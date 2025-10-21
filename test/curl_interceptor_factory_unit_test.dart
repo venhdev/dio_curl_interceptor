@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 import 'package:flutter_test/flutter_test.dart';
 

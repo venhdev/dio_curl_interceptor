@@ -70,7 +70,7 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = CurlViewerColors.theme(context);
+    final theme = CurlViewerColors.theme;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -179,7 +179,7 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
         ),
         const SizedBox(height: 4),
         DropdownButtonFormField<PathMatchType>(
-          value: _selectedMatchType,
+          initialValue: _selectedMatchType,
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(CurlViewerStyle.borderRadius),
@@ -242,7 +242,7 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
                   }
                 });
               },
-              selectedColor: theme.primary.withOpacity(0.2),
+              selectedColor: theme.primary.withValues(alpha: 0.2),
               checkmarkColor: theme.primary,
             );
           }).toList(),

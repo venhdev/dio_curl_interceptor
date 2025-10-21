@@ -56,7 +56,7 @@ class CurlEntryItem extends StatelessWidget {
   }
 
   BoxDecoration _buildDecoration(BuildContext context) {
-    final colors = CurlViewerColors.theme(context);
+    final colors = CurlViewerColors.theme;
     return BoxDecoration(
       gradient: LinearGradient(
         colors: [colors.surface, colors.surfaceContainer],
@@ -213,7 +213,7 @@ class CurlEntryItem extends StatelessWidget {
   }
 
   Widget _buildSubtitle(BuildContext context) {
-    final colors = CurlViewerColors.theme(context);
+    final colors = CurlViewerColors.theme;
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Text(

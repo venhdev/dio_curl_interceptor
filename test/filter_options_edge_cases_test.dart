@@ -124,7 +124,7 @@ void main() {
       });
 
       test('should handle very long path patterns', () {
-        final longPath = '/api/' + 'very-long-path-segment/' * 50 + 'endpoint';
+        final longPath = '/api/${'very-long-path-segment/' * 50}endpoint';
         final rule = FilterRule.exact(longPath);
 
         expect(rule.pathPattern, longPath);

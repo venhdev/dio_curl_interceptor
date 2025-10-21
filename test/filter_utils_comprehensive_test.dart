@@ -455,7 +455,7 @@ void main() {
       });
 
       test('should handle very long paths', () {
-        final longPath = '/api/' + 'very-long-segment/' * 100 + 'endpoint';
+        final longPath = '/api/${'very-long-segment/' * 100}endpoint';
         final longOptions = RequestOptions(
           path: longPath,
           method: 'GET',

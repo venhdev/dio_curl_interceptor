@@ -65,12 +65,11 @@ class CurlViewerColors {
   static const warning = _WarningColors();
 
   // ============================================================================
-  // THEME-AWARE COLORS - Adapt to light/dark themes
+  // STATIC THEME COLORS - Optimized for performance (no Theme.of lookups)
   // ============================================================================
 
-  /// Get theme-aware colors for the given context
-  static CurlViewerThemeColors theme(BuildContext context) =>
-      CurlViewerThemeColors(context);
+  /// Get static theme colors (no BuildContext needed for better performance)
+  static const theme = CurlViewerThemeColors();
 }
 
 /// Interactive elements colors (blue palette)
@@ -86,25 +85,33 @@ class _InteractiveColors {
   Color get backgroundLight => Colors.blue[25] ?? Colors.blue[50]!;
   Color get border => Colors.blue[200]!;
   Color get borderStrong => Colors.blue[400]!;
-  Color get shadow => Colors.blue.withOpacity(0.1);
-  Color get shadowStrong => Colors.blue.withOpacity(0.2);
+  Color get shadow => Colors.blue.withValues(alpha: 0.1);
+  Color get shadowStrong => Colors.blue.withValues(alpha: 0.2);
 }
 
 /// Neutral elements colors (grey palette)
 class _NeutralColors implements ColorPalette {
   const _NeutralColors();
 
+  @override
   Color get primary => Colors.grey[600]!;
+  @override
   Color get secondary => Colors.grey[400]!;
+  @override
   Color get light => Colors.grey[100]!;
+  @override
   Color get lighter => Colors.grey[50]!;
+  @override
   Color get dark => Colors.grey[700]!;
+  @override
   Color get background => Colors.grey[50]!;
   Color get backgroundLight => Colors.grey[25] ?? Colors.grey[50]!;
+  @override
   Color get border => Colors.grey[200]!;
   Color get borderStrong => Colors.grey[400]!;
-  Color get shadow => Colors.grey.withOpacity(0.1);
-  Color get shadowStrong => Colors.grey.withOpacity(0.2);
+  @override
+  Color get shadow => Colors.grey.withValues(alpha: 0.1);
+  Color get shadowStrong => Colors.grey.withValues(alpha: 0.2);
 }
 
 /// Warning elements colors (orange palette)
@@ -118,43 +125,39 @@ class _WarningColors {
   Color get dark => Colors.orange[700]!;
   Color get background => Colors.orange[100]!;
   Color get border => Colors.orange[200]!;
-  Color get shadow => Colors.orange.withOpacity(0.1);
+  Color get shadow => Colors.orange.withValues(alpha: 0.1);
 }
 
-/// Theme-aware colors that adapt to light/dark themes
+/// Static colors that don't depend on theme for better performance
 class CurlViewerThemeColors {
-  final BuildContext _context;
+  const CurlViewerThemeColors();
 
-  CurlViewerThemeColors(this._context);
+  // Background colors - using consistent dark theme colors
+  Color get surface => const Color(0xFF1E1E1E);
+  Color get surfaceContainer => const Color(0xFF2D2D2D);
 
-  ColorScheme get _scheme => Theme.of(_context).colorScheme;
-
-  // Background colors
-  Color get surface => _scheme.surface;
-  Color get surfaceContainer => _scheme.surfaceContainerHighest;
-
-  // Text colors
-  Color get onSurface => _scheme.onSurface;
-  Color get onSurfaceVariant => _scheme.onSurfaceVariant;
-  Color get onSurfaceSecondary => _scheme.onSurface.withOpacity(0.7);
-  Color get onSurfaceTertiary => _scheme.onSurface.withOpacity(0.6);
+  // Text colors - light text on dark background
+  Color get onSurface => const Color(0xFFE1E1E1);
+  Color get onSurfaceVariant => const Color(0xFFB0B0B0);
+  Color get onSurfaceSecondary => const Color(0xFFB0B0B0);
+  Color get onSurfaceTertiary => const Color(0xFF909090);
 
   // Border and outline colors
-  Color get outline => _scheme.outline;
-  Color get outlineLight => _scheme.outline.withOpacity(0.3);
-  Color get outlineStrong => _scheme.outline.withOpacity(0.5);
+  Color get outline => const Color(0xFF4A4A4A);
+  Color get outlineLight => const Color(0x4D4A4A4A);
+  Color get outlineStrong => const Color(0x804A4A4A);
 
   // Shadow colors
-  Color get shadow => _scheme.shadow;
-  Color get shadowLight => _scheme.shadow.withOpacity(0.05);
-  Color get shadowMedium => _scheme.shadow.withOpacity(0.1);
-  Color get shadowStrong => _scheme.shadow.withOpacity(0.3);
+  Color get shadow => const Color(0x1A000000);
+  Color get shadowLight => const Color(0x0D000000);
+  Color get shadowMedium => const Color(0x1A000000);
+  Color get shadowStrong => const Color(0x4D000000);
 
   // Primary theme colors
-  Color get primary => _scheme.primary;
-  Color get primaryContainer => _scheme.primaryContainer;
-  Color get onPrimary => _scheme.onPrimary;
-  Color get onPrimaryContainer => _scheme.onPrimaryContainer;
+  Color get primary => const Color(0xFF2196F3);
+  Color get primaryContainer => const Color(0xFF1976D2);
+  Color get onPrimary => const Color(0xFFFFFFFF);
+  Color get onPrimaryContainer => const Color(0xFFE3F2FD);
 }
 
 /// Display type for the CurlViewer
@@ -308,7 +311,7 @@ class _CurlViewerState extends State<CurlViewer> {
                 children: [
                   Icon(
                     Icons.filter_alt,
-                    color: CurlViewerColors.theme(context).primary,
+                    color: CurlViewerColors.theme.primary,
                     size: CurlViewerStyle.iconSize * 1.5,
                   ),
                   const SizedBox(width: 8),
@@ -317,7 +320,7 @@ class _CurlViewerState extends State<CurlViewer> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: CurlViewerColors.theme(context).onSurface,
+                      color: CurlViewerColors.theme.onSurface,
                     ),
                   ),
                   const Spacer(),
@@ -352,7 +355,7 @@ class _CurlViewerState extends State<CurlViewer> {
                 icon: const Icon(Icons.add),
                 label: const Text('Add Filter Rule'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: CurlViewerColors.theme(context).primary,
+                  backgroundColor: CurlViewerColors.theme.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
@@ -369,16 +372,14 @@ class _CurlViewerState extends State<CurlViewer> {
                           Icon(
                             Icons.filter_alt_outlined,
                             size: 64,
-                            color: CurlViewerColors.theme(context)
-                                .onSurfaceVariant,
+                            color: CurlViewerColors.theme.onSurfaceVariant,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'No filter rules configured',
                             style: TextStyle(
                               fontSize: 16,
-                              color: CurlViewerColors.theme(context)
-                                  .onSurfaceVariant,
+                              color: CurlViewerColors.theme.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -386,8 +387,7 @@ class _CurlViewerState extends State<CurlViewer> {
                             'Add a filter rule to block specific API requests',
                             style: TextStyle(
                               fontSize: 12,
-                              color: CurlViewerColors.theme(context)
-                                  .onSurfaceVariant,
+                              color: CurlViewerColors.theme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -402,21 +402,19 @@ class _CurlViewerState extends State<CurlViewer> {
                           child: ListTile(
                             leading: Icon(
                               Icons.filter_alt,
-                              color: CurlViewerColors.theme(context).primary,
+                              color: CurlViewerColors.theme.primary,
                             ),
                             title: Text(
                               filter.pathPattern,
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
-                                color:
-                                    CurlViewerColors.theme(context).onSurface,
+                                color: CurlViewerColors.theme.onSurface,
                               ),
                             ),
                             subtitle: Text(
                               '${filter.matchType.name} • ${filter.statusCode}',
                               style: TextStyle(
-                                color: CurlViewerColors.theme(context)
-                                    .onSurfaceVariant,
+                                color: CurlViewerColors.theme.onSurfaceVariant,
                               ),
                             ),
                             trailing: Row(
@@ -533,7 +531,7 @@ class _CurlViewerState extends State<CurlViewer> {
                 children: [
                   Icon(
                     Icons.play_arrow,
-                    color: CurlViewerColors.theme(context).primary,
+                    color: CurlViewerColors.theme.primary,
                     size: CurlViewerStyle.iconSize * 1.5,
                   ),
                   const SizedBox(width: 8),
@@ -542,7 +540,7 @@ class _CurlViewerState extends State<CurlViewer> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: CurlViewerColors.theme(context).onSurface,
+                      color: CurlViewerColors.theme.onSurface,
                     ),
                   ),
                   const Spacer(),
@@ -556,7 +554,7 @@ class _CurlViewerState extends State<CurlViewer> {
               Text(
                 'Test this filter rule against a sample request:',
                 style: TextStyle(
-                  color: CurlViewerColors.theme(context).onSurfaceVariant,
+                  color: CurlViewerColors.theme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 16),
@@ -588,6 +586,7 @@ class _CurlViewerState extends State<CurlViewer> {
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () async {
+                      final navigator = Navigator.of(context);
                       final testRequest = RequestOptions(
                         path: testUrlController.text,
                         method: testMethodController.text,
@@ -596,10 +595,9 @@ class _CurlViewerState extends State<CurlViewer> {
                       final result = await _filterService.testFilterRule(
                           rule, testRequest);
 
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                        _showTestResultDialog(result);
-                      }
+                      if (!mounted) return;
+                      navigator.pop();
+                      _showTestResultDialog(result);
                     },
                     child: const Text('Test'),
                   ),
@@ -635,7 +633,7 @@ class _CurlViewerState extends State<CurlViewer> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: CurlViewerColors.theme(context).onSurface,
+                      color: CurlViewerColors.theme.onSurface,
                     ),
                   ),
                   const Spacer(),
@@ -650,8 +648,8 @@ class _CurlViewerState extends State<CurlViewer> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: result.matches
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: result.matches ? Colors.green : Colors.red,
@@ -681,16 +679,14 @@ class _CurlViewerState extends State<CurlViewer> {
                       Text(
                         'Response Status: ${result.response!.statusCode}',
                         style: TextStyle(
-                          color:
-                              CurlViewerColors.theme(context).onSurfaceVariant,
+                          color: CurlViewerColors.theme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Response Data: ${result.response!.data}',
                         style: TextStyle(
-                          color:
-                              CurlViewerColors.theme(context).onSurfaceVariant,
+                          color: CurlViewerColors.theme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -769,7 +765,7 @@ class _CurlViewerState extends State<CurlViewer> {
   Future<void> _shareCurlCommand(CachedCurlEntry entry) async {
     try {
       final shareText = _buildShareableText(entry);
-      await Share.share(shareText);
+      await SharePlus.instance.share(ShareParams(text: shareText));
     } catch (e) {
       // Handle sharing errors gracefully
       if (mounted) {
@@ -902,8 +898,8 @@ class _CurlViewerState extends State<CurlViewer> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      CurlViewerColors.theme(context).surface,
-                      CurlViewerColors.theme(context).surfaceContainer,
+                      CurlViewerColors.theme.surface,
+                      CurlViewerColors.theme.surfaceContainer,
                     ],
                   ),
                 ),
@@ -1005,7 +1001,7 @@ class _CurlViewerState extends State<CurlViewer> {
           onSelected: _onStatusChanged,
           inputDecorationTheme: InputDecorationTheme(
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 12,
             ),
             filled: true,
@@ -1030,17 +1026,18 @@ class _CurlViewerState extends State<CurlViewer> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.white.withOpacity(0.1),
-            Colors.white.withOpacity(0.05),
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1059,7 +1056,7 @@ class _CurlViewerState extends State<CurlViewer> {
                   children: [
                     Icon(
                       Icons.calendar_today,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -1068,7 +1065,7 @@ class _CurlViewerState extends State<CurlViewer> {
                           ? 'All Dates'
                           : '${_formatDateTime(startDate)} - ${_formatDateTime(endDate!)}',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 12,
                       ),
                     ),
@@ -1092,7 +1089,7 @@ class _CurlViewerState extends State<CurlViewer> {
   }
 
   Widget _buildBottomActionButtons() {
-    final colors = CurlViewerColors.theme(context);
+    final colors = CurlViewerColors.theme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1232,7 +1229,7 @@ class _CurlViewerState extends State<CurlViewer> {
             borderRadius: BubbleBorderRadius.bottomSheetRadius,
             boxShadow: [
               BoxShadow(
-                color: CurlViewerColors.theme(context).shadowStrong,
+                color: CurlViewerColors.theme.shadowStrong,
                 blurRadius: 20,
                 offset: const Offset(0, -4),
               ),

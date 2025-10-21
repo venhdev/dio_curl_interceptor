@@ -16,15 +16,23 @@ class StatusColorPalette implements ColorPalette {
     required this.shadow,
   });
 
+  @override
   final Color primary;
+  @override
   final Color secondary;
+  @override
   final Color light;
+  @override
   final Color lighter;
+  @override
   final Color dark;
+  @override
   final Color background;
   final Color backgroundLight;
+  @override
   final Color border;
   final Color borderStrong;
+  @override
   final Color shadow;
 }
 

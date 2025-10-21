@@ -129,7 +129,7 @@ void advancedBlocking() {
         ),
 
       // Always block certain sensitive operations in non-production environments
-      if (isDevelopment || true) // Replace with proper environment check
+      if (isDevelopment) // Environment check
         FilterRule.regex(
           r'/api/(users|accounts)/delete/.*',
           statusCode: 403,

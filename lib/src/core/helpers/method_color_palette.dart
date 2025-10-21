@@ -14,13 +14,21 @@ class MethodColorPalette implements ColorPalette {
     required this.shadow,
   });
 
+  @override
   final Color primary;
+  @override
   final Color secondary;
+  @override
   final Color light;
+  @override
   final Color lighter;
+  @override
   final Color dark;
+  @override
   final Color background;
+  @override
   final Color border;
+  @override
   final Color shadow;
 }
 
