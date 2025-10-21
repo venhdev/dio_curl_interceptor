@@ -28,28 +28,33 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
   late final TextEditingController _pathController;
   late final TextEditingController _statusCodeController;
   late final TextEditingController _responseDataController;
-  
+
   PathMatchType _selectedMatchType = PathMatchType.exact;
   List<String> _selectedMethods = [];
   Map<String, dynamic> _headers = {};
-  
+
   final List<String> _availableMethods = [
-    'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'PATCH',
+    'HEAD',
+    'OPTIONS'
   ];
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize controllers with initial values
-    _pathController = TextEditingController(text: widget.initialRule?.pathPattern ?? '');
+    _pathController =
+        TextEditingController(text: widget.initialRule?.pathPattern ?? '');
     _statusCodeController = TextEditingController(
-      text: widget.initialRule?.statusCode.toString() ?? '403'
-    );
+        text: widget.initialRule?.statusCode.toString() ?? '403');
     _responseDataController = TextEditingController(
-      text: widget.initialRule?.responseData?.toString() ?? ''
-    );
-    
+        text: widget.initialRule?.responseData?.toString() ?? '');
+
     _selectedMatchType = widget.initialRule?.matchType ?? PathMatchType.exact;
     _selectedMethods = List<String>.from(widget.initialRule?.methods ?? []);
     _headers = Map<String, dynamic>.from(widget.initialRule?.headers ?? {});
@@ -66,7 +71,7 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = CurlViewerColors.theme(context);
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -376,12 +381,14 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
             ),
           )
         else
-          ..._headers.entries.map((entry) => _buildHeaderItem(entry.key, entry.value, theme)),
+          ..._headers.entries
+              .map((entry) => _buildHeaderItem(entry.key, entry.value, theme)),
       ],
     );
   }
 
-  Widget _buildHeaderItem(String key, dynamic value, CurlViewerThemeColors theme) {
+  Widget _buildHeaderItem(
+      String key, dynamic value, CurlViewerThemeColors theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(8),
@@ -487,7 +494,8 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
     final statusCode = int.tryParse(_statusCodeController.text) ?? 403;
     if (statusCode < 100 || statusCode > 599) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Status code must be between 100 and 599')),
+        const SnackBar(
+            content: Text('Status code must be between 100 and 599')),
       );
       return;
     }

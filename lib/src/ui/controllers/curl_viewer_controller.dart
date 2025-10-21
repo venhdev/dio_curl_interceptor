@@ -151,11 +151,13 @@ class CurlViewerController {
       }
 
       // Load active filters
-      final persistedFilters = await CurlViewerPersistenceService.loadActiveFilters();
+      final persistedFilters =
+          await CurlViewerPersistenceService.loadActiveFilters();
       activeFilters.value = persistedFilters;
 
       // Load filter editing mode
-      final persistedEditingMode = await CurlViewerPersistenceService.loadFilterEditingMode();
+      final persistedEditingMode =
+          await CurlViewerPersistenceService.loadFilterEditingMode();
       filterEditingMode.value = persistedEditingMode;
     } catch (e) {
       // Ignore persistence errors and continue with default values
@@ -265,7 +267,7 @@ class CurlViewerController {
     final currentFilters = List<FilterRule>.from(activeFilters.value);
     currentFilters.add(filter);
     activeFilters.value = currentFilters;
-    
+
     if (enablePersistence) {
       _scheduleStateSave();
     }
@@ -277,7 +279,7 @@ class CurlViewerController {
       final currentFilters = List<FilterRule>.from(activeFilters.value);
       currentFilters.removeAt(index);
       activeFilters.value = currentFilters;
-      
+
       if (enablePersistence) {
         _scheduleStateSave();
       }
@@ -290,7 +292,7 @@ class CurlViewerController {
       final currentFilters = List<FilterRule>.from(activeFilters.value);
       currentFilters[index] = filter;
       activeFilters.value = currentFilters;
-      
+
       if (enablePersistence) {
         _scheduleStateSave();
       }
@@ -300,7 +302,7 @@ class CurlViewerController {
   /// Clear all filter rules
   void clearAllFilters() {
     activeFilters.value = [];
-    
+
     if (enablePersistence) {
       _scheduleStateSave();
     }
@@ -309,7 +311,7 @@ class CurlViewerController {
   /// Toggle filter editing mode
   void toggleFilterEditingMode() {
     filterEditingMode.value = !filterEditingMode.value;
-    
+
     if (enablePersistence) {
       _scheduleStateSave();
     }
@@ -318,7 +320,7 @@ class CurlViewerController {
   /// Set filter editing mode
   void setFilterEditingMode(bool editing) {
     filterEditingMode.value = editing;
-    
+
     if (enablePersistence) {
       _scheduleStateSave();
     }
@@ -327,13 +329,13 @@ class CurlViewerController {
   /// Validate a filter rule
   bool validateFilter(FilterRule filter) {
     filterValidationError.value = null;
-    
+
     // Check if path pattern is empty
     if (filter.pathPattern.trim().isEmpty) {
       filterValidationError.value = 'Path pattern cannot be empty';
       return false;
     }
-    
+
     // Validate regex pattern if match type is regex
     if (filter.matchType == PathMatchType.regex) {
       try {
@@ -343,13 +345,13 @@ class CurlViewerController {
         return false;
       }
     }
-    
+
     // Validate status code
     if (filter.statusCode < 100 || filter.statusCode > 599) {
       filterValidationError.value = 'Status code must be between 100 and 599';
       return false;
     }
-    
+
     return true;
   }
 
@@ -411,7 +413,8 @@ class CurlViewerController {
       await CurlViewerPersistenceService.saveSelectedStatusChip(
           selectedStatusChip.value);
       await CurlViewerPersistenceService.saveActiveFilters(activeFilters.value);
-      await CurlViewerPersistenceService.saveFilterEditingMode(filterEditingMode.value);
+      await CurlViewerPersistenceService.saveFilterEditingMode(
+          filterEditingMode.value);
     } catch (e) {
       // Log error but don't fail the operation
       print('Failed to save state: $e');

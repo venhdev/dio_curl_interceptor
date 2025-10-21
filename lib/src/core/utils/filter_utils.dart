@@ -113,7 +113,7 @@ class FilterUtils {
         .replaceAll('?', '.')
         .replaceAll('*', '.*')
         .replaceAll('/**/', '(/.*)?/');
-    
+
     try {
       final regex = RegExp('^$regexPattern\$');
       return regex.hasMatch(text);

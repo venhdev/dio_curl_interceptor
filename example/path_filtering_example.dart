@@ -18,7 +18,7 @@ void main() async {
           'code': 'ACCESS_BLOCKED',
         },
       ),
-      
+
       // Block with a custom response for a specific endpoint
       FilterRule.exact(
         '/api/users/profile',
@@ -31,7 +31,7 @@ void main() async {
           'isMocked': true,
         },
       ),
-      
+
       // Use regex pattern to block all API calls to a specific version
       FilterRule.regex(
         r'/api/v1/.*',
@@ -41,7 +41,7 @@ void main() async {
         },
         statusCode: 410,
       ),
-      
+
       // Use glob pattern to block certain paths
       FilterRule.glob(
         '/api/admin/*',
@@ -83,7 +83,8 @@ void main() async {
   }
 
   // This request will be blocked but with a 200 status code and custom data
-  final profileResponse = await dio.get('https://example.com/api/users/profile');
+  final profileResponse =
+      await dio.get('https://example.com/api/users/profile');
   print('Profile response: ${profileResponse.data}');
 
   // This request will be blocked with a 410 Gone status (deprecated API)
@@ -108,10 +109,10 @@ void main() async {
 // Advanced example: Dynamic blocking based on conditions
 void advancedBlocking() {
   final dio = Dio();
-  
+
   // Create filter rules that change based on environment
   final bool isDevelopment = true; // In real code, get this from environment
-  
+
   // Create filter options with conditional rules
   final filterOptions = FilterOptions(
     enabled: true,
@@ -126,7 +127,7 @@ void advancedBlocking() {
             'user': {'id': 'dev-user', 'role': 'admin'},
           },
         ),
-        
+
       // Always block certain sensitive operations in non-production environments
       if (isDevelopment || true) // Replace with proper environment check
         FilterRule.regex(
@@ -138,7 +139,7 @@ void advancedBlocking() {
         ),
     ],
   );
-  
+
   // Add the interceptor
   dio.interceptors.add(
     CurlInterceptorFactory.create(

@@ -75,7 +75,15 @@ void main() {
       });
 
       test('should handle all HTTP methods', () {
-        final allMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+        final allMethods = [
+          'GET',
+          'POST',
+          'PUT',
+          'DELETE',
+          'PATCH',
+          'HEAD',
+          'OPTIONS'
+        ];
         final rule = FilterRule(
           pathPattern: '/api/test',
           methods: allMethods,
@@ -165,7 +173,8 @@ void main() {
       });
 
       test('should handle large number of rules', () {
-        final rules = List.generate(100, (index) => FilterRule.exact('/api/rule$index'));
+        final rules =
+            List.generate(100, (index) => FilterRule.exact('/api/rule$index'));
         final options = FilterOptions(rules: rules);
 
         expect(options.rules.length, 100);
@@ -325,13 +334,13 @@ void main() {
     group('Status Code Edge Cases', () {
       test('should handle various status codes', () {
         final statusCodes = [200, 201, 400, 401, 403, 404, 500, 503];
-        
+
         for (final statusCode in statusCodes) {
           final rule = FilterRule.exact(
             '/api/test$statusCode',
             statusCode: statusCode,
           );
-          
+
           expect(rule.statusCode, statusCode);
         }
       });
@@ -355,7 +364,7 @@ void main() {
       test('should handle default response data', () {
         final rule = FilterRule.exact('/api/test');
         final responseData = rule.responseData as Map<String, dynamic>;
-        
+
         expect(responseData['message'], contains('blocked by CurlInterceptor'));
       });
 

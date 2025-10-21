@@ -52,8 +52,10 @@ void main() {
         for (final testCase in testCases) {
           final requestOptions = testCase['options'] as RequestOptions;
           final expected = testCase['expected'] as bool;
-          expect(FilterUtils.shouldFilter(requestOptions, filterOptions), expected,
-              reason: 'Path ${requestOptions.path} should ${expected ? 'match' : 'not match'}');
+          expect(
+              FilterUtils.shouldFilter(requestOptions, filterOptions), expected,
+              reason:
+                  'Path ${requestOptions.path} should ${expected ? 'match' : 'not match'}');
         }
       });
 
@@ -69,7 +71,10 @@ void main() {
         final testCases = [
           {'options': RequestOptions(path: '/api/users'), 'expected': true},
           {'options': RequestOptions(path: '/api/v1/users'), 'expected': true},
-          {'options': RequestOptions(path: '/api/admin/settings'), 'expected': true},
+          {
+            'options': RequestOptions(path: '/api/admin/settings'),
+            'expected': true
+          },
           {'options': RequestOptions(path: '/api/products'), 'expected': true},
           {'options': RequestOptions(path: '/other/path'), 'expected': false},
           {'options': RequestOptions(path: '/api'), 'expected': false},
@@ -78,8 +83,10 @@ void main() {
         for (final testCase in testCases) {
           final requestOptions = testCase['options'] as RequestOptions;
           final expected = testCase['expected'] as bool;
-          expect(FilterUtils.shouldFilter(requestOptions, filterOptions), expected,
-              reason: 'Path ${requestOptions.path} should ${expected ? 'match' : 'not match'}');
+          expect(
+              FilterUtils.shouldFilter(requestOptions, filterOptions), expected,
+              reason:
+                  'Path ${requestOptions.path} should ${expected ? 'match' : 'not match'}');
         }
       });
 
@@ -106,8 +113,10 @@ void main() {
           method: 'GET',
         );
 
-        expect(FilterUtils.shouldFilter(emptyPathOptions, filterOptions), isTrue);
-        expect(FilterUtils.shouldFilter(options, filterOptions), isTrue); // Empty pattern matches all paths
+        expect(
+            FilterUtils.shouldFilter(emptyPathOptions, filterOptions), isTrue);
+        expect(FilterUtils.shouldFilter(options, filterOptions),
+            isTrue); // Empty pattern matches all paths
       });
 
       test('should handle case sensitivity in path matching', () {
@@ -127,8 +136,10 @@ void main() {
           method: 'GET',
         );
 
-        expect(FilterUtils.shouldFilter(upperCaseOptions, filterOptions), isTrue);
-        expect(FilterUtils.shouldFilter(lowerCaseOptions, filterOptions), isFalse);
+        expect(
+            FilterUtils.shouldFilter(upperCaseOptions, filterOptions), isTrue);
+        expect(
+            FilterUtils.shouldFilter(lowerCaseOptions, filterOptions), isFalse);
       });
     });
 
@@ -173,14 +184,22 @@ void main() {
           ],
         );
 
-        final methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
-        
+        final methods = [
+          'GET',
+          'POST',
+          'PUT',
+          'DELETE',
+          'PATCH',
+          'HEAD',
+          'OPTIONS'
+        ];
+
         for (final method in methods) {
           final methodOptions = RequestOptions(
             path: '/api/users',
             method: method,
           );
-          
+
           expect(FilterUtils.shouldFilter(methodOptions, filterOptions), isTrue,
               reason: 'Method $method should be filtered');
         }
@@ -236,8 +255,10 @@ void main() {
         for (final testCase in testCases) {
           final requestOptions = testCase['options'] as RequestOptions;
           final expected = testCase['expected'] as bool;
-          expect(FilterUtils.shouldFilter(requestOptions, filterOptions), expected,
-              reason: 'Path ${requestOptions.path} should ${expected ? 'be filtered' : 'not be filtered'}');
+          expect(
+              FilterUtils.shouldFilter(requestOptions, filterOptions), expected,
+              reason:
+                  'Path ${requestOptions.path} should ${expected ? 'be filtered' : 'not be filtered'}');
         }
       });
 
@@ -257,12 +278,13 @@ void main() {
       test('should return first matching rule', () {
         final rule1 = FilterRule.exact('/api/users', statusCode: 200);
         final rule2 = FilterRule.glob('/api/*', statusCode: 403);
-        
+
         final filterOptions = FilterOptions(
           rules: [rule1, rule2],
         );
 
-        final matchingRule = FilterUtils.getMatchingRule(options, filterOptions);
+        final matchingRule =
+            FilterUtils.getMatchingRule(options, filterOptions);
         expect(matchingRule, rule1);
         expect(matchingRule?.statusCode, 200);
       });
@@ -275,7 +297,8 @@ void main() {
           ],
         );
 
-        final matchingRule = FilterUtils.getMatchingRule(options, filterOptions);
+        final matchingRule =
+            FilterUtils.getMatchingRule(options, filterOptions);
         expect(matchingRule, isNull);
       });
 
@@ -286,7 +309,8 @@ void main() {
           exclusions: ['/api/users'],
         );
 
-        final matchingRule = FilterUtils.getMatchingRule(options, filterOptions);
+        final matchingRule =
+            FilterUtils.getMatchingRule(options, filterOptions);
         expect(matchingRule, isNull);
       });
     });
@@ -294,22 +318,26 @@ void main() {
     group('Response Generation', () {
       test('should generate response with default values', () async {
         final rule = FilterRule.exact('/api/users');
-        final response = await FilterUtils.generateBlockedResponse(options, rule);
+        final response =
+            await FilterUtils.generateBlockedResponse(options, rule);
 
         expect(response.statusCode, 403);
         expect(response.data, isA<Map>());
-        expect(response.data['message'], contains('blocked by CurlInterceptor'));
+        expect(
+            response.data['message'], contains('blocked by CurlInterceptor'));
         expect(response.headers.value('X-Blocked-By'), 'CurlInterceptor');
       });
 
-      test('should generate response with custom status code and data', () async {
+      test('should generate response with custom status code and data',
+          () async {
         final rule = FilterRule.exact(
           '/api/users',
           statusCode: 200,
           responseData: {'id': '123', 'name': 'Test User'},
         );
-        
-        final response = await FilterUtils.generateBlockedResponse(options, rule);
+
+        final response =
+            await FilterUtils.generateBlockedResponse(options, rule);
 
         expect(response.statusCode, 200);
         expect(response.data['id'], '123');
@@ -322,15 +350,18 @@ void main() {
           requestOptions: options,
           data: {'mock': 'data'},
           statusCode: 201,
-          headers: Headers.fromMap({'X-Mock': ['true']}),
+          headers: Headers.fromMap({
+            'X-Mock': ['true']
+          }),
         );
 
         final rule = FilterRule(
           pathPattern: '/api/users',
           mockResponse: mockResponse,
         );
-        
-        final response = await FilterUtils.generateBlockedResponse(options, rule);
+
+        final response =
+            await FilterUtils.generateBlockedResponse(options, rule);
 
         expect(response, mockResponse);
         expect(response.statusCode, 201);
@@ -347,8 +378,9 @@ void main() {
             'Authorization': 'Bearer token',
           },
         );
-        
-        final response = await FilterUtils.generateBlockedResponse(options, rule);
+
+        final response =
+            await FilterUtils.generateBlockedResponse(options, rule);
 
         expect(response.headers.value('X-Custom'), 'value');
         expect(response.headers.value('Content-Type'), 'application/json');
@@ -364,8 +396,9 @@ void main() {
             'X-Single': 'single-value',
           },
         );
-        
-        final response = await FilterUtils.generateBlockedResponse(options, rule);
+
+        final response =
+            await FilterUtils.generateBlockedResponse(options, rule);
 
         expect(response.headers['X-List'], ['value1', 'value2']);
         expect(response.headers.value('X-Single'), 'single-value');
@@ -377,20 +410,27 @@ void main() {
           {'type': 'number', 'data': 42},
           {'type': 'boolean', 'data': true},
           {'type': 'null', 'data': null},
-          {'type': 'list', 'data': [1, 2, 3]},
-          {'type': 'map', 'data': {'key': 'value'}},
+          {
+            'type': 'list',
+            'data': [1, 2, 3]
+          },
+          {
+            'type': 'map',
+            'data': {'key': 'value'}
+          },
         ];
 
         for (final testCase in testCases) {
           final dataType = testCase['type'] as String;
           final data = testCase['data'];
-          
+
           final rule = FilterRule.exact(
             '/api/test',
             responseData: data,
           );
-          
-          final response = await FilterUtils.generateBlockedResponse(options, rule);
+
+          final response =
+              await FilterUtils.generateBlockedResponse(options, rule);
           if (data == null) {
             // When null is passed, default response data is used
             expect(response.data, isA<Map>());

@@ -103,7 +103,7 @@ void main() {
 
       // The request should not be passed through
       verifyNever(handler.next(options));
-      
+
       // Instead, it should resolve with a response
       verify(handler.resolve(any)).called(1);
     });
@@ -135,7 +135,7 @@ void main() {
 
       // The request should not be passed through
       verifyNever(handler.next(options));
-      
+
       // Instead, it should resolve with a response
       verify(handler.resolve(any)).called(1);
     });

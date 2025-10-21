@@ -6,7 +6,8 @@ import '../options/curl_options.dart';
 
 /// Service to manage filter operations and bridge between UI and interceptors
 class FilterManagementService {
-  static final FilterManagementService _instance = FilterManagementService._internal();
+  static final FilterManagementService _instance =
+      FilterManagementService._internal();
   factory FilterManagementService() => _instance;
   FilterManagementService._internal();
 
@@ -14,7 +15,7 @@ class FilterManagementService {
   FilterOptions _currentFilterOptions = FilterOptions.disabled();
 
   /// Stream controller for filter updates
-  final StreamController<FilterOptions> _filterUpdateController = 
+  final StreamController<FilterOptions> _filterUpdateController =
       StreamController<FilterOptions>.broadcast();
 
   /// Stream of filter updates
@@ -33,13 +34,13 @@ class FilterManagementService {
   void addFilterRule(FilterRule rule) {
     final currentRules = List<FilterRule>.from(_currentFilterOptions.rules);
     currentRules.add(rule);
-    
+
     final newFilterOptions = FilterOptions(
       rules: currentRules,
       enabled: true,
       exclusions: _currentFilterOptions.exclusions,
     );
-    
+
     updateFilters(newFilterOptions);
   }
 
@@ -48,13 +49,13 @@ class FilterManagementService {
     if (index >= 0 && index < _currentFilterOptions.rules.length) {
       final currentRules = List<FilterRule>.from(_currentFilterOptions.rules);
       currentRules.removeAt(index);
-      
+
       final newFilterOptions = FilterOptions(
         rules: currentRules,
         enabled: currentRules.isNotEmpty,
         exclusions: _currentFilterOptions.exclusions,
       );
-      
+
       updateFilters(newFilterOptions);
     }
   }
@@ -64,13 +65,13 @@ class FilterManagementService {
     if (index >= 0 && index < _currentFilterOptions.rules.length) {
       final currentRules = List<FilterRule>.from(_currentFilterOptions.rules);
       currentRules[index] = rule;
-      
+
       final newFilterOptions = FilterOptions(
         rules: currentRules,
         enabled: true,
         exclusions: _currentFilterOptions.exclusions,
       );
-      
+
       updateFilters(newFilterOptions);
     }
   }
@@ -140,18 +141,19 @@ class FilterManagementService {
           filterOptions: testFilterOptions,
         ),
       );
-      
+
       // Use the interceptor to test the filter
       // ignore: unused_local_variable
       final _ = testInterceptor;
 
       // Test the filter
       final shouldBlock = _shouldBlockRequest(sampleRequest, testFilterOptions);
-      
+
       if (shouldBlock) {
         // Generate the blocked response
-        final blockedResponse = await _generateBlockedResponse(sampleRequest, rule);
-        
+        final blockedResponse =
+            await _generateBlockedResponse(sampleRequest, rule);
+
         return FilterTestResult(
           matches: true,
           response: blockedResponse,
@@ -179,7 +181,8 @@ class FilterManagementService {
   }
 
   /// Internal method to check if a request should be blocked
-  bool _shouldBlockRequest(RequestOptions request, FilterOptions filterOptions) {
+  bool _shouldBlockRequest(
+      RequestOptions request, FilterOptions filterOptions) {
     if (!filterOptions.enabled || filterOptions.rules.isEmpty) {
       return false;
     }
@@ -241,7 +244,7 @@ class FilterManagementService {
         .replaceAll('*', '.*')
         .replaceAll('?', '.')
         .replaceAll('.', r'\.');
-    
+
     try {
       return RegExp('^$regexPattern\$').hasMatch(path);
     } catch (e) {
@@ -261,15 +264,17 @@ class FilterManagementService {
     return Response(
       requestOptions: request,
       statusCode: rule.statusCode,
-      data: rule.responseData ?? {
-        'message': 'Request blocked by CurlInterceptor',
-        'path': request.path,
-        'method': request.method,
-      },
+      data: rule.responseData ??
+          {
+            'message': 'Request blocked by CurlInterceptor',
+            'path': request.path,
+            'method': request.method,
+          },
       headers: Headers.fromMap({
         'X-Blocked-By': ['CurlInterceptor'],
         'Content-Type': ['application/json'],
-        ...?rule.headers?.map((key, value) => MapEntry(key, [value.toString()])),
+        ...?rule.headers
+            ?.map((key, value) => MapEntry(key, [value.toString()])),
       }),
     );
   }
@@ -278,9 +283,13 @@ class FilterManagementService {
   FilterStatistics getFilterStatistics() {
     return FilterStatistics(
       totalRules: _currentFilterOptions.rules.length,
-      enabledRules: _currentFilterOptions.enabled ? _currentFilterOptions.rules.length : 0,
-      matchTypes: _currentFilterOptions.rules.map((r) => r.matchType).toSet().toList(),
-      statusCodes: _currentFilterOptions.rules.map((r) => r.statusCode).toSet().toList(),
+      enabledRules: _currentFilterOptions.enabled
+          ? _currentFilterOptions.rules.length
+          : 0,
+      matchTypes:
+          _currentFilterOptions.rules.map((r) => r.matchType).toSet().toList(),
+      statusCodes:
+          _currentFilterOptions.rules.map((r) => r.statusCode).toSet().toList(),
     );
   }
 

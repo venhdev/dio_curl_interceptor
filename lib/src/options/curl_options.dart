@@ -43,7 +43,7 @@ class CurlOptions {
         ),
         filterOptions: FilterOptions.disabled(),
       );
-      
+
   /// Creates CurlOptions with path filtering enabled
   factory CurlOptions.withFilters(FilterOptions filterOptions) => CurlOptions(
         filterOptions: filterOptions,

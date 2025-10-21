@@ -93,7 +93,8 @@ class CurlInterceptorV2 extends Interceptor {
     try {
       // Check if request should be blocked
       if (curlOptions.filterOptions.enabled) {
-        final matchingRule = FilterUtils.getMatchingRule(options, curlOptions.filterOptions);
+        final matchingRule =
+            FilterUtils.getMatchingRule(options, curlOptions.filterOptions);
         if (matchingRule != null) {
           // Log the blocked request
           developer.log(
@@ -102,7 +103,8 @@ class CurlInterceptorV2 extends Interceptor {
           );
 
           // Generate blocked response and return early
-          FilterUtils.generateBlockedResponse(options, matchingRule).then((response) {
+          FilterUtils.generateBlockedResponse(options, matchingRule)
+              .then((response) {
             // Log the blocked response
             CurlUtils.handleOnResponse(
               response,
@@ -110,7 +112,7 @@ class CurlInterceptorV2 extends Interceptor {
               webhookInspectors: webhookInspectors,
               stopwatch: null,
             );
-            
+
             // Return the blocked response
             handler.resolve(response);
           });

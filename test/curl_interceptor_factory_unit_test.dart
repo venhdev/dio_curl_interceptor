@@ -19,7 +19,8 @@ void main() {
         expect(interceptor, isA<CurlInterceptorV2>());
       });
 
-      test('should create interceptor with create method and filter options', () {
+      test('should create interceptor with create method and filter options',
+          () {
         final filterOptions = FilterOptions(
           rules: [
             FilterRule.exact('/api/test', statusCode: 403),
@@ -33,7 +34,8 @@ void main() {
         expect(interceptor, isA<CurlInterceptorV2>());
       });
 
-      test('should create interceptor with createV2 method and filter options', () {
+      test('should create interceptor with createV2 method and filter options',
+          () {
         final filterOptions = FilterOptions(
           rules: [
             FilterRule.exact('/api/test', statusCode: 403),
@@ -47,7 +49,8 @@ void main() {
         expect(interceptor, isA<CurlInterceptorV2>());
       });
 
-      test('should create interceptor with createV1 method and filter options', () {
+      test('should create interceptor with createV1 method and filter options',
+          () {
         final filterOptions = FilterOptions(
           rules: [
             FilterRule.exact('/api/test', statusCode: 403),
@@ -191,7 +194,8 @@ void main() {
           version: CurlInterceptorVersion.auto,
         );
 
-        expect(interceptor, isA<CurlInterceptorV2>()); // Auto-detection now defaults to V2
+        expect(interceptor,
+            isA<CurlInterceptorV2>()); // Auto-detection now defaults to V2
       });
     });
 
@@ -244,7 +248,8 @@ void main() {
     });
 
     group('Complex Scenarios', () {
-      test('should handle multiple interceptors with different blocking rules', () {
+      test('should handle multiple interceptors with different blocking rules',
+          () {
         // First interceptor with blocking
         final filterOptions1 = FilterOptions(
           rules: [
@@ -267,8 +272,10 @@ void main() {
           ],
         );
 
-        final interceptor1 = CurlInterceptorFactory.withFilters(filterOptions: filterOptions1);
-        final interceptor2 = CurlInterceptorFactory.withFilters(filterOptions: filterOptions2);
+        final interceptor1 =
+            CurlInterceptorFactory.withFilters(filterOptions: filterOptions1);
+        final interceptor2 =
+            CurlInterceptorFactory.withFilters(filterOptions: filterOptions2);
 
         expect(interceptor1, isA<CurlInterceptorV2>());
         expect(interceptor2, isA<CurlInterceptorV2>());
@@ -290,7 +297,8 @@ void main() {
           ],
         );
 
-        final v2Interceptor = CurlInterceptorFactory.createV2(filterOptions: filterOptions);
+        final v2Interceptor =
+            CurlInterceptorFactory.createV2(filterOptions: filterOptions);
 
         expect(v1Interceptor, isA<CurlInterceptor>());
         expect(v2Interceptor, isA<CurlInterceptorV2>());

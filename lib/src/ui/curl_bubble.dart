@@ -11,7 +11,7 @@ import 'controllers/curl_viewer_controller.dart';
 /// for accessing cURL logs without interrupting the app flow.
 ///
 /// The bubble can be controlled externally via [BubbleOverlayController] (optional)
-/// or will create an internal controller automatically. Supports debug mode 
+/// or will create an internal controller automatically. Supports debug mode
 /// integration for production-safe usage.
 ///
 /// **Performance Optimized**: Uses StatelessWidget with RepaintBoundary
@@ -87,7 +87,7 @@ class _CurlBubbleState extends State<CurlBubble> {
     _curlViewerController = widget.curlViewerController ??
         CurlViewerController(enablePersistence: true);
     _curlViewerController.initialize();
-    
+
     // Create internal controller if not provided
     _bubbleController = widget.controller ?? BubbleOverlayController();
   }

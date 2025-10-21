@@ -21,9 +21,9 @@ void main() {
     group('CurlViewerController Filter Management', () {
       test('should add filter rule', () {
         final rule = FilterRule.exact('/api/test');
-        
+
         controller.addFilter(rule);
-        
+
         expect(controller.activeFilters.value.length, 1);
         expect(controller.activeFilters.value.first.pathPattern, '/api/test');
       });
@@ -31,14 +31,14 @@ void main() {
       test('should remove filter rule', () {
         final rule1 = FilterRule.exact('/api/test1');
         final rule2 = FilterRule.exact('/api/test2');
-        
+
         controller.addFilter(rule1);
         controller.addFilter(rule2);
-        
+
         expect(controller.activeFilters.value.length, 2);
-        
+
         controller.removeFilter(0);
-        
+
         expect(controller.activeFilters.value.length, 1);
         expect(controller.activeFilters.value.first.pathPattern, '/api/test2');
       });
@@ -46,21 +46,22 @@ void main() {
       test('should update filter rule', () {
         final rule = FilterRule.exact('/api/test');
         controller.addFilter(rule);
-        
+
         final updatedRule = FilterRule.exact('/api/updated');
         controller.updateFilter(0, updatedRule);
-        
-        expect(controller.activeFilters.value.first.pathPattern, '/api/updated');
+
+        expect(
+            controller.activeFilters.value.first.pathPattern, '/api/updated');
       });
 
       test('should clear all filters', () {
         controller.addFilter(FilterRule.exact('/api/test1'));
         controller.addFilter(FilterRule.exact('/api/test2'));
-        
+
         expect(controller.activeFilters.value.length, 2);
-        
+
         controller.clearAllFilters();
-        
+
         expect(controller.activeFilters.value.length, 0);
       });
 
@@ -84,7 +85,8 @@ void main() {
         expect(controller.filterValidationError.value, isNotNull);
 
         // Invalid rule - bad status code
-        final badStatusCodeRule = FilterRule.exact('/api/test', statusCode: 999);
+        final badStatusCodeRule =
+            FilterRule.exact('/api/test', statusCode: 999);
         expect(controller.validateFilter(badStatusCodeRule), isFalse);
         expect(controller.filterValidationError.value, isNotNull);
       });
@@ -92,18 +94,18 @@ void main() {
       test('should get current filter options', () {
         controller.addFilter(FilterRule.exact('/api/test1'));
         controller.addFilter(FilterRule.exact('/api/test2'));
-        
+
         final options = controller.getCurrentFilterOptions();
-        
+
         expect(options.rules.length, 2);
         expect(options.enabled, isTrue);
       });
 
       test('should toggle filter editing mode', () {
         expect(controller.filterEditingMode.value, isFalse);
-        
+
         controller.toggleFilterEditingMode();
-        
+
         expect(controller.filterEditingMode.value, isTrue);
       });
     });
@@ -111,7 +113,7 @@ void main() {
     group('FilterManagementService', () {
       test('should validate filter rules', () {
         final filterService = FilterManagementService();
-        
+
         // Valid rule
         final validRule = FilterRule.exact('/api/test');
         final validResult = filterService.validateFilterRule(validRule);
@@ -134,8 +136,10 @@ void main() {
         expect(badRegexResult.errorMessage, isNotNull);
 
         // Invalid rule - bad status code
-        final badStatusCodeRule = FilterRule.exact('/api/test', statusCode: 999);
-        final badStatusCodeResult = filterService.validateFilterRule(badStatusCodeRule);
+        final badStatusCodeRule =
+            FilterRule.exact('/api/test', statusCode: 999);
+        final badStatusCodeResult =
+            filterService.validateFilterRule(badStatusCodeRule);
         expect(badStatusCodeResult.isValid, isFalse);
         expect(badStatusCodeResult.errorMessage, isNotNull);
       });
@@ -144,9 +148,9 @@ void main() {
         final filterService = FilterManagementService();
         final rule = FilterRule.exact('/api/test');
         final request = RequestOptions(path: '/api/test', method: 'GET');
-        
+
         final result = await filterService.testFilterRule(rule, request);
-        
+
         expect(result.matches, isTrue);
         expect(result.response, isNotNull);
         expect(result.response!.statusCode, 403);
@@ -159,7 +163,7 @@ void main() {
           onSave: (rule) {},
           onCancel: () {},
         );
-        
+
         expect(widget, isNotNull);
         expect(widget.initialRule, isNull);
       });
@@ -171,14 +175,15 @@ void main() {
           onSave: (updatedRule) {},
           onCancel: () {},
         );
-        
+
         expect(widget, isNotNull);
         expect(widget.initialRule, equals(rule));
       });
     });
 
     group('CurlViewer Integration', () {
-      testWidgets('should display filters button in header', (WidgetTester tester) async {
+      testWidgets('should display filters button in header',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -196,7 +201,8 @@ void main() {
         expect(find.byIcon(Icons.filter_alt), findsOneWidget);
       });
 
-      testWidgets('should open filters dialog when filters button is tapped', (WidgetTester tester) async {
+      testWidgets('should open filters dialog when filters button is tapped',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -219,7 +225,8 @@ void main() {
         expect(find.text('Add Filter Rule'), findsOneWidget);
       });
 
-      testWidgets('should show empty state when no filters', (WidgetTester tester) async {
+      testWidgets('should show empty state when no filters',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -239,13 +246,15 @@ void main() {
 
         // Should show empty state
         expect(find.text('No filter rules configured'), findsOneWidget);
-        expect(find.text('Add a filter rule to block specific API requests'), findsOneWidget);
+        expect(find.text('Add a filter rule to block specific API requests'),
+            findsOneWidget);
       });
 
-      testWidgets('should show filter list when filters exist', (WidgetTester tester) async {
+      testWidgets('should show filter list when filters exist',
+          (WidgetTester tester) async {
         // Add a filter
         controller.addFilter(FilterRule.exact('/api/test'));
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(

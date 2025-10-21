@@ -252,7 +252,7 @@ class _CurlViewerState extends State<CurlViewer> {
         CurlViewerController(enablePersistence: widget.enablePersistence);
     _filterService = FilterManagementService();
     _controller.initialize();
-    
+
     // Sync filter changes with the filter service
     _controller.activeFilters.addListener(_onFiltersChanged);
   }
@@ -261,7 +261,7 @@ class _CurlViewerState extends State<CurlViewer> {
   void dispose() {
     // Remove listener
     _controller.activeFilters.removeListener(_onFiltersChanged);
-    
+
     // Only dispose if we created the controller
     if (widget.controller == null) {
       _controller.dispose();
@@ -369,14 +369,16 @@ class _CurlViewerState extends State<CurlViewer> {
                           Icon(
                             Icons.filter_alt_outlined,
                             size: 64,
-                            color: CurlViewerColors.theme(context).onSurfaceVariant,
+                            color: CurlViewerColors.theme(context)
+                                .onSurfaceVariant,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'No filter rules configured',
                             style: TextStyle(
                               fontSize: 16,
-                              color: CurlViewerColors.theme(context).onSurfaceVariant,
+                              color: CurlViewerColors.theme(context)
+                                  .onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -384,7 +386,8 @@ class _CurlViewerState extends State<CurlViewer> {
                             'Add a filter rule to block specific API requests',
                             style: TextStyle(
                               fontSize: 12,
-                              color: CurlViewerColors.theme(context).onSurfaceVariant,
+                              color: CurlViewerColors.theme(context)
+                                  .onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -405,30 +408,35 @@ class _CurlViewerState extends State<CurlViewer> {
                               filter.pathPattern,
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
-                                color: CurlViewerColors.theme(context).onSurface,
+                                color:
+                                    CurlViewerColors.theme(context).onSurface,
                               ),
                             ),
                             subtitle: Text(
                               '${filter.matchType.name} • ${filter.statusCode}',
                               style: TextStyle(
-                                color: CurlViewerColors.theme(context).onSurfaceVariant,
+                                color: CurlViewerColors.theme(context)
+                                    .onSurfaceVariant,
                               ),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  onPressed: () => _showTestFilterDialog(filter),
+                                  onPressed: () =>
+                                      _showTestFilterDialog(filter),
                                   icon: const Icon(Icons.play_arrow),
                                   tooltip: 'Test Filter',
                                 ),
                                 IconButton(
-                                  onPressed: () => _showEditFilterDialog(index, filter),
+                                  onPressed: () =>
+                                      _showEditFilterDialog(index, filter),
                                   icon: const Icon(Icons.edit),
                                   tooltip: 'Edit',
                                 ),
                                 IconButton(
-                                  onPressed: () => _controller.removeFilter(index),
+                                  onPressed: () =>
+                                      _controller.removeFilter(index),
                                   icon: const Icon(Icons.delete),
                                   tooltip: 'Delete',
                                 ),
@@ -456,12 +464,14 @@ class _CurlViewerState extends State<CurlViewer> {
                 _controller.addFilter(rule);
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Filter rule added successfully')),
+                  const SnackBar(
+                      content: Text('Filter rule added successfully')),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(_controller.filterValidationError.value ?? 'Invalid filter rule'),
+                    content: Text(_controller.filterValidationError.value ??
+                        'Invalid filter rule'),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -486,12 +496,14 @@ class _CurlViewerState extends State<CurlViewer> {
                 _controller.updateFilter(index, updatedRule);
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Filter rule updated successfully')),
+                  const SnackBar(
+                      content: Text('Filter rule updated successfully')),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(_controller.filterValidationError.value ?? 'Invalid filter rule'),
+                    content: Text(_controller.filterValidationError.value ??
+                        'Invalid filter rule'),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -507,7 +519,7 @@ class _CurlViewerState extends State<CurlViewer> {
   void _showTestFilterDialog(FilterRule rule) {
     final testUrlController = TextEditingController(text: '/api/test');
     final testMethodController = TextEditingController(text: 'GET');
-    
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -580,9 +592,10 @@ class _CurlViewerState extends State<CurlViewer> {
                         path: testUrlController.text,
                         method: testMethodController.text,
                       );
-                      
-                      final result = await _filterService.testFilterRule(rule, testRequest);
-                      
+
+                      final result = await _filterService.testFilterRule(
+                          rule, testRequest);
+
                       if (mounted) {
                         Navigator.of(context).pop();
                         _showTestResultDialog(result);
@@ -636,7 +649,9 @@ class _CurlViewerState extends State<CurlViewer> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: result.matches ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                  color: result.matches
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: result.matches ? Colors.green : Colors.red,
@@ -646,7 +661,9 @@ class _CurlViewerState extends State<CurlViewer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      result.matches ? 'Filter would BLOCK this request' : 'Filter would ALLOW this request',
+                      result.matches
+                          ? 'Filter would BLOCK this request'
+                          : 'Filter would ALLOW this request',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: result.matches ? Colors.green : Colors.red,
@@ -664,14 +681,16 @@ class _CurlViewerState extends State<CurlViewer> {
                       Text(
                         'Response Status: ${result.response!.statusCode}',
                         style: TextStyle(
-                          color: CurlViewerColors.theme(context).onSurfaceVariant,
+                          color:
+                              CurlViewerColors.theme(context).onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Response Data: ${result.response!.data}',
                         style: TextStyle(
-                          color: CurlViewerColors.theme(context).onSurfaceVariant,
+                          color:
+                              CurlViewerColors.theme(context).onSurfaceVariant,
                         ),
                       ),
                     ],

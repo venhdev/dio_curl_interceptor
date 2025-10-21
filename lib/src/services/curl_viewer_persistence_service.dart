@@ -152,14 +152,16 @@ class CurlViewerPersistenceService {
       if (filters.isEmpty) {
         await prefs.remove(_keyActiveFilters);
       } else {
-        final filtersJson = filters.map((filter) => {
-          'pathPattern': filter.pathPattern,
-          'matchType': filter.matchType.name,
-          'methods': filter.methods,
-          'statusCode': filter.statusCode,
-          'responseData': filter.responseData,
-          'headers': filter.headers,
-        }).toList();
+        final filtersJson = filters
+            .map((filter) => {
+                  'pathPattern': filter.pathPattern,
+                  'matchType': filter.matchType.name,
+                  'methods': filter.methods,
+                  'statusCode': filter.statusCode,
+                  'responseData': filter.responseData,
+                  'headers': filter.headers,
+                })
+            .toList();
         await prefs.setString(_keyActiveFilters, jsonEncode(filtersJson));
       }
     });
@@ -181,7 +183,7 @@ class CurlViewerPersistenceService {
               (e) => e.name == filterMap['matchType'],
               orElse: () => PathMatchType.exact,
             ),
-            methods: filterMap['methods'] != null 
+            methods: filterMap['methods'] != null
                 ? List<String>.from(filterMap['methods'])
                 : null,
             statusCode: filterMap['statusCode'] as int? ?? 403,

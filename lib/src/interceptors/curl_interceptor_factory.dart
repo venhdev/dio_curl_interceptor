@@ -61,7 +61,7 @@ class CurlInterceptorFactory {
     } else if (filterOptions != null) {
       curlOptions = CurlOptions(filterOptions: filterOptions);
     }
-    
+
     switch (version) {
       case CurlInterceptorVersion.v1:
         return _createV1(curlOptions, cacheOptions, webhookInspectors);
@@ -87,7 +87,7 @@ class CurlInterceptorFactory {
     } else if (filterOptions != null) {
       curlOptions = CurlOptions(filterOptions: filterOptions);
     }
-    
+
     return _createV1(curlOptions, cacheOptions, webhookInspectors);
   }
 
@@ -106,10 +106,10 @@ class CurlInterceptorFactory {
     } else if (filterOptions != null) {
       curlOptions = CurlOptions(filterOptions: filterOptions);
     }
-    
+
     return _createV2(curlOptions, cacheOptions, webhookInspectors);
   }
-  
+
   /// Creates a CurlInterceptor with path filtering enabled
   ///
   /// This is a convenience method for creating an interceptor with path filtering.
@@ -125,7 +125,7 @@ class CurlInterceptorFactory {
     final options = curlOptions != null
         ? curlOptions.copyWith(filterOptions: filterOptions)
         : CurlOptions(filterOptions: filterOptions);
-    
+
     // Use the regular create method with the updated options
     return create(
       curlOptions: options,

@@ -289,7 +289,8 @@ void main() {
 
         interceptor.onRequest(putOptions, handler);
         await Future.delayed(Duration(milliseconds: 10));
-        verify(handler.resolve(any)).called(1); // Called once for DELETE, once for PUT
+        verify(handler.resolve(any))
+            .called(1); // Called once for DELETE, once for PUT
         verifyNever(handler.next(putOptions));
       });
     });
@@ -375,7 +376,8 @@ void main() {
 
         interceptor.onRequest(globOptions, handler);
         await Future.delayed(Duration(milliseconds: 10));
-        verify(handler.resolve(any)).called(1); // Called once for exact, once for glob
+        verify(handler.resolve(any))
+            .called(1); // Called once for exact, once for glob
         verifyNever(handler.next(globOptions));
       });
     });

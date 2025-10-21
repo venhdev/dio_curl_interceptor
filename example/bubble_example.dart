@@ -60,7 +60,8 @@ class _BubbleExampleHomeState extends State<BubbleExampleHome> {
           ? CurlBubble(
               // Wrap the main content with CurlBubble
               body: _buildMainContent(),
-              controller: _bubbleController, // Using external controller for programmatic control
+              controller:
+                  _bubbleController, // Using external controller for programmatic control
               style: BubbleStyle(
                 initialPosition: const Offset(50, 200),
                 snapToEdges: true,
@@ -177,7 +178,8 @@ class CustomBubbleExample extends StatelessWidget {
             style: TextStyle(fontSize: 24),
           ),
         ),
-        controller: controller, // Using external controller for advanced control
+        controller:
+            controller, // Using external controller for advanced control
         customMinimizedChild: Container(
           width: 70,
           height: 70,
