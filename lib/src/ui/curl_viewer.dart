@@ -132,20 +132,20 @@ class _WarningColors {
 class CurlViewerThemeColors {
   const CurlViewerThemeColors();
 
-  // Background colors - using consistent dark theme colors
-  Color get surface => const Color(0xFF1E1E1E);
-  Color get surfaceContainer => const Color(0xFF2D2D2D);
+  // Background colors - using lighter theme colors for better readability
+  Color get surface => const Color(0xFFF5F5F5);
+  Color get surfaceContainer => const Color(0xFFEBEBEB);
 
-  // Text colors - light text on dark background
-  Color get onSurface => const Color(0xFFE1E1E1);
-  Color get onSurfaceVariant => const Color(0xFFB0B0B0);
-  Color get onSurfaceSecondary => const Color(0xFFB0B0B0);
-  Color get onSurfaceTertiary => const Color(0xFF909090);
+  // Text colors - dark text on light background
+  Color get onSurface => const Color(0xFF212121);
+  Color get onSurfaceVariant => const Color(0xFF424242);
+  Color get onSurfaceSecondary => const Color(0xFF616161);
+  Color get onSurfaceTertiary => const Color(0xFF757575);
 
   // Border and outline colors
-  Color get outline => const Color(0xFF4A4A4A);
-  Color get outlineLight => const Color(0x4D4A4A4A);
-  Color get outlineStrong => const Color(0x804A4A4A);
+  Color get outline => const Color(0xFFBDBDBD);
+  Color get outlineLight => const Color(0xFFE0E0E0);
+  Color get outlineStrong => const Color(0xFF9E9E9E);
 
   // Shadow colors
   Color get shadow => const Color(0x1A000000);
@@ -961,10 +961,13 @@ class _CurlViewerState extends State<CurlViewer> {
   Widget _buildEmptyState() {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: const Center(
+      child: Center(
         child: Text(
           'No cURL entries found',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 16,
+            color: CurlViewerColors.theme.onSurfaceVariant,
+          ),
         ),
       ),
     );
@@ -990,7 +993,10 @@ class _CurlViewerState extends State<CurlViewer> {
                                   ? 5
                                   : null,
           hintText: 'All Status',
-          textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+          textStyle: TextStyle(
+            color: CurlViewerColors.theme.onSurface,
+            fontSize: 12,
+          ),
           dropdownMenuEntries: const [
             DropdownMenuEntry<int>(value: 1, label: 'Informational (1xx)'),
             DropdownMenuEntry<int>(value: 2, label: 'Success (2xx)'),
@@ -1001,19 +1007,21 @@ class _CurlViewerState extends State<CurlViewer> {
           onSelected: _onStatusChanged,
           inputDecorationTheme: InputDecorationTheme(
             hintStyle: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: CurlViewerColors.theme.onSurfaceVariant,
               fontSize: 12,
             ),
             filled: true,
             isCollapsed: true,
             isDense: true,
-            fillColor: Colors.grey.shade800,
+            fillColor: CurlViewerColors.theme.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(
+                color: CurlViewerColors.theme.outline,
+              ),
             ),
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           ),
         );
       },
@@ -1026,18 +1034,20 @@ class _CurlViewerState extends State<CurlViewer> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.white.withValues(alpha: 0.1),
-            Colors.white.withValues(alpha: 0.05),
+            CurlViewerColors.theme.surfaceContainer,
+            CurlViewerColors.theme.surface,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(
+          color: CurlViewerColors.theme.outline,
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: CurlViewerColors.theme.shadowLight,
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1056,7 +1066,7 @@ class _CurlViewerState extends State<CurlViewer> {
                   children: [
                     Icon(
                       Icons.calendar_today,
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: CurlViewerColors.theme.onSurfaceVariant,
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -1065,7 +1075,7 @@ class _CurlViewerState extends State<CurlViewer> {
                           ? 'All Dates'
                           : '${_formatDateTime(startDate)} - ${_formatDateTime(endDate!)}',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: CurlViewerColors.theme.onSurface,
                         fontSize: 12,
                       ),
                     ),

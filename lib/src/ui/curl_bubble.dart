@@ -122,8 +122,8 @@ class _CurlBubbleState extends State<CurlBubble> {
     }
 
     return Container(
-      width: 48,
-      height: 48,
+      width: 42,
+      height: 42,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -156,7 +156,7 @@ class _CurlBubbleState extends State<CurlBubble> {
         child: Icon(
           Icons.terminal,
           color: Colors.white,
-          size: 24,
+          size: 18,
           shadows: [
             Shadow(
               color: Colors.black,
