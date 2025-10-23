@@ -9,6 +9,7 @@ class CurlViewerHeader extends StatelessWidget {
   final VoidCallback? onClose;
   final bool showCloseButton;
   final VoidCallback? onFiltersPressed;
+  final VoidCallback? onClearAll;
 
   const CurlViewerHeader({
     super.key,
@@ -18,6 +19,7 @@ class CurlViewerHeader extends StatelessWidget {
     this.onClose,
     this.showCloseButton = false,
     this.onFiltersPressed,
+    this.onClearAll,
   });
 
   @override
@@ -34,15 +36,15 @@ class CurlViewerHeader extends StatelessWidget {
                   _buildTerminalIcon(),
                   const SizedBox(width: 8),
                   _buildSearchBar(),
+                  if (onFiltersPressed != null || onClearAll != null) ...[
+                    const SizedBox(width: 8),
+                    _buildDropdownButton(),
+                  ],
                   const SizedBox(width: 8),
                   _buildReloadButton(),
-                  if (onFiltersPressed != null) ...[
-                    const SizedBox(width: 8),
-                    _buildFiltersButton(),
-                  ],
                   if (showCloseButton) ...[
                     const SizedBox(width: 8),
-                    _buildCloseButton(),
+                    _buildCloseButton(onClose),
                   ],
                 ],
               ),
@@ -148,7 +150,7 @@ class CurlViewerHeader extends StatelessWidget {
         child: TextField(
           controller: searchController,
           decoration: InputDecoration(
-            hintText: 'Search by status, cURL, response, URL...',
+            hintText: 'Search...',
             hintStyle: TextStyle(
               fontSize: 12,
               color: Colors.white.withValues(alpha: 0.7),
@@ -221,77 +223,84 @@ class CurlViewerHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildFiltersButton() {
-    return Container(
-      height: 36,
-      width: 36,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.orange.withValues(alpha: 0.2),
-            Colors.orange.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.orange.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+  Widget _buildDropdownButton() {
+    return PopupMenuButton(
+      padding: EdgeInsets.zero,
+      icon: Icon(Icons.filter_list,
+          color: Colors.white), // Giữ nguyên icon và màu sắc
+      offset: Offset(0, 40),
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      constraints: BoxConstraints(maxHeight: 150), // Chiều cao khi mở
+      itemBuilder: (context) => [
+        if (onFiltersPressed != null)
+          PopupMenuItem(
+            onTap: onFiltersPressed,
+            child: Row(
+              children: [
+                _buildMenuItemIcon(Icons.filter_alt_outlined,
+                    color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Filters'),
+              ],
+            ),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onFiltersPressed,
-          child: const Icon(Icons.filter_alt, size: 18, color: Colors.white),
-        ),
-      ),
+        if (onClearAll != null)
+          PopupMenuItem(
+            onTap: onClearAll,
+            child: Row(
+              children: [
+                _buildMenuItemIcon(Icons.delete_sweep_outlined,
+                    color: Colors.red),
+                SizedBox(width: 8),
+                Text('Clear All'),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildCloseButton() {
-    return Container(
-      height: 36,
-      width: 36,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.red.withValues(alpha: 0.2),
-            Colors.red.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.red.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
+  Widget _buildMenuItemIcon(IconData iconData, {Color? color}) {
+    return Icon(iconData, size: 20, color: color);
+  }
+}
+
+Widget _buildCloseButton(void Function()? onClose) {
+  return Container(
+    height: 36,
+    width: 36,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.red.withValues(alpha: 0.2),
+          Colors.red.withValues(alpha: 0.1),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onClose,
-          child: const Icon(Icons.close, size: 18, color: Colors.white),
-        ),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: Colors.red.withValues(alpha: 0.4),
+        width: 1.5,
       ),
-    );
-  }
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.2),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onClose,
+        child: const Icon(Icons.close, size: 18, color: Colors.white),
+      ),
+    ),
+  );
 }

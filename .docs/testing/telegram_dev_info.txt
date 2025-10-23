@@ -1,8 +1,0 @@
-authentication token:8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI
-chat_id:-1003019608685
-
----dev group info
-getUpdates: https://api.telegram.org/bot8337409194:AAEEQsVMNzRLSn-lTvomyMSX9JmvnCWX5jI/getUpdates
-json:
-{"ok":true,"result":[{"update_id":267372657,
-"message":{"message_id":10,"from":{"id":6358225966,"is_bot":false,"first_name":"Venh Dev","username":"venhdev","language_code":"en"},"chat":{"id":-1003019608685,"title":"CDS API Report","type":"supergroup"},"date":1758013269,"text":"yo"}}]}

@@ -164,7 +164,7 @@ class CurlEntryItem extends StatelessWidget {
           color: colorPalette.dark,
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
+          // letterSpacing: 0.5,
         ),
       ),
     );
@@ -297,15 +297,14 @@ class CurlEntryItem extends StatelessWidget {
   }
 
   String _formatDateTime(DateTime dateTime, {bool includeTime = false}) {
-    final year = dateTime.year.toString();
     final month = dateTime.month.toString().padLeft(2, '0');
     final day = dateTime.day.toString().padLeft(2, '0');
     if (includeTime) {
       final hour = dateTime.hour.toString().padLeft(2, '0');
       final minute = dateTime.minute.toString().padLeft(2, '0');
       final second = dateTime.second.toString().padLeft(2, '0');
-      return '$year-$month-$day $hour:$minute:$second';
+      return '$day-$month $hour:$minute:$second';
     }
-    return '$year-$month-$day';
+    return '$day-$month';
   }
 }

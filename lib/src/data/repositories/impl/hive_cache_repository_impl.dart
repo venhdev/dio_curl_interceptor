@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
@@ -22,35 +23,71 @@ class HiveCacheRepositoryImpl implements CacheRepository {
     return true;
   }
 
-  @override
-  Future<void> init() async {
-    if (Hive.isBoxOpen(_boxName)) {
-      // Already initialized
-      ColoredLogger.warning('HiveCacheRepositoryImpl is already initialized.');
-      return;
+  Future<bool> _openHiveBox(Uint8List? encryptionKey) async {
+    try {
+      if (encryptionKey != null) {
+        await Hive.openBox<CachedCurlEntry>(
+          _boxName,
+          encryptionCipher: HiveAesCipher(encryptionKey),
+        );
+      } else {
+        await Hive.openBox<CachedCurlEntry>(_boxName);
+      }
+      return true;
+    } catch (e) {
+      ColoredLogger.error('Failed to open Hive box: $e');
+      ColoredLogger.warning('Attempting to delete and recreate the box without encryption...');
+      await Hive.deleteBoxFromDisk(_boxName);
+      try {
+        await Hive.openBox<CachedCurlEntry>(_boxName);
+        return true;
+      } catch (e2) {
+        ColoredLogger.error('Failed to open Hive box even without encryption: $e2');
+        return false;
+      }
     }
-    final dir = await getApplicationDocumentsDirectory();
-    Hive.init(dir.path);
-    Hive.registerAdapter(CachedCurlEntryAdapter());
+  }
 
+  Future<Uint8List?> _getEncryptionKey() async {
     const secureStorage = FlutterSecureStorage();
-    final encryptionKey = await secureStorage.read(key: 'hive_encryption_key');
+    String? encryptionKey = await secureStorage.read(key: 'hive_encryption_key');
+
     if (encryptionKey == null) {
       final key = Hive.generateSecureKey();
       await secureStorage.write(
         key: 'hive_encryption_key',
         value: base64UrlEncode(key),
       );
+      encryptionKey = base64UrlEncode(key); // Update encryptionKey with the newly generated one
     }
-    final key = await secureStorage.read(key: 'hive_encryption_key');
-    final encryptionKeyUint8List = base64Url.decode(key!);
 
-    await Hive.openBox<CachedCurlEntry>(
-      _boxName,
-      encryptionCipher: HiveAesCipher(encryptionKeyUint8List),
-    ).then((value) {
-      ColoredLogger.success('HiveCacheRepositoryImpl initialized.');
-    });
+    return base64Url.decode(encryptionKey);
+  }
+
+  @override
+  Future<void> init() async {
+    if (Hive.isBoxOpen(_boxName)) {
+      ColoredLogger.warning('HiveCacheRepositoryImpl is already initialized.');
+      return;
+    }
+
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      Hive.init(dir.path);
+
+      if (!Hive.isAdapterRegistered(CachedCurlEntryAdapter().typeId)) {
+        Hive.registerAdapter(CachedCurlEntryAdapter());
+      }
+
+      final encryptionKey = await _getEncryptionKey();
+      await _openHiveBox(encryptionKey);
+    } catch (e) {
+      ColoredLogger.error('Failed to initialize HiveCacheRepositoryImpl: $e');
+      // Fire and forget: Do not rethrow the exception
+    }
   }
 
   @override
@@ -142,7 +179,6 @@ class HiveCacheRepositoryImpl implements CacheRepository {
       final lower = search.toLowerCase();
       entries = entries.where((entry) =>
           entry.curlCommand.toLowerCase().contains(lower) ||
-          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
           entry.statusCode.toString().contains(lower) ||
           (entry.url ?? '').toLowerCase().contains(lower));
     }

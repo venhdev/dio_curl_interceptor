@@ -19,28 +19,79 @@ import '../options/filter_options.dart';
 import '../services/filter_management_service.dart';
 
 /// Global configuration style for CurlViewer
+/// Standardized styling system to ensure consistent appearance across different applications
 class CurlViewerStyle {
   // Private constructor to prevent instantiation
   CurlViewerStyle._();
 
-  // Border radius for all elements
+  // Dimensions
   static const double borderRadius = 12.0;
-
-  // Height for all elements
   static const double height = 32.0;
-
-  // Padding for all elements
-  static const EdgeInsets padding =
-      EdgeInsets.symmetric(horizontal: 12, vertical: 6);
-
-  // Icon size for all elements
   static const double iconSize = 16.0;
-
-  // Font size for all elements
   static const double fontSize = 12.0;
-
-  // Border width for all elements
   static const double borderWidth = 1.5;
+  static const double smallSpacing = 4.0;
+  static const double mediumSpacing = 8.0;
+  static const double largeSpacing = 16.0;
+  static const double extraLargeSpacing = 24.0;
+
+  // Paddings
+  static const EdgeInsets padding = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 6,
+  );
+  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(
+    horizontal: 16,
+    vertical: 8,
+  );
+  static const EdgeInsets contentPadding = EdgeInsets.all(16);
+  static const EdgeInsets cardPadding = EdgeInsets.all(12);
+  static const EdgeInsets dialogPadding = EdgeInsets.all(16);
+
+  // Text Styles
+  static TextStyle get titleStyle =>
+      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 1.2);
+
+  static TextStyle get subtitleStyle =>
+      const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, height: 1.2);
+
+  static TextStyle get bodyStyle =>
+      const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, height: 1.4);
+
+  static TextStyle get captionStyle =>
+      const TextStyle(fontSize: 10, fontWeight: FontWeight.normal, height: 1.2);
+
+  // Button Styles
+  static ButtonStyle get primaryButtonStyle => ButtonStyle(
+    padding: WidgetStateProperty.all(buttonPadding),
+    minimumSize: WidgetStateProperty.all(const Size(64, height)),
+    shape: WidgetStateProperty.all(
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius)),
+    ),
+  );
+
+  static ButtonStyle get secondaryButtonStyle => ButtonStyle(
+    padding: WidgetStateProperty.all(buttonPadding),
+    minimumSize: WidgetStateProperty.all(const Size(64, height)),
+    shape: WidgetStateProperty.all(
+      RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius),
+        side: BorderSide(
+          width: borderWidth,
+          color: CurlViewerColors.theme.outline,
+        ),
+      ),
+    ),
+  );
+
+  // Input Decoration
+  static InputDecoration get inputDecoration => InputDecoration(
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(borderRadius),
+      borderSide: BorderSide(width: borderWidth),
+    ),
+    contentPadding: padding,
+  );
 }
 
 /// Reusable color palette for CurlViewer component
@@ -161,12 +212,7 @@ class CurlViewerThemeColors {
 }
 
 /// Display type for the CurlViewer
-enum CurlViewerDisplayType {
-  dialog,
-  bottomSheet,
-  fullScreen,
-  bubble,
-}
+enum CurlViewerDisplayType { dialog, bottomSheet, fullScreen, bubble }
 
 /// Shows the CurlViewer in different display modes
 void showCurlViewer(
@@ -251,7 +297,8 @@ class _CurlViewerState extends State<CurlViewer> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ??
+    _controller =
+        widget.controller ??
         CurlViewerController(enablePersistence: widget.enablePersistence);
     _filterService = FilterManagementService();
     _controller.initialize();
@@ -304,7 +351,7 @@ class _CurlViewerState extends State<CurlViewer> {
         child: Container(
           width: MediaQuery.of(context).size.width * 0.8,
           height: MediaQuery.of(context).size.height * 0.8,
-          padding: const EdgeInsets.all(16),
+          padding: CurlViewerStyle.dialogPadding,
           child: Column(
             children: [
               Row(
@@ -314,26 +361,27 @@ class _CurlViewerState extends State<CurlViewer> {
                     color: CurlViewerColors.theme.primary,
                     size: CurlViewerStyle.iconSize * 1.5,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CurlViewerStyle.mediumSpacing),
                   Text(
                     'Filter Rules',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    style: CurlViewerStyle.titleStyle.copyWith(
                       color: CurlViewerColors.theme.onSurface,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(
+                      Icons.close,
+                      size: CurlViewerStyle.iconSize,
+                    ),
+                    padding: CurlViewerStyle.padding,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _buildFiltersContent(),
-              ),
+              SizedBox(height: CurlViewerStyle.largeSpacing),
+              Expanded(child: _buildFiltersContent()),
             ],
           ),
         ),
@@ -352,16 +400,23 @@ class _CurlViewerState extends State<CurlViewer> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () => _showAddFilterDialog(),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Filter Rule'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: CurlViewerColors.theme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                icon: const Icon(Icons.add, size: CurlViewerStyle.iconSize),
+                label: Text(
+                  'Add Filter Rule',
+                  style: CurlViewerStyle.bodyStyle.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                style: CurlViewerStyle.primaryButtonStyle.copyWith(
+                  backgroundColor: WidgetStateProperty.all(
+                    CurlViewerColors.theme.primary,
+                  ),
+                  foregroundColor: WidgetStateProperty.all(Colors.white),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: CurlViewerStyle.largeSpacing),
             // Filters list
             Expanded(
               child: filters.isEmpty
@@ -374,19 +429,17 @@ class _CurlViewerState extends State<CurlViewer> {
                             size: 64,
                             color: CurlViewerColors.theme.onSurfaceVariant,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: CurlViewerStyle.largeSpacing),
                           Text(
                             'No filter rules configured',
-                            style: TextStyle(
-                              fontSize: 16,
+                            style: CurlViewerStyle.subtitleStyle.copyWith(
                               color: CurlViewerColors.theme.onSurfaceVariant,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: CurlViewerStyle.smallSpacing),
                           Text(
                             'Add a filter rule to block specific API requests',
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: CurlViewerStyle.bodyStyle.copyWith(
                               color: CurlViewerColors.theme.onSurfaceVariant,
                             ),
                           ),
@@ -398,22 +451,29 @@ class _CurlViewerState extends State<CurlViewer> {
                       itemBuilder: (context, index) {
                         final filter = filters[index];
                         return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
+                          margin: EdgeInsets.only(
+                            bottom: CurlViewerStyle.mediumSpacing,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              CurlViewerStyle.borderRadius,
+                            ),
+                          ),
                           child: ListTile(
                             leading: Icon(
                               Icons.filter_alt,
                               color: CurlViewerColors.theme.primary,
+                              size: CurlViewerStyle.iconSize,
                             ),
                             title: Text(
                               filter.pathPattern,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
+                              style: CurlViewerStyle.subtitleStyle.copyWith(
                                 color: CurlViewerColors.theme.onSurface,
                               ),
                             ),
                             subtitle: Text(
                               '${filter.matchType.name} • ${filter.statusCode}',
-                              style: TextStyle(
+                              style: CurlViewerStyle.bodyStyle.copyWith(
                                 color: CurlViewerColors.theme.onSurfaceVariant,
                               ),
                             ),
@@ -423,20 +483,35 @@ class _CurlViewerState extends State<CurlViewer> {
                                 IconButton(
                                   onPressed: () =>
                                       _showTestFilterDialog(filter),
-                                  icon: const Icon(Icons.play_arrow),
+                                  icon: const Icon(
+                                    Icons.play_arrow,
+                                    size: CurlViewerStyle.iconSize,
+                                  ),
                                   tooltip: 'Test Filter',
+                                  padding: CurlViewerStyle.padding,
+                                  constraints: const BoxConstraints(),
                                 ),
                                 IconButton(
                                   onPressed: () =>
                                       _showEditFilterDialog(index, filter),
-                                  icon: const Icon(Icons.edit),
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    size: CurlViewerStyle.iconSize,
+                                  ),
                                   tooltip: 'Edit',
+                                  padding: CurlViewerStyle.padding,
+                                  constraints: const BoxConstraints(),
                                 ),
                                 IconButton(
                                   onPressed: () =>
                                       _controller.removeFilter(index),
-                                  icon: const Icon(Icons.delete),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    size: CurlViewerStyle.iconSize,
+                                  ),
                                   tooltip: 'Delete',
+                                  padding: CurlViewerStyle.padding,
+                                  constraints: const BoxConstraints(),
                                 ),
                               ],
                             ),
@@ -463,13 +538,16 @@ class _CurlViewerState extends State<CurlViewer> {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text('Filter rule added successfully')),
+                    content: Text('Filter rule added successfully'),
+                  ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(_controller.filterValidationError.value ??
-                        'Invalid filter rule'),
+                    content: Text(
+                      _controller.filterValidationError.value ??
+                          'Invalid filter rule',
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -495,13 +573,16 @@ class _CurlViewerState extends State<CurlViewer> {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text('Filter rule updated successfully')),
+                    content: Text('Filter rule updated successfully'),
+                  ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(_controller.filterValidationError.value ??
-                        'Invalid filter rule'),
+                    content: Text(
+                      _controller.filterValidationError.value ??
+                          'Invalid filter rule',
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -521,9 +602,12 @@ class _CurlViewerState extends State<CurlViewer> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CurlViewerStyle.borderRadius),
+        ),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.6,
-          padding: const EdgeInsets.all(16),
+          padding: CurlViewerStyle.dialogPadding,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -534,56 +618,58 @@ class _CurlViewerState extends State<CurlViewer> {
                     color: CurlViewerColors.theme.primary,
                     size: CurlViewerStyle.iconSize * 1.5,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CurlViewerStyle.mediumSpacing),
                   Text(
                     'Test Filter Rule',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    style: CurlViewerStyle.titleStyle.copyWith(
                       color: CurlViewerColors.theme.onSurface,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(
+                      Icons.close,
+                      size: CurlViewerStyle.iconSize,
+                    ),
+                    padding: CurlViewerStyle.padding,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: CurlViewerStyle.largeSpacing),
               Text(
                 'Test this filter rule against a sample request:',
-                style: TextStyle(
+                style: CurlViewerStyle.bodyStyle.copyWith(
                   color: CurlViewerColors.theme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: CurlViewerStyle.largeSpacing),
               TextField(
                 controller: testUrlController,
-                decoration: const InputDecoration(
+                decoration: CurlViewerStyle.inputDecoration.copyWith(
                   labelText: 'Test URL Path',
                   hintText: '/api/users/123',
-                  border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: CurlViewerStyle.largeSpacing),
               TextField(
                 controller: testMethodController,
-                decoration: const InputDecoration(
+                decoration: CurlViewerStyle.inputDecoration.copyWith(
                   labelText: 'HTTP Method',
                   hintText: 'GET',
-                  border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: CurlViewerStyle.extraLargeSpacing),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    style: CurlViewerStyle.secondaryButtonStyle,
+                    child: Text('Cancel', style: CurlViewerStyle.bodyStyle),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CurlViewerStyle.mediumSpacing),
                   ElevatedButton(
                     onPressed: () async {
                       final navigator = Navigator.of(context);
@@ -593,7 +679,9 @@ class _CurlViewerState extends State<CurlViewer> {
                       );
 
                       final result = await _filterService.testFilterRule(
-                          rule, testRequest);
+                        rule,
+                        testRequest,
+                      );
 
                       if (!mounted) return;
                       navigator.pop();
@@ -781,24 +869,7 @@ class _CurlViewerState extends State<CurlViewer> {
 
   /// Builds a shareable text representation of the cURL entry
   String _buildShareableText(CachedCurlEntry entry) {
-    final buffer = StringBuffer();
-    buffer.writeln('cURL Command:');
-    buffer.writeln(entry.curlCommand);
-    buffer.writeln();
-    buffer.writeln('Status: ${entry.statusCode ?? 'N/A'}');
-    buffer.writeln('Method: ${entry.method ?? 'N/A'}');
-    buffer.writeln('Duration: ${entry.duration ?? 'N/A'} ms');
-    buffer.writeln('URL: ${entry.url ?? 'N/A'}');
-    buffer.writeln(
-        'Timestamp: ${_formatDateTime(entry.timestamp, includeTime: true)}');
-
-    if (entry.responseBody != null && entry.responseBody!.isNotEmpty) {
-      buffer.writeln();
-      buffer.writeln('Response Body:');
-      buffer.writeln(entry.responseBody);
-    }
-
-    return buffer.toString();
+    return entry.curlCommand;
   }
 
   Widget _buildContent() {
@@ -837,6 +908,32 @@ class _CurlViewerState extends State<CurlViewer> {
           onClose: widget.onClose ?? (() => Navigator.pop(context)),
           showCloseButton: widget.showCloseButton,
           onFiltersPressed: _showFiltersDialog,
+          onClearAll: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Xác nhận xóa'),
+                  content: const Text(
+                    'Bạn có chắc chắn muốn xóa tất cả các mục cURL đã lưu không?',
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Hủy'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Xóa'),
+                    ),
+                  ],
+                );
+              },
+            );
+            if (confirmed == true) {
+              await _controller.clearAllEntries();
+            }
+          },
         );
       },
     );
@@ -888,7 +985,7 @@ class _CurlViewerState extends State<CurlViewer> {
           valueListenable: _controller.entries,
           builder: (context, entries, child) {
             if (entries.isEmpty && !isLoading) {
-              return _buildEmptyState();
+              return Expanded(child: _buildEmptyState());
             }
 
             return Expanded(
@@ -937,7 +1034,8 @@ class _CurlViewerState extends State<CurlViewer> {
                   entry: entries[index],
                   onCopy: () async {
                     await Clipboard.setData(
-                        ClipboardData(text: entries[index].curlCommand));
+                      ClipboardData(text: entries[index].curlCommand),
+                    );
                   },
                   onShare: () => _shareCurlCommand(entries[index]),
                 );
@@ -952,22 +1050,17 @@ class _CurlViewerState extends State<CurlViewer> {
   Widget _buildLoadingIndicator() {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: const Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Center(
-        child: Text(
-          'No cURL entries found',
-          style: TextStyle(
-            fontSize: 16,
-            color: CurlViewerColors.theme.onSurfaceVariant,
-          ),
+    return Center(
+      child: Text(
+        'No cURL entries found',
+        style: TextStyle(
+          fontSize: 16,
+          color: CurlViewerColors.theme.onSurfaceVariant,
         ),
       ),
     );
@@ -982,16 +1075,16 @@ class _CurlViewerState extends State<CurlViewer> {
           initialSelection: statusGroup == null
               ? null
               : statusGroup == ResponseStatus.informational
-                  ? 1
-                  : statusGroup == ResponseStatus.success
-                      ? 2
-                      : statusGroup == ResponseStatus.redirection
-                          ? 3
-                          : statusGroup == ResponseStatus.clientError
-                              ? 4
-                              : statusGroup == ResponseStatus.serverError
-                                  ? 5
-                                  : null,
+              ? 1
+              : statusGroup == ResponseStatus.success
+              ? 2
+              : statusGroup == ResponseStatus.redirection
+              ? 3
+              : statusGroup == ResponseStatus.clientError
+              ? 4
+              : statusGroup == ResponseStatus.serverError
+              ? 5
+              : null,
           hintText: 'All Status',
           textStyle: TextStyle(
             color: CurlViewerColors.theme.onSurface,
@@ -1016,12 +1109,12 @@ class _CurlViewerState extends State<CurlViewer> {
             fillColor: CurlViewerColors.theme.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: CurlViewerColors.theme.outline,
-              ),
+              borderSide: BorderSide(color: CurlViewerColors.theme.outline),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 4,
+            ),
           ),
         );
       },
@@ -1041,10 +1134,7 @@ class _CurlViewerState extends State<CurlViewer> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: CurlViewerColors.theme.outline,
-          width: 1.5,
-        ),
+        border: Border.all(color: CurlViewerColors.theme.outline, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: CurlViewerColors.theme.shadowLight,
@@ -1104,16 +1194,11 @@ class _CurlViewerState extends State<CurlViewer> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            colors.surface,
-            colors.surfaceContainer,
-          ],
+          colors: [colors.surface, colors.surfaceContainer],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        border: Border(
-          top: BorderSide(color: colors.outlineLight, width: 1.5),
-        ),
+        border: Border(top: BorderSide(color: colors.outlineLight, width: 1.5)),
         boxShadow: [
           BoxShadow(
             color: colors.shadowLight,
@@ -1139,7 +1224,9 @@ class _CurlViewerState extends State<CurlViewer> {
                       foregroundColor: UiHelper.getStatusColor(500),
                       side: BorderSide(color: UiHelper.getStatusColor(500)),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1159,7 +1246,9 @@ class _CurlViewerState extends State<CurlViewer> {
                       foregroundColor: UiHelper.getStatusColor(200),
                       side: BorderSide(color: UiHelper.getStatusColor(200)),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1180,7 +1269,9 @@ class _CurlViewerState extends State<CurlViewer> {
                       foregroundColor: UiHelper.getStatusColor(500),
                       side: BorderSide(color: UiHelper.getStatusColor(500)),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1199,7 +1290,9 @@ class _CurlViewerState extends State<CurlViewer> {
                       foregroundColor: UiHelper.getStatusColor(200),
                       side: BorderSide(color: UiHelper.getStatusColor(200)),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1251,9 +1344,7 @@ class _CurlViewerState extends State<CurlViewer> {
           ),
         );
       case CurlViewerDisplayType.fullScreen:
-        return Scaffold(
-          body: _buildContent(),
-        );
+        return Scaffold(body: _buildContent());
       case CurlViewerDisplayType.bubble:
         // For bubble display type, just return the content without additional wrapper
         return _buildContent();
