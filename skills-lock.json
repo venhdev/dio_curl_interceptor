@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "agents-validator": {
+      "source": "venhdev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/agents-validator/SKILL.md",
+      "computedHash": "ee9d3c80f208e09ba9182fc87ebcab5835f419c8d046032963a0bcdd807968d6"
+    }
+  }
+}

@@ -359,9 +359,8 @@ class CurlInterceptorV2 extends Interceptor {
   /// Cleans up orphaned stopwatches.
   void _cleanupOrphanedStopwatches() {
     _stopwatches.removeWhere((key, stopwatch) {
-      // Since Stopwatch doesn't have startTime, we'll use a different approach
-      // For now, just remove stopwatches that are older than 5 minutes
-      return true; // Simplified cleanup
+      // Remove stopwatches that have been running for more than 5 minutes
+      return stopwatch.elapsed > const Duration(minutes: 5);
     });
   }
 

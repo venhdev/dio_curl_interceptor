@@ -18,16 +18,11 @@ jobs:
       # Checkout repository
       - uses: actions/checkout@v4
 
-      # Setup Dart
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.9.2
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.35.3
+          flutter-version: 3.44.4
       - run: flutter --version
 
       # Install dependencies

@@ -179,6 +179,7 @@ class HiveCacheRepositoryImpl implements CacheRepository {
       final lower = search.toLowerCase();
       entries = entries.where((entry) =>
           entry.curlCommand.toLowerCase().contains(lower) ||
+          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
           entry.statusCode.toString().contains(lower) ||
           (entry.url ?? '').toLowerCase().contains(lower));
     }
