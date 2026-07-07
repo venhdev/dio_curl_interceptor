@@ -11,20 +11,33 @@ import 'events/request_info.dart';
 import 'events/response_info.dart';
 import 'relay/curl_relay.dart';
 import 'util/intercept_safe.dart';
+import 'util/log.dart';
 
 /// Public Dio interceptor that converts requests to cURL commands, runs them
-/// through sinks, and exposes `sendMessage` for non-HTTP messages.
+/// through sinks, and exposes `sendMessage` for non-Dio messages.
 class DioCurlInterceptor extends Interceptor {
   final CurlConfig config;
   final CurlRelay relay;
   final Map<String, Stopwatch> _stopwatches = {};
   final Random _rng = Random();
+  Timer? _cleanupTimer;
+  Duration _stopwatchTtl;
 
   DioCurlInterceptor({
     required this.config,
     CurlRelay? relay,
-  }) : relay = relay ??
-            CurlRelay(sinks: config.sinks.cast(), options: config.relayOptions);
+    Duration stopwatchTtl = const Duration(minutes: 5),
+  })  : relay = relay ??
+            CurlRelay(sinks: config.sinks.cast(), options: config.relayOptions),
+        _stopwatchTtl = stopwatchTtl {
+    // Periodically evict orphaned stopwatches — requests cancelled mid-flight
+    // never trigger onResponse/onError, so the entry sits in the map forever
+    // unless we sweep. Default 5 min TTL matches the prior V2 implementation.
+    _cleanupTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _evictOrphanedStopwatches(),
+    );
+  }
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -68,6 +81,12 @@ class DioCurlInterceptor extends Interceptor {
       final id = err.requestOptions.extra['curlEventId']?.toString() ?? '';
       final sw = _stopwatches.remove(id);
       sw?.stop();
+      // Belt-and-suspenders for cancelled requests: they still hit
+      // onError with DioExceptionType.cancel, but we make sure the
+      // stopwatch entry is gone even if id mismatches.
+      if (err.type == DioExceptionType.cancel) {
+        _stopwatches.remove(id);
+      }
       relay.dispatch(ErrorCurlEvent(
         id: id,
         timestamp: DateTime.now(),
@@ -103,10 +122,30 @@ class DioCurlInterceptor extends Interceptor {
     });
   }
 
-  /// Tear-down. Drains in-flight dispatches up to 5 s, disposes sinks.
+  /// Tear-down. Cancels the cleanup timer, clears the stopwatch map, drains
+  /// in-flight dispatches up to 5 s, disposes sinks.
   Future<void> dispose() async {
+    _cleanupTimer?.cancel();
+    _cleanupTimer = null;
     _stopwatches.clear();
     await relay.dispose();
+  }
+
+  /// Sweep orphan stopwatches older than [_stopwatchTtl]. Cancelled
+  /// requests never reach onResponse/onError; without this loop those
+  /// entries would sit in the map until app shutdown.
+  void _evictOrphanedStopwatches() {
+    if (_stopwatches.isEmpty) return;
+    final expiredIds = <String>[];
+    _stopwatches.forEach((id, sw) {
+      if (sw.elapsed >= _stopwatchTtl) expiredIds.add(id);
+    });
+    for (final id in expiredIds) {
+      _stopwatches.remove(id)?.stop();
+    }
+    if (expiredIds.isNotEmpty) {
+      logger.fine('Evicted ${expiredIds.length} orphan stopwatches');
+    }
   }
 
   String _newId() {
