@@ -55,21 +55,39 @@ void main() {
     expect(rec.handled, hasLength(1));
   });
 
-  test('dispatch deduplicates same id within TTL', () async {
+  test('dispatch is dedupe-keyed internally; event.id is for diagnostics', () async {
     final rec = _RecSink();
     final relay = CurlRelay(sinks: [rec]);
-    final ev = ResponseCurlEvent(
-      id: 'same',
-      timestamp: DateTime.utc(2026, 7, 7),
+    relay.dispatch(ResponseCurlEvent(
+      id: 'a', timestamp: DateTime.utc(2026, 7, 7),
       request: RequestInfo.fromTest(),
       response: const ResponseInfo(
         statusCode: 200, headers: {}, body: null, duration: Duration.zero,
       ),
-    );
-    relay.dispatch(ev);
-    relay.dispatch(ev);
+    ));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(rec.handled, hasLength(1));
+  });
+
+  test('two dispatches with the same event content but different timestamps deliver twice', () async {
+    final rec = _RecSink();
+    final relay = CurlRelay(sinks: [rec]);
+    relay.dispatch(ResponseCurlEvent(
+      id: 'a', timestamp: DateTime.utc(2026, 7, 7),
+      request: RequestInfo.fromTest(),
+      response: const ResponseInfo(
+        statusCode: 200, headers: {}, body: null, duration: Duration.zero,
+      ),
+    ));
+    relay.dispatch(ResponseCurlEvent(
+      id: 'b', timestamp: DateTime.utc(2026, 7, 7, 0, 0, 1),
+      request: RequestInfo.fromTest(),
+      response: const ResponseInfo(
+        statusCode: 200, headers: {}, body: null, duration: Duration.zero,
+      ),
+    ));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(rec.handled, hasLength(2));
   });
 
   test('sendMessage reaches all MessageSink instances', () async {

@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import '../options/filter_options.dart';
-import '../interceptors/curl_interceptor_v2.dart';
+import '../config/curl_config.dart';
+import '../dio_curl_interceptor.dart';
 import '../options/curl_options.dart';
 
 /// Service to manage filter operations and bridge between UI and interceptors
@@ -136,8 +137,8 @@ class FilterManagementService {
       );
 
       // Create a temporary interceptor for testing
-      final testInterceptor = CurlInterceptorV2(
-        curlOptions: CurlOptions(
+      final testInterceptor = DioCurlInterceptor(
+        config: CurlConfig(
           filterOptions: testFilterOptions,
         ),
       );

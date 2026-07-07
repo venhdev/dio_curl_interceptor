@@ -11,6 +11,16 @@ This package uses the Flutter SDK `>=3.44.0` and Dart SDK `>=3.12.0 <4.0.0`. Fol
 - **Formatting**: Format codebase via `dart format .` before committing.
 - **Analysis**: Check code health via `dart analyze --fatal-infos`.
 
+## Engineering Constraints (post-4.0.0)
+
+The interceptor is split into three peer layers. New code must respect these
+golden rules:
+
+1. Each layer talks only to its immediate neighbour through an interface.
+2. No sink holds a reference to another sink.
+3. `CurlRelay` only wraps; it never reads or transforms the event payload
+   itself.
+
 ## Core Project Architecture
 
 The library is organized inside the `lib/src/` folder:
