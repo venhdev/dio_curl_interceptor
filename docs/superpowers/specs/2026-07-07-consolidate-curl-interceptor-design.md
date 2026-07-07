@@ -53,6 +53,9 @@ Responsibilities:
 - Wraps every body in `InterceptSafe.run` so a thrown exception never breaks
   the request.
 - Exposes `dispose()` that delegates to the relay.
+- Exposes `sendMessage(content, {senderInfo, targetSinks})` that delegates to
+  the relay for manual, non-Dio messages (button taps, app-lifecycle hooks,
+  navigation events).
 
 Anti-patterns the layer must not contain:
 
@@ -73,6 +76,11 @@ Responsibilities:
 - `_handle(event)` iterates sinks. For each sink it gets-or-creates a per-sink
   `CircuitBreaker` keyed by `sink.name`, then wraps the call in
   `breaker.call(() => retry.execute(() => sink.handle(event)))`.
+- `sendMessage(content, {senderInfo, targetSinks})` is also fire-and-forget.
+  It iterates only the sinks that implement `MessageableSink` (or the
+  `targetSinks` subset), and runs the same `breaker.call(() => retry.execute(...))`
+  pipeline. The dedupe cache is **bypassed** for manual messages because the
+  user is in control and may intentionally send the same string more than once.
 - Every exception inside `_handle` is caught and logged; relay never throws.
 - `dispose()` cancels the cleanup timer, awaits in-flight sink handles with a
   5-second best-effort drain, then disposes sinks in reverse insertion order.
@@ -86,7 +94,7 @@ Components used (each isolated + tested):
 | `RetryPolicy` | `lib/src/relay/retry_policy.dart` | 3 retries, 1s initial, ×2, jitter ±20 %, cap 30s |
 | `CircuitBreaker` | `lib/src/relay/circuit_breaker.dart` | 5 failures, 60 s reset, sliding window |
 
-## Layer 3 — `CurlSink`
+## Layer 3 — `CurlSink` + `MessageableSink`
 
 **File:** `lib/src/sinks/curl_sink.dart`
 
@@ -96,9 +104,23 @@ abstract interface class CurlSink {
   Future<void> handle(CurlEvent event);
   Future<void> dispose();
 }
+
+abstract interface class MessageableSink implements CurlSink {
+  Future<void> sendMessage(String content, {SenderInfo? senderInfo});
+}
 ```
 
 Sinks that need redacted cURL call `event.request.redactForWebhook()` directly inside `handle()`. The relay never touches the payload.
+
+Sinks that can carry arbitrary messages (Discord, Telegram) implement `MessageableSink`. Sinks that cannot (Hive, Printer, Null) implement only `CurlSink`. The user-facing message API auto-filters to the messageable ones.
+
+| Sink | Implements |
+|---|---|
+| `NullSink` | `CurlSink` |
+| `PrinterSink` | `CurlSink` |
+| `HiveSink` | `CurlSink` |
+| `DiscordSink` | `MessageableSink` |
+| `TelegramSink` | `MessageableSink` |
 
 Implementations:
 
@@ -184,7 +206,9 @@ final interceptor = DioCurlInterceptor(
     ],
   ),
 );
-```
+
+// Fire a manual message at any time — no Dio required:
+interceptor.sendMessage('App started', targetSinks: ['Discord']);
 
 ## CurlConfig shape
 
