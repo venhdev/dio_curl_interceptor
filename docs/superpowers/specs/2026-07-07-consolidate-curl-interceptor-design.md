@@ -92,12 +92,13 @@ Components used (each isolated + tested):
 
 ```dart
 abstract interface class CurlSink {
-  String get name;                                          // breaker + log key
-  String? get curlFor(CurlEvent event);                      // optional redaction hook
+  String get name;        // breaker key, log key, dedupe key
   Future<void> handle(CurlEvent event);
   Future<void> dispose();
 }
 ```
+
+Sinks that need redacted cURL call `event.request.redactForWebhook()` directly inside `handle()`. The relay never touches the payload.
 
 Implementations:
 
@@ -125,14 +126,14 @@ class RequestInfo {
   final String? body;
   final String? curl;                // pre-generated, shared across sinks
   final Map<String, dynamic> extra;
-  RequestInfo redactForWebhook();    // strips Authorization, Cookie, etc.
+  RequestInfo redactForWebhook();    // returns new instance with Authorization, Cookie, Set-Cookie stripped
 }
 
 class ResponseInfo {
   final int statusCode;
   final Map<String, String> headers;
   final dynamic body;
-  final Duration duration;
+  final Duration duration;            // elapsed between onRequest and onResponse; Duration.zero for synthetic block responses
 }
 
 class ErrorInfo {
@@ -222,7 +223,7 @@ Levels:
 - `severe` — sink failure that closes a circuit.
 - `warning` — retry exhausted, breaker opened.
 - `info` — relay lifecycle (started, disposed).
-- `fine` — dedupe hit, sandbox details, breaker state transitions.
+- `fine` — dedupe hits, retry attempts, breaker state transitions.
 - `finer` / `finest` — per-event dispatch, off by default.
 
 User opt-in:
@@ -237,7 +238,7 @@ Logger('CurlInterceptor').onRecord.listen(mySink.consume);
 |---|---|
 | V2 double-dispatch (one HTTP response → 2 webhooks) | `DedupeCache` keyed by `event.id`. Same id dropped. |
 | `requestHeaders: false` leaked auth headers in webhook payload | `RequestInfo.redactForWebhook()` applied by `DiscordSink` before sender call. |
-| Stopwatch race — response time always `N/A` | `id` is the map key (not `RequestOptions` whose `==` is unreliable). |
+| Stopwatch race — response time always `N/A` | Stopwatch is stored by the same `id` that is attached in `onRequest` and read in `onResponse` / `onError`, so the entry is never removed before the timer is read. The stopwatch stops only after the elapsed time is captured into `ResponseInfo.duration`. |
 | `WebhookCache` unbounded leak | `DedupeCache` LRU bounded at 10 000 entries. |
 | Telegram cache-key collision (first 10 chars of token) | `sink.name` = `botToken + sortedChatIds`. |
 | Factory auto-routing forced V2 for any non-trivial config | No factory; user is explicit via `CurlConfig.sinks`. |
