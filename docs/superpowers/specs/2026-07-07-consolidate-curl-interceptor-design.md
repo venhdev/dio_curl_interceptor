@@ -77,7 +77,7 @@ Responsibilities:
   `CircuitBreaker` keyed by `sink.name`, then wraps the call in
   `breaker.call(() => retry.execute(() => sink.handle(event)))`.
 - `sendMessage(content, {senderInfo, targetSinks})` is also fire-and-forget.
-  It iterates only the sinks that implement `MessageableSink` (or the
+  It iterates only the sinks that implement `MessageSink` (or the
   `targetSinks` subset), and runs the same `breaker.call(() => retry.execute(...))`
   pipeline. The dedupe cache is **bypassed** for manual messages because the
   user is in control and may intentionally send the same string more than once.
@@ -94,43 +94,39 @@ Components used (each isolated + tested):
 | `RetryPolicy` | `lib/src/relay/retry_policy.dart` | 3 retries, 1s initial, ×2, jitter ±20 %, cap 30s |
 | `CircuitBreaker` | `lib/src/relay/circuit_breaker.dart` | 5 failures, 60 s reset, sliding window |
 
-## Layer 3 — `CurlSink` + `MessageableSink`
+## Layer 3 — `Sink`, `CurlSink`, `MessageSink`
 
-**File:** `lib/src/sinks/curl_sink.dart`
+**File:** `lib/src/sinks/sink.dart`, `lib/src/sinks/curl_sink.dart`, `lib/src/sinks/message_sink.dart`
 
 ```dart
-abstract interface class CurlSink {
-  String get name;        // breaker key, log key, dedupe key
-  Future<void> handle(CurlEvent event);
+// Common base. Sink only knows its own name and how to dispose.
+abstract interface class Sink {
+  String get name;
   Future<void> dispose();
 }
 
-abstract interface class MessageableSink implements CurlSink {
+// Handles CurlEvents. Peer to MessageSink — neither extends the other.
+abstract interface class CurlSink implements Sink {
+  Future<void> handle(CurlEvent event);
+}
+
+// Sends arbitrary messages. Independent of Dio / HTTP.
+abstract interface class MessageSink implements Sink {
   Future<void> sendMessage(String content, {SenderInfo? senderInfo});
 }
 ```
 
 Sinks that need redacted cURL call `event.request.redactForWebhook()` directly inside `handle()`. The relay never touches the payload.
 
-Sinks that can carry arbitrary messages (Discord, Telegram) implement `MessageableSink`. Sinks that cannot (Hive, Printer, Null) implement only `CurlSink`. The user-facing message API auto-filters to the messageable ones.
+Sinks that can carry arbitrary messages (Discord, Telegram) implement **both** `CurlSink` and `MessageSink` — they are peer sub-interfaces, not nested. The relay filters to message-capable sinks at the type level.
 
-| Sink | Implements |
-|---|---|
-| `NullSink` | `CurlSink` |
-| `PrinterSink` | `CurlSink` |
-| `HiveSink` | `CurlSink` |
-| `DiscordSink` | `MessageableSink` |
-| `TelegramSink` | `MessageableSink` |
-
-Implementations:
-
-| Sink | File | Notes |
-|---|---|---|
-| `NullSink` | `lib/src/sinks/null_sink.dart` | test helper |
-| `PrinterSink` | `lib/src/sinks/printer_sink.dart` | wraps `Printer` callback |
-| `HiveSink` | `lib/src/sinks/hive_sink.dart` | delegates to `CachedCurlService` |
-| `DiscordSink` | `lib/src/sinks/discord_sink.dart` | redacts headers before webhook send |
-| `TelegramSink` | `lib/src/sinks/telegram_sink.dart` | `name` = `botToken + sortedChatIds` |
+| Sink | File | Implements | Notes |
+|---|---|---|---|
+| `NullSink` | `lib/src/sinks/null_sink.dart` | `CurlSink` | test helper |
+| `PrinterSink` | `lib/src/sinks/printer_sink.dart` | `CurlSink` | wraps `Printer` callback |
+| `HiveSink` | `lib/src/sinks/hive_sink.dart` | `CurlSink` | delegates to `CachedCurlService` |
+| `DiscordSink` | `lib/src/sinks/discord_sink.dart` | `CurlSink`, `MessageSink` | redacts headers before webhook send |
+| `TelegramSink` | `lib/src/sinks/telegram_sink.dart` | `CurlSink`, `MessageSink` | `name` = `botToken + sortedChatIds` |
 
 ## Data model
 
@@ -209,6 +205,7 @@ final interceptor = DioCurlInterceptor(
 
 // Fire a manual message at any time — no Dio required:
 interceptor.sendMessage('App started', targetSinks: ['Discord']);
+```
 
 ## CurlConfig shape
 
@@ -229,9 +226,11 @@ class CurlConfig {
 Library exports (`lib/dio_curl_interceptor.dart`):
 
 - `DioCurlInterceptor`
-- `CurlConfig`
-- `CurlEvent` (for custom sinks)
-- `CurlSink` interface (for custom sinks)
+- `CurlConfig`, `RelayOptions`
+- `Sink` interface (base, for custom sinks)
+- `CurlSink` interface (for custom HTTP-event sinks)
+- `MessageSink` interface (for custom message sinks)
+- `CurlEvent`, `RequestInfo`, `ResponseInfo`, `ErrorInfo` (for custom sink implementations)
 
 ## Logging
 
@@ -255,6 +254,42 @@ User opt-in:
 ```dart
 Logger('CurlInterceptor').onRecord.listen(mySink.consume);
 ```
+
+## Extraction readiness
+
+The 3-interface split (`Sink`, `CurlSink`, `MessageSink`) was designed so that
+sending messages to 3rd-party platforms (Discord, Telegram, Slack, MS Teams…)
+can be lifted into a separate package later without rewriting this one.
+
+Why it works:
+
+- `MessageSink` does **not** take a `CurlEvent`. Its signature
+  `sendMessage(String, {SenderInfo?})` has no Dio dependency.
+- `Sink` is a 2-method interface (name + dispose). Any multi-platform messenger
+  package can re-export it without pulling in the rest of this library.
+- `CurlSink` and `MessageSink` are peers, not nested. A future
+  `MultiPlatformMessenger` package can ship its own `MessageSink` implementation
+  and either (a) be re-exposed by this package via an adapter sink, or
+  (b) be used standalone with no reference to this package at all.
+- Golden rule #2 (no sink knows another sink) and rule #1 (layers only via
+  interface) keep every boundary clean.
+
+When extracting, follow this shape:
+
+```
+multi_platform_messenger/        ← new package, no Dio dependency
+  lib/src/messenger.dart         ← MultiPlatformMessenger façade
+  lib/src/channels/discord.dart
+  lib/src/channels/telegram.dart
+  exports: MessageSink, SenderInfo
+
+dio_curl_interceptor/            ← this package (smaller after extraction)
+  adapters/messenger_adapter_sink.dart   ← bridges messenger → CurlSink + MessageSink
+  lib/src/sinks/...                       ← only Hive, Printer, Null stay
+```
+
+No code in `DioCurlInterceptor` or `CurlRelay` needs to change during the
+extraction. Only file moves + a re-export are required.
 
 ## Bug fixes included
 
