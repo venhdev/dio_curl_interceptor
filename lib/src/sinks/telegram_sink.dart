@@ -16,6 +16,8 @@ class TelegramSink implements CurlSink, MessageSink {
   final List<String> chatIds;
   final SenderInfo? senderInfo;
   TelegramWebhookSender? _ownedSender;
+  Dio? _ownedDio;
+  bool _disposed = false;
 
   TelegramSink({
     required this.botToken,
@@ -23,13 +25,24 @@ class TelegramSink implements CurlSink, MessageSink {
     Dio? dio,
     this.senderInfo,
     TelegramWebhookSender? sender,
-  }) : _ownedSender = sender ?? TelegramWebhookSender(
-          botToken: botToken,
-          chatIds: chatIds,
-          dio: dio ?? Dio(),
-        );
+  }) {
+    if (sender != null) {
+      _ownedSender = sender;
+    } else {
+      _ownedDio = dio ?? Dio();
+      _ownedSender = TelegramWebhookSender(
+        botToken: botToken,
+        chatIds: chatIds,
+        dio: _ownedDio,
+      );
+    }
+  }
 
-  TelegramWebhookSender get _sender => _ownedSender!;
+  TelegramWebhookSender get _sender {
+    final s = _ownedSender;
+    if (s == null) throw StateError('TelegramSink has been disposed');
+    return s;
+  }
 
   @override
   String get name {
@@ -71,6 +84,11 @@ class TelegramSink implements CurlSink, MessageSink {
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    final dio = _ownedDio;
+    _ownedDio = null;
     _ownedSender = null;
+    dio?.close(force: true);
   }
 }

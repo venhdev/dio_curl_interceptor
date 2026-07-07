@@ -16,6 +16,8 @@ class DiscordSink implements CurlSink, MessageSink {
   final List<String> webhookUrls;
   final SenderInfo? senderInfo;
   DiscordWebhookSender? _ownedSender;
+  Dio? _ownedDio;
+  bool _disposed = false;
 
   /// Test seam: pass a pre-built sender to capture calls. Production code
   /// omits this and a fresh sender + Dio is created.
@@ -24,12 +26,23 @@ class DiscordSink implements CurlSink, MessageSink {
     Dio? dio,
     this.senderInfo,
     DiscordWebhookSender? sender,
-  }) : _ownedSender = sender ?? DiscordWebhookSender(
-          hookUrls: webhookUrls,
-          dio: dio ?? Dio(),
-        );
+  }) {
+    if (sender != null) {
+      _ownedSender = sender;
+    } else {
+      _ownedDio = dio ?? Dio();
+      _ownedSender = DiscordWebhookSender(
+        hookUrls: webhookUrls,
+        dio: _ownedDio,
+      );
+    }
+  }
 
-  DiscordWebhookSender get _sender => _ownedSender!;
+  DiscordWebhookSender get _sender {
+    final s = _ownedSender;
+    if (s == null) throw StateError('DiscordSink has been disposed');
+    return s;
+  }
 
   @override
   String get name =>
@@ -71,7 +84,12 @@ class DiscordSink implements CurlSink, MessageSink {
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    final dio = _ownedDio;
+    _ownedDio = null;
     _ownedSender = null;
+    dio?.close(force: true);
   }
 }
 

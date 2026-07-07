@@ -55,6 +55,12 @@ class RequestInfo {
 
   /// Returns a copy with Authorization/Cookie/Set-Cookie headers stripped
   /// and [curl] rewritten to remove the same headers in-place.
+  ///
+  /// The cURL pass uses two strategies per key:
+  ///   - ` -H 'KEY: VALUE'`  /  ` -H "KEY: VALUE"`  (curl's typical header form)
+  ///   - ` --header 'KEY: VALUE'`  /  ` --header "KEY: VALUE"`  (curl long-form)
+  /// Either ASCII double-quote or single-quote is consumed as the wrapping
+  /// character; the inner capture group + back-reference is included exactly.
   RequestInfo redactForWebhook() {
     const redactedKeys = {'Authorization', 'Cookie', 'Set-Cookie'};
     final newHeaders = Map<String, String>.fromEntries(
@@ -63,24 +69,19 @@ class RequestInfo {
     String? newCurl = curl;
     if (newCurl != null) {
       for (final key in redactedKeys) {
-        final escaped = RegExp.escape(key);
-        // Drop "-H 'key: ...'" segments
-        newCurl = newCurl!.replaceAll(
-          RegExp("-H\\s+['\"]?" + escaped + r":[^""'\n]*['""\n]?\s*",
-              caseSensitive: false),
-          '',
+        final k = RegExp.escape(key);
+        // -H "KEY: VALUE"  /  -H 'KEY: VALUE'  -> drop the whole -H... token
+        final shortRe = RegExp(
+          "-H\\s+['\"`]${k}:.*?['\"`]\\s*",
+          caseSensitive: false,
         );
-        // Drop "--header key: ..." segments
-        newCurl = newCurl!.replaceAll(
-          RegExp("--header\\s+['\"]?" + escaped + r":[^""'\n]*['""\n]?\s*",
-              caseSensitive: false),
-          '',
+        newCurl = newCurl!.replaceAllMapped(shortRe, (_) => '');
+        // --header "KEY: VALUE"  /  --header 'KEY: VALUE'  -> drop the whole token
+        final longRe = RegExp(
+          "--header\\s+['\"`]${k}:.*?['\"`]\\s*",
+          caseSensitive: false,
         );
-        // Drop standalone "key: value" tokens
-        newCurl = newCurl!.replaceAll(
-          RegExp(r"\b" + escaped + r"\s*[:=]\s*\S+", caseSensitive: false),
-          '',
-        );
+        newCurl = newCurl!.replaceAllMapped(longRe, (_) => '');
       }
     }
     return RequestInfo(
@@ -93,5 +94,6 @@ class RequestInfo {
     );
   }
 }
+
 
 
