@@ -28,6 +28,7 @@ dependencies:
   share_plus: ^13.0.0
   shared_preferences: ^2.5.3
   type_caster: ^0.1.4
+  logging: ^1.2.0
 
 dev_dependencies:
   http_parser: ^4.0.2
