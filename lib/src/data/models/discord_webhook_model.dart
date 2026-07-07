@@ -1,5 +1,5 @@
 import '../../core/constants.dart';
-import '../../inspector/discord_inspector.dart';
+import 'package:type_caster/type_caster.dart';
 
 /// A class to represent a Discord webhook message.
 /// This class follows the Discord Webhook API structure.
@@ -320,4 +320,28 @@ class DiscordEmbedFooter {
 
     return json;
   }
+}
+
+/// Formats a value for embedding in Discord webhook messages.
+String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) {
+  String formatted;
+  if (rawValue is Map || rawValue is List) {
+    try {
+      formatted = indentJson(rawValue, indent: '  ');
+    } catch (_) {
+      formatted = stringify(rawValue,
+          maxLen: len, replacements: const {'```': ''});
+    }
+  } else {
+    formatted =
+        stringify(rawValue, maxLen: len, replacements: const {'```': ''});
+  }
+  return _wrapWithBackticks(formatted, lang);
+}
+
+String _wrapWithBackticks(String text, [String? language]) {
+  if (language != null && language.isNotEmpty) {
+    return '```$language\n$text\n```';
+  }
+  return '```\n$text\n```';
 }

@@ -2,15 +2,14 @@ import 'package:dio/dio.dart';
 
 import '../data/models/sender_info.dart';
 import '../events/curl_event.dart';
-import '../inspector/telegram_inspector.dart';
 import 'curl_sink.dart';
 import 'message_sink.dart';
+import '_webhook_senders.dart';
 
 /// Sends cURL events (and arbitrary messages) to Telegram via the Bot API.
 ///
 /// `name` is `Telegram:<botToken>:<sortedChatIds>` so two sinks share a key
-/// only when both token and chat IDs match — fixes the V2 first-10-chars
-/// collision bug.
+/// only when both token and chat IDs match.
 class TelegramSink implements CurlSink, MessageSink {
   final String botToken;
   final List<String> chatIds;

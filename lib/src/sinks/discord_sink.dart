@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 
 import '../data/models/sender_info.dart';
 import '../events/curl_event.dart';
-import '../inspector/discord_inspector.dart';
 import 'curl_sink.dart';
 import 'message_sink.dart';
+import '_webhook_senders.dart';
 
 /// Sends cURL events (and arbitrary messages) to Discord webhooks.
 ///
@@ -92,4 +92,3 @@ class DiscordSink implements CurlSink, MessageSink {
     dio?.close(force: true);
   }
 }
-

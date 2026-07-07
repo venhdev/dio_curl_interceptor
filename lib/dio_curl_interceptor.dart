@@ -7,7 +7,6 @@ export 'package:colored_logger/colored_logger.dart' show Ansi;
 export 'src/core/types.dart';
 export 'src/core/utils/curl_utils.dart';
 export 'src/core/utils/filter_utils.dart';
-export 'src/core/utils/inspector_utils.dart';
 
 // Data models
 export 'src/data/models/cached_curl_entry.dart';
@@ -16,11 +15,6 @@ export 'src/data/models/sender_info.dart';
 
 // Services
 export 'src/services/services.dart';
-
-// Inspectors
-export 'src/inspector/discord_inspector.dart';
-export 'src/inspector/telegram_inspector.dart';
-export 'src/inspector/webhook_inspector_base.dart';
 
 // Interceptors
 export 'src/dio_curl_interceptor.dart';
@@ -32,6 +26,11 @@ export 'src/events/error_info.dart';
 export 'src/sinks/sink.dart';
 export 'src/sinks/curl_sink.dart';
 export 'src/sinks/message_sink.dart';
+export 'src/sinks/discord_sink.dart';
+export 'src/sinks/telegram_sink.dart';
+export 'src/sinks/hive_sink.dart';
+export 'src/sinks/printer_sink.dart';
+export 'src/sinks/null_sink.dart';
 export 'src/relay/curl_relay.dart';
 export 'src/util/log.dart';
 
