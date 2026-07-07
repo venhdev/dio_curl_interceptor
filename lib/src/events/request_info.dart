@@ -15,6 +15,24 @@ class RequestInfo {
     required this.extra,
   });
 
+  /// Test-only convenience constructor.
+  factory RequestInfo.fromTest({
+    String method = 'GET',
+    Uri? uri,
+    Map<String, String> headers = const {},
+    String? body,
+    String? curl,
+    Map<String, dynamic> extra = const {},
+  }) =>
+      RequestInfo(
+        method: method,
+        uri: uri ?? Uri.parse('https://example.test'),
+        headers: headers,
+        body: body,
+        curl: curl,
+        extra: extra,
+      );
+
   /// Returns a copy with Authorization/Cookie/Set-Cookie headers stripped
   /// and [curl] rewritten to remove the same headers in-place.
   RequestInfo redactForWebhook() {
