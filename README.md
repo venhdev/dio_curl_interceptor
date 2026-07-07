@@ -34,39 +34,60 @@ Below is a compatibility table for different terminals and their support for pri
 
 ## Usage
 
-### Option 1: Using the CurlInterceptor
+### Option 1: Using `DioCurlInterceptor` (4.0+)
 
-Simple add the interceptor to your Dio instance, all done for you:
+Add the interceptor to your Dio instance; one config object drives everything:
 
 ```dart
-final dio = Dio();
-dio.interceptors.add(CurlInterceptor()); // Simple usage with default options
-// or
-dio.interceptors.add(CurlInterceptor.allEnabled()); // Enable all options
+final interceptor = DioCurlInterceptor(
+  config: CurlConfig(
+    behavior: CurlBehavior.chronological,
+    onRequest: const RequestDetails(visible: true),
+    onResponse: const ResponseDetails(
+      visible: true,
+      requestBody: true,
+      responseBody: true,
+      limitResponseBody: 4096,
+    ),
+    onError: const ErrorDetails(visible: true),
+    sinks: [PrinterSink(printer: print)],
+  ),
+);
+final dio = Dio()..interceptors.add(interceptor);
+
+// Send a manual message at any time (no HTTP request required):
+await interceptor.sendMessage('App started');
 ```
 
-You can customize the interceptor with `CurlOptions` and `CacheOptions`:
+You can customize the relay behaviour with `RelayOptions` inside `CurlConfig`:
 
 ```dart
-dio.interceptors.add(CurlInterceptor(
-  curlOptions: CurlOptions(
-    status: true, // Show status codes + name in logs
-    responseTime: true, // Show response timing
-    behavior: CurlBehavior.chronological,
-    onRequest: RequestDetails(
+DioCurlInterceptor(
+  config: CurlConfig(
+    sinks: [
+      DiscordSink(webhookUrls: ['https://your-webhook']),
+      HiveSink(),
+      PrinterSink(printer: print),
+    ],
+    relayOptions: const RelayOptions(
+      retry: true,
+      circuitBreaker: true,
+      dedupeTtl: Duration(minutes: 1),
+    ),
+    onRequest: const RequestDetails(
       visible: true,
       ansi: Ansi.yellow, // ANSI color for request
     ),
-    onResponse: ResponseDetails(
+    onResponse: const ResponseDetails(
       visible: true,
-      requestHeaders: true, // Show request headers
-      requestBody: true, // Show request body
-      responseBody: true, // Show response body
-      responseHeaders: true, // Show response headers
-      limitResponseBody: null, // Limit response body length (characters), default is null (no limit)
+      requestHeaders: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeaders: true,
+      limitResponseBody: null,
       ansi: Ansi.green, // ANSI color for response
     ),
-    onError: ErrorDetails(
+    onError: const ErrorDetails(
       visible: true,
       requestHeaders: true,
       requestBody: true,
@@ -174,10 +195,11 @@ final webhookInspectors = [
   ),
 ];
 
-// Use with CurlInterceptor
-dio.interceptors.add(CurlInterceptor(
-  webhookInspectors: webhookInspectors,
-  // ... other options
+// Use with DioCurlInterceptor
+dio.interceptors.add(DioCurlInterceptor(
+  config: CurlConfig(sinks: [
+    DiscordSink(webhookUrls: webhookInspectors.first.webhookUrls),
+  ]),
 ));
 ```
 
@@ -216,9 +238,9 @@ final filterOptions = FilterOptions(
 );
 
 // Add the interceptor with filtering
-dio.interceptors.add(
-  CurlInterceptorFactory.withFilters(filterOptions: filterOptions),
-);
+dio.interceptors.add(DioCurlInterceptor(
+  config: CurlConfig(filterOptions: filterOptions),
+));
 ```
 
 For more detailed documentation on path filtering, see [Path Filtering Guide](doc/PATH_FILTERING.md).
@@ -270,22 +292,19 @@ For Telegram integration, you need to:
    - Example: `TelegramInspector(botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatIds: [123456789])`
 
 ```dart
-// Using manual webhook configuration
-dio.interceptors.add(CurlInterceptor(
-  webhookInspectors: [
-    DiscordInspector(
-      webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
-      includeUrls: ['api.example.com', '/users/'],
-      excludeUrls: ['/healthz'],
-      inspectionStatus: [ResponseStatus.clientError, ResponseStatus.serverError],
-    ),
-    TelegramInspector(
-      botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
-      chatIds: [-1003019608685], // Get from getUpdates API
-      includeUrls: ['api.example.com'],
-      inspectionStatus: [ResponseStatus.serverError], // Only server errors
-    ),
-  ],
+// Using the new sink-based configuration
+dio.interceptors.add(DioCurlInterceptor(
+  config: CurlConfig(
+    sinks: [
+      DiscordSink(
+        webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+      ),
+      TelegramSink(
+        botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
+        chatIds: ['-1003019608685'], // Get from getUpdates API
+      ),
+    ],
+  ),
 ));
 
 // Manual webhook sending

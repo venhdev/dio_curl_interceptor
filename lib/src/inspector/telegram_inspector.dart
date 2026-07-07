@@ -1,3 +1,7 @@
+// DEPRECATED (since 4.0.0): use sinks from package:dio_curl_interceptor/sinks.
+// This file will be removed in 5.0.0. See docs/superpowers/specs/
+// 2026-07-07-consolidate-curl-interceptor-design.md for migration.
+
 // ignore_for_file: unintended_html_in_doc_comment
 
 import 'dart:developer';

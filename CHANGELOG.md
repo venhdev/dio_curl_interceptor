@@ -1,3 +1,37 @@
+## 4.0.0
+
+### ⚠️ Breaking changes
+
+- **`CurlInterceptor` removed.** Replace with `DioCurlInterceptor(config: CurlConfig(...))`.
+- **`CurlInterceptorV2` removed.** Its retry/circuit-breaker/dedupe behaviour is now part of the single `CurlRelay` inside `DioCurlInterceptor` via `RelayOptions`.
+- **`CurlInterceptorFactory` removed.** Sinks are configured explicitly via `CurlConfig.sinks` (no auto-detection, no implicit V2 forcing).
+- **Webhook inspectors deprecated.** `WebhookInspectorBase`, `DiscordInspector`, `TelegramInspector` keep working but carry a deprecation banner — they will be removed in 5.0.0. Use the new `DiscordSink`, `TelegramSink`, and the `Sink` / `CurlSink` / `MessageSink` interfaces.
+- **Filter-only factory removed.** Construct with `CurlConfig(filterOptions: ...)` instead of the deleted `CurlInterceptorFactory.withFilters(...)`.
+
+### 🆕 New features
+
+- **3-layer architecture.** `DioCurlInterceptor` → `CurlRelay` → `Sink`. Each layer only talks via interface. Golden rules documented in `AGENTS.md`.
+- **`CurlConfig` value object.** Single configuration entrypoint — replaces the previous parameter sprawl.
+- **`Sink` / `CurlSink` / `MessageSink` interfaces.** Peer interfaces (not nested) so message-capable sinks can be added without rewriting the interceptor.
+- **`interceptor.sendMessage(content, targetSinks: [...])`.** Send a manual message to any `MessageSink` (button press, app-start hook, navigation event) without making an HTTP request.
+- **`package:logging` integration.** Subscribe via `Logger('CurlInterceptor').onRecord.listen(...)` for visibility into dedupe hits, retry attempts, breaker state changes, and late-event drops.
+- **Header redaction.** `DiscordSink.handle()` and `TelegramSink.handle()` redact `Authorization`, `Cookie`, `Set-Cookie` from the cURL payload before any outbound webhook send.
+
+### 🐛 Bug fixes
+
+- **One HTTP response → exactly one webhook event** (V2 used to dispatch twice).
+- **`requestHeaders: false` actually works.** Authorization/Cookie headers are no longer leaked into webhook payloads.
+- **`response.duration` reflects real elapsed time** (V2 used to always report `N/A`).
+- **`DedupeCache` is LRU-bounded** at 10,000 entries (V2's `WebhookCache` grew unbounded).
+- **Telegram sink name key fixed.** Key is now `botToken + sortedChatIds`, not the first 10 chars of the token (collisions across distinct bots).
+- **Telegram inner-Dio no longer leaks outbound payloads** to the user's Hive cache (deleted the embedded `CurlInterceptor` from the Telegram sender's inner Dio).
+
+### ♻️ Internal cleanup
+
+- Removed duplicate `onResponse` / `onError` paths in V1 and V2 (80% code duplication eliminated).
+- Single `InterceptSafe.run()` around every Dio lifecycle body so a thrown exception cannot break the user's request.
+- Renamed `_stopwatches` lookup key to a sticky UUID so cleanup is race-free.
+
 ## v3.4.0
 
 ### 🆕 New Features
