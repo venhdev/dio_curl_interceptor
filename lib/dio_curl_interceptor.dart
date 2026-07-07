@@ -23,9 +23,17 @@ export 'src/inspector/telegram_inspector.dart';
 export 'src/inspector/webhook_inspector_base.dart';
 
 // Interceptors
-export 'src/interceptors/curl_interceptor_base.dart';
-export 'src/interceptors/curl_interceptor_v2.dart';
-export 'src/interceptors/curl_interceptor_factory.dart';
+export 'src/dio_curl_interceptor.dart';
+export 'src/config/curl_config.dart';
+export 'src/events/curl_event.dart';
+export 'src/events/request_info.dart';
+export 'src/events/response_info.dart';
+export 'src/events/error_info.dart';
+export 'src/sinks/sink.dart';
+export 'src/sinks/curl_sink.dart';
+export 'src/sinks/message_sink.dart';
+export 'src/relay/curl_relay.dart';
+export 'src/util/log.dart';
 
 // Async patterns and non-blocking strategies
 export 'src/patterns/patterns.dart';

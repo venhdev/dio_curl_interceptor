@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import '../data/models/sender_info.dart';
 import '../events/curl_event.dart';
@@ -50,6 +51,7 @@ class CurlRelay {
   final RetryPolicy? _retry;
   final Map<String, CircuitBreaker> _breakers = {};
   final Set<Future<void>> _inFlight = {};
+  final Random _rng = Random();
   bool _disposed = false;
 
   CurlRelay({
@@ -70,12 +72,20 @@ class CurlRelay {
             : null;
 
   /// Forward a [CurlEvent] to every [CurlSink] with concurrency control,
-  /// retry, and circuit breaker. Deduped by `event.id` within TTL.
+  /// retry, and circuit breaker. Each event gets a fresh internal UUID so
+  /// request/response/error events for the same request don't collide. The
+  /// caller-facing id stays unchanged on the event itself for diagnostics.
   void dispatch(CurlEvent event) {
     if (_disposed) return;
-    if (!_dedupe.shouldDispatch(event.id)) return;
-    _dedupe.markDispatched(event.id);
+    final key = _newDispatchId();
+    if (!_dedupe.shouldDispatch(key)) return;
+    _dedupe.markDispatched(key);
     unawaited(_runForEvent(event));
+  }
+
+  String _newDispatchId() {
+    final values = List<int>.generate(16, (_) => _rng.nextInt(256));
+    return values.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 
   /// Send a manual message to every [MessageSink] (or `targetSinks` subset).

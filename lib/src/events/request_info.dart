@@ -1,3 +1,7 @@
+import 'package:dio/dio.dart';
+
+import '../core/helpers/curl_helper.dart';
+
 class RequestInfo {
   final String method;
   final Uri uri;
@@ -33,6 +37,22 @@ class RequestInfo {
         extra: extra,
       );
 
+  /// Build a [RequestInfo] from a live Dio [RequestOptions]. The cURL string is
+  /// generated via [CurlHelper.generateCurlFromRequestOptions].
+  factory RequestInfo.fromOptions(RequestOptions opts) {
+    final headers = <String, String>{
+      for (final e in opts.headers.entries) e.key: e.value.toString(),
+    };
+    return RequestInfo(
+      method: opts.method,
+      uri: opts.uri,
+      headers: headers,
+      body: opts.data?.toString(),
+      curl: CurlHelper.generateCurlFromRequestOptions(opts),
+      extra: Map<String, dynamic>.from(opts.extra),
+    );
+  }
+
   /// Returns a copy with Authorization/Cookie/Set-Cookie headers stripped
   /// and [curl] rewritten to remove the same headers in-place.
   RequestInfo redactForWebhook() {
@@ -40,13 +60,29 @@ class RequestInfo {
     final newHeaders = Map<String, String>.fromEntries(
       headers.entries.where((e) => !redactedKeys.contains(e.key)),
     );
-    final newCurl = curl?.replaceAll(
-          RegExp("-H\\s+'?-?(Authorization|Cookie|Set-Cookie)[^'\\n]*'?\\s*"),
-          '',
-        ).replaceAll(
-          RegExp("\\b(Authorization|Cookie|Set-Cookie)\\s*:\\s*\\S+\\s*"),
+    String? newCurl = curl;
+    if (newCurl != null) {
+      for (final key in redactedKeys) {
+        final escaped = RegExp.escape(key);
+        // Drop "-H 'key: ...'" segments
+        newCurl = newCurl!.replaceAll(
+          RegExp("-H\\s+['\"]?" + escaped + r":[^""'\n]*['""\n]?\s*",
+              caseSensitive: false),
           '',
         );
+        // Drop "--header key: ..." segments
+        newCurl = newCurl!.replaceAll(
+          RegExp("--header\\s+['\"]?" + escaped + r":[^""'\n]*['""\n]?\s*",
+              caseSensitive: false),
+          '',
+        );
+        // Drop standalone "key: value" tokens
+        newCurl = newCurl!.replaceAll(
+          RegExp(r"\b" + escaped + r"\s*[:=]\s*\S+", caseSensitive: false),
+          '',
+        );
+      }
+    }
     return RequestInfo(
       method: method,
       uri: uri,
@@ -57,3 +93,5 @@ class RequestInfo {
     );
   }
 }
+
+
