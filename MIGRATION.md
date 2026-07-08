@@ -1,5 +1,17 @@
 # Migration Guide
 
+## v4.0.0 — breaking rewrite
+
+4.0 removes `CurlInterceptor`, `CurlInterceptorV2`, and `CurlInterceptorFactory`.
+A single `DioCurlInterceptor(config: CurlConfig(...))` replaces them. The
+inspector classes (`DiscordInspector`, `TelegramInspector`,
+`WebhookInspectorBase`) keep compiling for one version and will be removed in
+5.0.0.
+
+Full mapping + worked examples (minimal, Discord, Telegram, path filtering,
+`sendMessage`, logging): see **[docs/breaking/v4.0.0.md](docs/breaking/v4.0.0.md)**.
+Full changelog entry: [CHANGELOG.md](CHANGELOG.md#400).
+
 ## v3.3.3 Breaking Changes
 
 ### 1. Storage Class Renamed

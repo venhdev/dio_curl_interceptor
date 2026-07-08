@@ -24,10 +24,11 @@ golden rules:
 ## Core Project Architecture
 
 The library is organized inside the `lib/src/` folder:
-- **Interceptors**: `CurlInterceptor` (v1) and `CurlInterceptorV2` (v2 with async patterns).
-- **Patterns**: Contains reusable implementation patterns like Circuit Breaker, Retry Policy, and Fire-and-Forget.
+- **Interceptors**: `DioCurlInterceptor` — single public interceptor (4.0+), driven by `CurlConfig`.
+- **Relay**: `CurlRelay` orchestrates fan-out to sinks with per-sink circuit breaker, retry with jitter, and LRU dedupe cache. Built on three primitives in `relay/`: `CircuitBreaker`, `RetryPolicy`, `DedupeCache`.
+- **Sinks**: Pluggable terminal handlers — `DiscordSink`, `TelegramSink`, `HiveSink`, `PrinterSink`, `NullSink` — implementing `CurlSink` (and `MessageSink` for message-capable sinks).
+- **Events**: Immutable data layer — `CurlEvent` (sealed: `Request`/`Response`/`Error`) plus `RequestInfo`, `ResponseInfo`, `ErrorInfo`.
 - **Services**: Manages caching operations (`CachedCurlService`) and filters (`FilterManagementService`).
-- **Inspectors**: Webhook dispatchers for sending log notifications to external services.
 - **UI Screens**: Built-in overlays (`BubbleOverlay`) and log viewers (`CurlViewer`) for developer debugging.
 
 ## Engineering Rules
