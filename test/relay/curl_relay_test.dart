@@ -55,39 +55,53 @@ void main() {
     expect(rec.handled, hasLength(1));
   });
 
-  test('dispatch is dedupe-keyed internally; event.id is for diagnostics', () async {
+  test('dispatch deduplicates same id within TTL', () async {
     final rec = _RecSink();
     final relay = CurlRelay(sinks: [rec]);
-    relay.dispatch(ResponseCurlEvent(
-      id: 'a', timestamp: DateTime.utc(2026, 7, 7),
+    final ev = ResponseCurlEvent(
+      id: 'same',
+      timestamp: DateTime.utc(2026, 7, 7),
       request: RequestInfo.fromTest(),
       response: const ResponseInfo(
         statusCode: 200, headers: {}, body: null, duration: Duration.zero,
       ),
-    ));
+    );
+    relay.dispatch(ev);
+    relay.dispatch(ev);
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(rec.handled, hasLength(1));
   });
 
-  test('two dispatches with the same event content but different timestamps deliver twice', () async {
+  test('dispatch with different ids delivers separately', () async {
+    final rec = _RecSink();
+    final relay = CurlRelay(sinks: [rec]);
+    final base = RequestInfo.fromTest();
+    final r = const ResponseInfo(
+      statusCode: 200, headers: {}, body: null, duration: Duration.zero,
+    );
+    relay.dispatch(ResponseCurlEvent(
+      id: 'a', timestamp: DateTime.utc(2026, 7, 7), request: base, response: r,
+    ));
+    relay.dispatch(ResponseCurlEvent(
+      id: 'b', timestamp: DateTime.utc(2026, 7, 7), request: base, response: r,
+    ));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(rec.handled, hasLength(2));
+  });
+
+  test('dispatch with empty id is dropped (no dedupe key → no fan-out)', () async {
     final rec = _RecSink();
     final relay = CurlRelay(sinks: [rec]);
     relay.dispatch(ResponseCurlEvent(
-      id: 'a', timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(),
-      response: const ResponseInfo(
-        statusCode: 200, headers: {}, body: null, duration: Duration.zero,
-      ),
-    ));
-    relay.dispatch(ResponseCurlEvent(
-      id: 'b', timestamp: DateTime.utc(2026, 7, 7, 0, 0, 1),
+      id: '',
+      timestamp: DateTime.utc(2026, 7, 7),
       request: RequestInfo.fromTest(),
       response: const ResponseInfo(
         statusCode: 200, headers: {}, body: null, duration: Duration.zero,
       ),
     ));
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    expect(rec.handled, hasLength(2));
+    expect(rec.handled, isEmpty);
   });
 
   test('sendMessage reaches all MessageSink instances', () async {
@@ -95,6 +109,8 @@ void main() {
     final rec2 = _RecSink();
     final relay = CurlRelay(sinks: [rec1, rec2, NullSink()]);
     await relay.sendMessage('hello');
+    // sendMessage is fire-and-forget; allow the unawaited tasks to land.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(rec1.messages, ['hello']);
     expect(rec2.messages, ['hello']);
   });

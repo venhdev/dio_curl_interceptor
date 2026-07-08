@@ -34,8 +34,11 @@ export 'src/sinks/null_sink.dart';
 export 'src/relay/curl_relay.dart';
 export 'src/util/log.dart';
 
-// Async patterns and non-blocking strategies
-export 'src/patterns/patterns.dart';
+// (4.0.0) Removed legacy `src/patterns/patterns.dart` re-export — the
+// CircuitBreaker / RetryPolicy / FireAndForget / WebhookCache helpers there
+// are superseded by `src/relay/{circuit_breaker,retry_policy,dedupe_cache}.dart`.
+// External code that pulled them in via `package:dio_curl_interceptor`
+// should import directly from `src/relay/*` going forward.
 
 // Options and configuration
 export 'src/options/cache_options.dart';

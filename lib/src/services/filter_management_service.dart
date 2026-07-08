@@ -267,12 +267,12 @@ class FilterManagementService {
       statusCode: rule.statusCode,
       data: rule.responseData ??
           {
-            'message': 'Request blocked by CurlInterceptor',
+            'message': 'Request blocked by DioCurlInterceptor',
             'path': request.path,
             'method': request.method,
           },
       headers: Headers.fromMap({
-        'X-Blocked-By': ['CurlInterceptor'],
+        'X-Blocked-By': ['DioCurlInterceptor'],
         'Content-Type': ['application/json'],
         ...?rule.headers
             ?.map((key, value) => MapEntry(key, [value.toString()])),

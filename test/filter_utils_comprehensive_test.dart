@@ -324,8 +324,8 @@ void main() {
         expect(response.statusCode, 403);
         expect(response.data, isA<Map>());
         expect(
-            response.data['message'], contains('blocked by CurlInterceptor'));
-        expect(response.headers.value('X-Blocked-By'), 'CurlInterceptor');
+            response.data['message'], contains('blocked by DioCurlInterceptor'));
+        expect(response.headers.value('X-Blocked-By'), 'DioCurlInterceptor');
       });
 
       test('should generate response with custom status code and data',
@@ -342,7 +342,7 @@ void main() {
         expect(response.statusCode, 200);
         expect(response.data['id'], '123');
         expect(response.data['name'], 'Test User');
-        expect(response.headers.value('X-Blocked-By'), 'CurlInterceptor');
+        expect(response.headers.value('X-Blocked-By'), 'DioCurlInterceptor');
       });
 
       test('should use provided mock response', () async {
@@ -385,7 +385,7 @@ void main() {
         expect(response.headers.value('X-Custom'), 'value');
         expect(response.headers.value('Content-Type'), 'application/json');
         expect(response.headers.value('Authorization'), 'Bearer token');
-        expect(response.headers.value('X-Blocked-By'), 'CurlInterceptor');
+        expect(response.headers.value('X-Blocked-By'), 'DioCurlInterceptor');
       });
 
       test('should handle headers with list values', () async {

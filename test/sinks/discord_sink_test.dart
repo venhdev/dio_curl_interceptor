@@ -3,7 +3,6 @@ import 'package:dio_curl_interceptor/src/data/models/sender_info.dart';
 import 'package:dio_curl_interceptor/src/events/curl_event.dart';
 import 'package:dio_curl_interceptor/src/events/request_info.dart';
 import 'package:dio_curl_interceptor/src/events/response_info.dart';
-import 'package:dio_curl_interceptor/src/inspector/discord_inspector.dart';
 import 'package:dio_curl_interceptor/src/sinks/discord_sink.dart';
 import 'package:flutter_test/flutter_test.dart';
 

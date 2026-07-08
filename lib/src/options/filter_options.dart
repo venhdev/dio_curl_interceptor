@@ -48,7 +48,7 @@ class FilterRule {
     this.methods,
     this.mockResponse,
     this.statusCode = 403,
-    this.responseData = const {'message': 'Request blocked by CurlInterceptor'},
+    this.responseData = const {'message': 'Request blocked by DioCurlInterceptor'},
     this.headers,
   });
 
@@ -68,7 +68,7 @@ class FilterRule {
         mockResponse: mockResponse,
         statusCode: statusCode,
         responseData: responseData ??
-            {'message': 'Request to $path blocked by CurlInterceptor'},
+            {'message': 'Request to $path blocked by DioCurlInterceptor'},
         headers: headers,
       );
 
@@ -88,7 +88,7 @@ class FilterRule {
         mockResponse: mockResponse,
         statusCode: statusCode,
         responseData: responseData ??
-            {'message': 'Request matching $pattern blocked by CurlInterceptor'},
+            {'message': 'Request matching $pattern blocked by DioCurlInterceptor'},
         headers: headers,
       );
 
@@ -108,12 +108,12 @@ class FilterRule {
         mockResponse: mockResponse,
         statusCode: statusCode,
         responseData: responseData ??
-            {'message': 'Request matching $pattern blocked by CurlInterceptor'},
+            {'message': 'Request matching $pattern blocked by DioCurlInterceptor'},
         headers: headers,
       );
 }
 
-/// Configuration options for path filtering in CurlInterceptor
+/// Configuration options for path filtering in DioCurlInterceptor
 class FilterOptions {
   /// List of filter rules to apply
   final List<FilterRule> rules;

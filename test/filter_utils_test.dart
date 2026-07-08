@@ -172,7 +172,7 @@ void main() {
         final response =
             await FilterUtils.generateBlockedResponse(options, rule);
 
-        expect(response.headers.value('X-Blocked-By'), 'CurlInterceptor');
+        expect(response.headers.value('X-Blocked-By'), 'DioCurlInterceptor');
       });
 
       test('should include custom headers if provided', () async {

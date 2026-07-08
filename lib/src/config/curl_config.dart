@@ -22,8 +22,17 @@ class CurlConfig {
   const CurlConfig({
     this.behavior = CurlBehavior.simultaneous,
     this.onRequest = const RequestDetails(visible: true),
-    this.onResponse = const ResponseDetails(visible: true),
-    this.onError = const ErrorDetails(visible: true),
+    this.onResponse = const ResponseDetails(
+      visible: true,
+      requestBody: true,
+      responseBody: true,
+      limitResponseBody: 4096,
+    ),
+    this.onError = const ErrorDetails(
+      visible: true,
+      requestBody: true,
+      responseBody: true,
+    ),
     this.prettyConfig = const PrettyConfig(blockEnabled: true),
     this.filterOptions = const FilterOptions.disabled(),
     this.relayOptions = const RelayOptions(),

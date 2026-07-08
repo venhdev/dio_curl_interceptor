@@ -146,7 +146,7 @@ class FilterUtils {
     }
 
     // Add a header to indicate this is a blocked response
-    headers['X-Blocked-By'] = ['CurlInterceptor'];
+    headers['X-Blocked-By'] = ['DioCurlInterceptor'];
 
     // Create and return the response
     return Response(

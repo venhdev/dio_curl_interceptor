@@ -10,14 +10,13 @@ This guide demonstrates how to use the `dio_curl_interceptor` package in your Da
 
 #### Cache cURL Commands
 
-To enable caching of cURL commands for requests and errors, you can configure `CacheOptions` in the `CurlInterceptor`:
+To enable caching of cURL commands, add a `HiveSink()` to the interceptor's sink list:
 
 ```dart
 dio.interceptors.add(
-  CurlInterceptor(
-    cacheOptions: const CacheOptions(
-      cacheResponse: true, // Cache successful responses
-      cacheError: true,    // Cache error responses
+  DioCurlInterceptor(
+    config: CurlConfig(
+      sinks: [HiveSink()],
     ),
   ),
 );
@@ -59,22 +58,29 @@ The simplest way to use the interceptor is:
 
 ```dart
 final dio = Dio();
-dio.interceptors.add(CurlInterceptor());
+dio.interceptors.add(DioCurlInterceptor());
 ```
 
 ## Custom Configuration
 
-You can customize the behavior with `CurlOptions`:
+You can customize the behaviour with a `CurlConfig`:
 
 ```dart
 dio.interceptors.add(
-  CurlInterceptor(
-    curlOptions: const CurlOptions(
-      status: true,         // Show status codes in logs
-      responseTime: true,   // Show response timing
-      onRequest: RequestDetails(visible: true),
-      onResponse: ResponseDetails(visible: true, responseBody: true),
-      onError: ErrorDetails(visible: true, responseBody: true),
+  DioCurlInterceptor(
+    config: CurlConfig(
+      sinks: const [NullSink()],
+      onRequest: const RequestDetails(visible: true),
+      onResponse: const ResponseDetails(
+        visible: true,
+        requestBody: true,
+        responseBody: true,
+      ),
+      onError: const ErrorDetails(
+        visible: true,
+        requestBody: true,
+        responseBody: true,
+      ),
     ),
   ),
 );
@@ -82,20 +88,14 @@ dio.interceptors.add(
 
 ## Pretty Printing
 
-You can enable pretty printing for a more visually appealing output:
+You can enable pretty printing through `PrettyConfig` and a `PrinterSink`:
 
 ```dart
 dio.interceptors.add(
-  CurlInterceptor(
-    curlOptions: CurlOptions(
-      status: true,
-      responseTime: true,
-      // Configure pretty printing options
-      prettyConfig: PrettyConfig(
-        blockEnabled: true,       // Enable pretty printing
-        useUnicode: true,    // Use Unicode box-drawing characters
-        lineLength: 100,     // Set the length of separator lines
-      ),
+  DioCurlInterceptor(
+    config: CurlConfig(
+      sinks: [PrinterSink(printer: print)],
+      prettyConfig: const PrettyConfig(blockEnabled: true),
     ),
   ),
 );
@@ -103,7 +103,7 @@ dio.interceptors.add(
 
 ## Using CurlUtils Directly
 
-Instead of using the full `CurlInterceptor`, you can use the utility methods from `CurlUtils` directly in your own custom interceptor:
+Instead of using the full `DioCurlInterceptor`, you can use the utility methods from `CurlUtils` directly in your own custom interceptor:
 
 ```dart
 class MyCustomInterceptor extends Interceptor {
@@ -115,7 +115,7 @@ class MyCustomInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Generate and log curl command
-    CurlUtils.logCurl(options, curlOptions: curlOptions);
+    CurlUtils.logCurl(options);
 
     // Add timing header if you want to track response time
     CurlUtils.addXClientTime(options);

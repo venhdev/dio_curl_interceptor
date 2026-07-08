@@ -4,7 +4,6 @@ import 'package:type_caster/type_caster.dart';
 
 import '../../services/cached_curl_service.dart';
 import '../../data/models/cached_curl_entry.dart';
-import '../../inspector/webhook_inspector_base.dart';
 import '../../options/curl_options.dart';
 import '../constants.dart';
 import '../extensions.dart';
@@ -171,7 +170,7 @@ class CurlUtils {
     } catch (err) {
       final uri = requestOptions.uri.toString();
       final errMsg =
-          '[CurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
+          '[DioCurlInterceptor] Unable to create a CURL representation of the requestOptions to $uri';
 
       ColoredLogger.error(errMsg, prefix: prefix);
     }
@@ -185,12 +184,10 @@ class CurlUtils {
   ///
   /// [options] The [RequestOptions] of the outgoing request.
   /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
-  /// [webhookInspectors] Optional list of webhook inspectors for remote logging.
   /// [chronologicalPrefix] Prefix for chronological logging behavior.
   static void handleOnRequest(
     RequestOptions options, {
     CurlOptions curlOptions = const CurlOptions(),
-    List<WebhookInspectorBase>? webhookInspectors,
     String chronologicalPrefix = '[CurlTime]',
   }) {
     if (curlOptions.requestVisible &&
@@ -212,13 +209,11 @@ class CurlUtils {
   ///
   /// [response] The [Response] object received from the request.
   /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
-  /// [webhookInspectors] Optional list of webhook inspectors for remote logging.
   /// [stopwatch] Optional [Stopwatch] to calculate response duration.
 
   static void handleOnResponse(
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
-    List<WebhookInspectorBase>? webhookInspectors,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -226,7 +221,6 @@ class CurlUtils {
         response: response,
         err: null,
         curlOptions: curlOptions,
-        webhookInspectors: webhookInspectors,
         stopwatch: stopwatch,
         printer: curlOptions.printOnResponse,
       );
@@ -239,12 +233,10 @@ class CurlUtils {
   ///
   /// [err] The [DioException] object representing the error.
   /// [curlOptions] Optional [CurlOptions] to configure cURL generation and logging.
-  /// [webhookInspectors] Optional list of webhook inspectors for remote logging.
   /// [stopwatch] Optional [Stopwatch] to calculate response duration.
   static void handleOnError(
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),
-    List<WebhookInspectorBase>? webhookInspectors,
     Stopwatch? stopwatch,
   }) =>
       _handleOn(
@@ -252,7 +244,6 @@ class CurlUtils {
         response: err.response,
         err: err,
         curlOptions: curlOptions,
-        webhookInspectors: webhookInspectors,
         stopwatch: stopwatch,
         printer: curlOptions.printOnError,
       );
@@ -265,7 +256,6 @@ void _handleOn({
   CurlOptions curlOptions = const CurlOptions(),
   Stopwatch? stopwatch,
   required Printer printer,
-  List<WebhookInspectorBase>? webhookInspectors,
 }) {
   final bool isError = err != null;
   final String? curl = genCurl(requestOptions);
@@ -292,22 +282,6 @@ void _handleOn({
     xClientTimeHeader: requestHeaders[kXClientTime],
   );
   final String responseTimeStr = '${duration ?? kNA}ms';
-
-  // Send to webhooks if configured and the request matches the filter criteria
-  if (webhookInspectors != null && webhookInspectors.isNotEmpty) {
-    for (final webhookInspector in webhookInspectors) {
-      if (webhookInspector.isMatch(uri, statusCode)) {
-        webhookInspector.sendCurlLog(
-          curl: curl,
-          method: requestOptions.method,
-          uri: uri,
-          statusCode: statusCode,
-          responseBody: responseBody,
-          responseTime: '${duration ?? kNA}ms',
-        );
-      }
-    }
-  }
 
   final String clockEmoji = curlOptions.emojiEnabled ? Emojis.clock : '';
   final String statusEmoji =
