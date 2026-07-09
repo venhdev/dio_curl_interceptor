@@ -63,35 +63,36 @@ class CurlViewerStyle {
 
   // Button Styles
   static ButtonStyle get primaryButtonStyle => ButtonStyle(
-    padding: WidgetStateProperty.all(buttonPadding),
-    minimumSize: WidgetStateProperty.all(const Size(64, height)),
-    shape: WidgetStateProperty.all(
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius)),
-    ),
-  );
+        padding: WidgetStateProperty.all(buttonPadding),
+        minimumSize: WidgetStateProperty.all(const Size(64, height)),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(borderRadius)),
+        ),
+      );
 
   static ButtonStyle get secondaryButtonStyle => ButtonStyle(
-    padding: WidgetStateProperty.all(buttonPadding),
-    minimumSize: WidgetStateProperty.all(const Size(64, height)),
-    shape: WidgetStateProperty.all(
-      RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        side: BorderSide(
-          width: borderWidth,
-          color: CurlViewerColors.theme.outline,
+        padding: WidgetStateProperty.all(buttonPadding),
+        minimumSize: WidgetStateProperty.all(const Size(64, height)),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+            side: BorderSide(
+              width: borderWidth,
+              color: CurlViewerColors.theme.outline,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   // Input Decoration
   static InputDecoration get inputDecoration => InputDecoration(
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(borderRadius),
-      borderSide: BorderSide(width: borderWidth),
-    ),
-    contentPadding: padding,
-  );
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+          borderSide: BorderSide(width: borderWidth),
+        ),
+        contentPadding: padding,
+      );
 }
 
 /// Reusable color palette for CurlViewer component
@@ -297,8 +298,7 @@ class _CurlViewerState extends State<CurlViewer> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        widget.controller ??
+    _controller = widget.controller ??
         CurlViewerController(enablePersistence: widget.enablePersistence);
     _filterService = FilterManagementService();
     _controller.initialize();
@@ -1075,16 +1075,16 @@ class _CurlViewerState extends State<CurlViewer> {
           initialSelection: statusGroup == null
               ? null
               : statusGroup == ResponseStatus.informational
-              ? 1
-              : statusGroup == ResponseStatus.success
-              ? 2
-              : statusGroup == ResponseStatus.redirection
-              ? 3
-              : statusGroup == ResponseStatus.clientError
-              ? 4
-              : statusGroup == ResponseStatus.serverError
-              ? 5
-              : null,
+                  ? 1
+                  : statusGroup == ResponseStatus.success
+                      ? 2
+                      : statusGroup == ResponseStatus.redirection
+                          ? 3
+                          : statusGroup == ResponseStatus.clientError
+                              ? 4
+                              : statusGroup == ResponseStatus.serverError
+                                  ? 5
+                                  : null,
           hintText: 'All Status',
           textStyle: TextStyle(
             color: CurlViewerColors.theme.onSurface,

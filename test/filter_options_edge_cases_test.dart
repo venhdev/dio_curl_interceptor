@@ -365,7 +365,8 @@ void main() {
         final rule = FilterRule.exact('/api/test');
         final responseData = rule.responseData as Map<String, dynamic>;
 
-        expect(responseData['message'], contains('blocked by DioCurlInterceptor'));
+        expect(
+            responseData['message'], contains('blocked by DioCurlInterceptor'));
       });
 
       test('should handle custom response data in factory methods', () {

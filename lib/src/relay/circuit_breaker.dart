@@ -53,7 +53,8 @@ class CircuitBreaker {
 
   void _onFailure() {
     _consecutiveFailures++;
-    if (_state == CircuitState.halfOpen || _consecutiveFailures >= failureThreshold) {
+    if (_state == CircuitState.halfOpen ||
+        _consecutiveFailures >= failureThreshold) {
       _state = CircuitState.open;
       _openedAt = DateTime.now();
     }

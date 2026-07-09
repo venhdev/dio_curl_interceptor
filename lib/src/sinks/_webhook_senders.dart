@@ -13,7 +13,6 @@ import '../core/types.dart';
 import '../data/models/discord_webhook_model.dart';
 import '../data/models/sender_info.dart';
 
-
 /// Common base for webhook senders. Iterates [hookUrls], catches per-URL
 /// errors so one failure does not block the rest.
 abstract class WebhookSenderBase {
@@ -299,9 +298,11 @@ class TelegramWebhookSender {
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
     if (plainText.length > maxMessageLength) {
-      const truncationIndicator = '\n\n⚠️ Message truncated due to length limit';
+      const truncationIndicator =
+          '\n\n⚠️ Message truncated due to length limit';
       final maxContentLength = maxMessageLength - truncationIndicator.length;
-      plainText = plainText.substring(0, maxContentLength) + truncationIndicator;
+      plainText =
+          plainText.substring(0, maxContentLength) + truncationIndicator;
     }
     return plainText;
   }
@@ -320,8 +321,7 @@ class TelegramWebhookSender {
     } catch (_) {
       if (message.length <= maxMessageLength) return message;
       const indicator = '\n\n⚠️ <i>Message truncated due to length limit</i>';
-      return message.substring(
-              0, maxMessageLength - indicator.length) +
+      return message.substring(0, maxMessageLength - indicator.length) +
           indicator;
     }
   }
@@ -340,7 +340,8 @@ class TelegramWebhookSender {
       try {
         return indentJson(rawValue, indent: '  ');
       } catch (_) {
-        return stringify(rawValue, maxLen: 1000, replacements: const {'```': ''});
+        return stringify(rawValue,
+            maxLen: 1000, replacements: const {'```': ''});
       }
     }
     return stringify(rawValue, maxLen: 1000, replacements: const {'```': ''});

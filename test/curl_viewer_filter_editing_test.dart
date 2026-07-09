@@ -182,6 +182,17 @@ void main() {
     });
 
     group('CurlViewer Integration', () {
+      // Header exposes a PopupMenuButton (icon `Icons.filter_list`) that
+      // contains a "Filters" item. Tests open that menu before asserting on
+      // the dialog contents — see b985749 for the UI refactor.
+
+      Future<void> openFiltersDialog(WidgetTester tester) async {
+        await tester.tap(find.byIcon(Icons.filter_list));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Filters'));
+        await tester.pumpAndSettle();
+      }
+
       testWidgets('should display filters button in header',
           (WidgetTester tester) async {
         await tester.pumpWidget(
@@ -197,8 +208,9 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Should show filters button
-        expect(find.byIcon(Icons.filter_alt), findsOneWidget);
+        // Header exposes the filters entry point as a PopupMenuButton with
+        // the filter-list icon.
+        expect(find.byIcon(Icons.filter_list), findsOneWidget);
       });
 
       testWidgets('should open filters dialog when filters button is tapped',
@@ -216,9 +228,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Tap filters button
-        await tester.tap(find.byIcon(Icons.filter_alt));
-        await tester.pumpAndSettle();
+        // Tap header popup → "Filters" item.
+        await openFiltersDialog(tester);
 
         // Should show filters dialog
         expect(find.text('Filter Rules'), findsOneWidget);
@@ -240,9 +251,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Open filters dialog
-        await tester.tap(find.byIcon(Icons.filter_alt));
-        await tester.pumpAndSettle();
+        // Open filters dialog via popup.
+        await openFiltersDialog(tester);
 
         // Should show empty state
         expect(find.text('No filter rules configured'), findsOneWidget);
@@ -268,9 +278,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Open filters dialog
-        await tester.tap(find.byIcon(Icons.filter_alt));
-        await tester.pumpAndSettle();
+        // Open filters dialog via popup.
+        await openFiltersDialog(tester);
 
         // Should show filter in list
         expect(find.text('/api/test'), findsOneWidget);

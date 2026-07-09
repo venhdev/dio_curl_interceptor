@@ -15,7 +15,8 @@ void main() {
         'Content-Type': 'application/json',
       },
       body: '{"u":"a"}',
-      curl: r"curl -H 'Authorization: Bearer SECRET' -H 'Cookie: session=SECRET'",
+      curl:
+          r"curl -H 'Authorization: Bearer SECRET' -H 'Cookie: session=SECRET'",
       extra: const {},
     );
 
@@ -43,8 +44,12 @@ void main() {
   group('CurlEvent variants', () {
     final ts = DateTime.utc(2026, 1, 1);
     final req = RequestInfo(
-      method: 'GET', uri: Uri.parse('https://x'),
-      headers: const {}, body: null, curl: null, extra: const {},
+      method: 'GET',
+      uri: Uri.parse('https://x'),
+      headers: const {},
+      body: null,
+      curl: null,
+      extra: const {},
     );
     test('RequestCurlEvent is a CurlEvent', () {
       final e = RequestCurlEvent(id: 'a', timestamp: ts, request: req);
@@ -53,15 +58,20 @@ void main() {
     });
     test('ResponseCurlEvent carries ResponseInfo', () {
       final r = ResponseInfo(
-        statusCode: 200, headers: const {}, body: 'ok',
+        statusCode: 200,
+        headers: const {},
+        body: 'ok',
         duration: const Duration(milliseconds: 12),
       );
-      final e = ResponseCurlEvent(id: 'b', timestamp: ts, request: req, response: r);
+      final e =
+          ResponseCurlEvent(id: 'b', timestamp: ts, request: req, response: r);
       expect(e.response.duration.inMilliseconds, 12);
     });
     test('ErrorCurlEvent carries ErrorInfo', () {
-      final err = ErrorInfo(type: 'connectionTimeout', message: 'oops', statusCode: null);
-      final e = ErrorCurlEvent(id: 'c', timestamp: ts, request: req, error: err);
+      final err = ErrorInfo(
+          type: 'connectionTimeout', message: 'oops', statusCode: null);
+      final e =
+          ErrorCurlEvent(id: 'c', timestamp: ts, request: req, error: err);
       expect(e.error.type, 'connectionTimeout');
     });
   });

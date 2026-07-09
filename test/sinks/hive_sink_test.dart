@@ -6,9 +6,14 @@ import 'package:dio_curl_interceptor/src/sinks/hive_sink.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('ResponseCurlEvent produces a CachedCurlEntry and saves via the sink callback', () async {
+  test(
+      'ResponseCurlEvent produces a CachedCurlEntry and saves via the sink callback',
+      () async {
     final captured = <CachedCurlEntry>[];
-    final sink = HiveSink(saver: (e) async { captured.add(e); return 1; });
+    final sink = HiveSink(saver: (e) async {
+      captured.add(e);
+      return 1;
+    });
 
     await sink.handle(ResponseCurlEvent(
       id: 'x',
@@ -38,7 +43,10 @@ void main() {
 
   test('RequestCurlEvent is skipped', () async {
     final captured = <CachedCurlEntry>[];
-    final sink = HiveSink(saver: (e) async { captured.add(e); return 1; });
+    final sink = HiveSink(saver: (e) async {
+      captured.add(e);
+      return 1;
+    });
     await sink.handle(RequestCurlEvent(
       id: 'r',
       timestamp: DateTime.utc(2026, 7, 7),

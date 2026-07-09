@@ -19,6 +19,7 @@ class _SpySink implements CurlSink {
   Future<void> handle(CurlEvent e) async {
     events.add(e);
   }
+
   @override
   Future<void> dispose() async {}
 }
@@ -35,7 +36,9 @@ class _AlwaysOkAdapter implements HttpClientAdapter {
     return ResponseBody.fromString(
       'ok',
       200,
-      headers: const {Headers.contentTypeHeader: ['text/plain']},
+      headers: const {
+        Headers.contentTypeHeader: ['text/plain']
+      },
     );
   }
 }
@@ -52,7 +55,9 @@ class _AlwaysFailAdapter implements HttpClientAdapter {
     return ResponseBody.fromString(
       'nope',
       404,
-      headers: const {Headers.contentTypeHeader: ['text/plain']},
+      headers: const {
+        Headers.contentTypeHeader: ['text/plain']
+      },
     );
   }
 }

@@ -36,13 +36,15 @@ class HiveCacheRepositoryImpl implements CacheRepository {
       return true;
     } catch (e) {
       ColoredLogger.error('Failed to open Hive box: $e');
-      ColoredLogger.warning('Attempting to delete and recreate the box without encryption...');
+      ColoredLogger.warning(
+          'Attempting to delete and recreate the box without encryption...');
       await Hive.deleteBoxFromDisk(_boxName);
       try {
         await Hive.openBox<CachedCurlEntry>(_boxName);
         return true;
       } catch (e2) {
-        ColoredLogger.error('Failed to open Hive box even without encryption: $e2');
+        ColoredLogger.error(
+            'Failed to open Hive box even without encryption: $e2');
         return false;
       }
     }
@@ -50,7 +52,8 @@ class HiveCacheRepositoryImpl implements CacheRepository {
 
   Future<Uint8List?> _getEncryptionKey() async {
     const secureStorage = FlutterSecureStorage();
-    String? encryptionKey = await secureStorage.read(key: 'hive_encryption_key');
+    String? encryptionKey =
+        await secureStorage.read(key: 'hive_encryption_key');
 
     if (encryptionKey == null) {
       final key = Hive.generateSecureKey();
@@ -58,7 +61,8 @@ class HiveCacheRepositoryImpl implements CacheRepository {
         key: 'hive_encryption_key',
         value: base64UrlEncode(key),
       );
-      encryptionKey = base64UrlEncode(key); // Update encryptionKey with the newly generated one
+      encryptionKey = base64UrlEncode(
+          key); // Update encryptionKey with the newly generated one
     }
 
     return base64Url.decode(encryptionKey);

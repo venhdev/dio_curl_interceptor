@@ -329,8 +329,8 @@ String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) {
     try {
       formatted = indentJson(rawValue, indent: '  ');
     } catch (_) {
-      formatted = stringify(rawValue,
-          maxLen: len, replacements: const {'```': ''});
+      formatted =
+          stringify(rawValue, maxLen: len, replacements: const {'```': ''});
     }
   } else {
     formatted =

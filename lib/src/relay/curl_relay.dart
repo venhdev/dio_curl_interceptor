@@ -78,8 +78,13 @@ class CurlRelay {
   /// historical "one HTTP response → two webhooks" double-dispatch bug.
   void dispatch(CurlEvent event) {
     if (_disposed) return;
-    final key = event.id;
-    if (key.isEmpty) return;
+    // Key dedupe by (runtimeType, id) so RequestCurlEvent / ResponseCurlEvent
+    // / ErrorCurlEvent of the same logical request don't shadow each other.
+    // Each interceptor [id] is shared across the three events of a single
+    // request; only true duplicate dispatches of the same event should be
+    // dropped.
+    final key = '${event.runtimeType}:${event.id}';
+    if (event.id.isEmpty) return;
     if (!_dedupe.shouldDispatch(key)) return;
     _dedupe.markDispatched(key);
     unawaited(_runForEvent(event));
@@ -130,7 +135,8 @@ class CurlRelay {
     }
   }
 
-  Future<void> _runForSend(MessageSink sink, String content, SenderInfo? info) async {
+  Future<void> _runForSend(
+      MessageSink sink, String content, SenderInfo? info) async {
     final f = _fanOutMessage(sink, content, info);
     _inFlight.add(f);
     try {
@@ -145,18 +151,18 @@ class CurlRelay {
       try {
         await _guarded(() => sink.handle(event), 'sink:${sink.name}');
       } catch (e, st) {
-        logger.warning('Sink ${sink.name} failed: $e',
-            error: e, stackTrace: st);
+        logger.warning('Sink ${sink.name} failed: $e', e, st);
       }
     }
   }
 
-  Future<void> _fanOutMessage(MessageSink sink, String content, SenderInfo? info) async {
+  Future<void> _fanOutMessage(
+      MessageSink sink, String content, SenderInfo? info) async {
     try {
-      await _guarded(() => sink.sendMessage(content, senderInfo: info), 'msg:${sink.name}');
+      await _guarded(() => sink.sendMessage(content, senderInfo: info),
+          'msg:${sink.name}');
     } catch (e, st) {
-      logger.warning('Message sink ${sink.name} failed: $e',
-          error: e, stackTrace: st);
+      logger.warning('Message sink ${sink.name} failed: $e', e, st);
     }
   }
 

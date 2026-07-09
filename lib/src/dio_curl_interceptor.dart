@@ -51,6 +51,14 @@ class DioCurlInterceptor extends Interceptor {
         request: RequestInfo.fromOptions(options),
       ));
     });
+    // Always call `handler.next` after the body so the user's request still
+    // reaches the wire even if our bookkeeping threw (which InterceptSafe
+    // swallowed above). Without this unconditional call, a body throw
+    // would hang the request forever — Dio waits for the interceptor to
+    // either `next`, `reject`, or `resolve` and never proceeds otherwise.
+    // `handler.next` itself is intentionally *not* wrapped: if it throws
+    // the user is in a Dio-level bad state where propagating is more
+    // informative than swallowing.
     handler.next(options);
   }
 
@@ -81,12 +89,6 @@ class DioCurlInterceptor extends Interceptor {
       final id = err.requestOptions.extra['curlEventId']?.toString() ?? '';
       final sw = _stopwatches.remove(id);
       sw?.stop();
-      // Belt-and-suspenders for cancelled requests: they still hit
-      // onError with DioExceptionType.cancel, but we make sure the
-      // stopwatch entry is gone even if id mismatches.
-      if (err.type == DioExceptionType.cancel) {
-        _stopwatches.remove(id);
-      }
       relay.dispatch(ErrorCurlEvent(
         id: id,
         timestamp: DateTime.now(),
@@ -118,7 +120,8 @@ class DioCurlInterceptor extends Interceptor {
     List<String>? targetSinks,
   }) async {
     InterceptSafe.run('sendMessage', () {
-      relay.sendMessage(content, senderInfo: senderInfo, targetSinks: targetSinks);
+      relay.sendMessage(content,
+          senderInfo: senderInfo, targetSinks: targetSinks);
     });
   }
 

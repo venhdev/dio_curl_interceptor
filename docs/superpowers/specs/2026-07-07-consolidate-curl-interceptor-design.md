@@ -34,6 +34,11 @@ CurlSink            — terminal handler (Discord, Telegram, Hive, Printer, Null
 1. Each layer talks only to its immediate neighbour through an interface.
 2. No sink holds a reference to another sink.
 3. `CurlRelay` only wraps; it never reads or transforms the event payload itself.
+4. **Status-code filtering is a sink-layer responsibility.** Layer 1 (`DioCurlInterceptor`)
+   does not switch on status, and Layer 2 (`CurlRelay`) does not read
+   `event.response.statusCode` or `event.error.statusCode`. Users wanting
+   `clientError`/`serverError`-only delivery wrap the target sink in a
+   [`StatusFilterSink`](#layer-3--sink-curl_sink-message_sink).
 
 ## Layer 1 — `DioCurlInterceptor`
 
@@ -127,6 +132,14 @@ Sinks that can carry arbitrary messages (Discord, Telegram) implement **both** `
 | `HiveSink` | `lib/src/sinks/hive_sink.dart` | `CurlSink` | delegates to `CachedCurlService` |
 | `DiscordSink` | `lib/src/sinks/discord_sink.dart` | `CurlSink`, `MessageSink` | redacts headers before webhook send |
 | `TelegramSink` | `lib/src/sinks/telegram_sink.dart` | `CurlSink`, `MessageSink` | `name` = `botToken + sortedChatIds` |
+| `StatusFilterSink` | `lib/src/sinks/status_filter_sink.dart` | `CurlSink`, `MessageSink` | decorator — forwards events whose `ResponseStatus` belongs to a configured allow-list. `sendMessage` always passes through. Default allow-list = `defaultInspectionStatus`. |
+
+A **decorator sink** like `StatusFilterSink` wraps another `CurlSink` and
+adds behavior on top — the only reason it holds a reference to another
+sink is to delegate `handle` / `sendMessage` through the interface. This
+is consistent with golden rule #1 (each layer talks only through an
+interface). The relay still owns fan-out and lifecycle; the wrapper
+simply gates whether each event reaches the inner sink.
 
 ## Data model
 

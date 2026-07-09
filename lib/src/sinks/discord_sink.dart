@@ -11,10 +11,18 @@ import '_webhook_senders.dart';
 /// The sink owns its own [DiscordWebhookSender] / Dio instance so the user's
 /// app Dio is not reused — that avoids re-entering this interceptor from
 /// outbound webhook calls. Authorization and Cookie headers are stripped from
-/// the cURL payload before the call.
+/// the cURL payload before the call by default; pass
+/// `redactAuthHeaders: false` to opt out (useful when sharing debug
+/// webhooks in development).
 class DiscordSink implements CurlSink, MessageSink {
   final List<String> webhookUrls;
   final SenderInfo? senderInfo;
+
+  /// Whether to strip `Authorization`, `Cookie`, and `Set-Cookie` from the
+  /// cURL payload before sending. Defaults to `true` (safe default for
+  /// production webhooks). Set to `false` to send the full headers — only
+  /// do this for trusted debug webhook URLs.
+  final bool redactAuthHeaders;
   DiscordWebhookSender? _ownedSender;
   Dio? _ownedDio;
   bool _disposed = false;
@@ -26,6 +34,7 @@ class DiscordSink implements CurlSink, MessageSink {
     Dio? dio,
     this.senderInfo,
     DiscordWebhookSender? sender,
+    this.redactAuthHeaders = true,
   }) {
     if (sender != null) {
       _ownedSender = sender;
@@ -50,10 +59,13 @@ class DiscordSink implements CurlSink, MessageSink {
 
   @override
   Future<void> handle(CurlEvent event) async {
-    final redacted = event.request.redactForWebhook();
+    // When redactAuthHeaders is false, skip the redaction so the original
+    // RequestInfo (with full Authorization/Cookie headers and original
+    // cURL string) is shipped to the webhook.
+    final req =
+        redactAuthHeaders ? event.request.redactForWebhook() : event.request;
     final response = event is ResponseCurlEvent ? event.response : null;
-    final duration =
-        response?.duration ?? const Duration(milliseconds: 0);
+    final duration = response?.duration ?? const Duration(milliseconds: 0);
     final statusCode = response?.statusCode ?? 0;
     final extra = event is ErrorCurlEvent
         ? <String, dynamic>{
@@ -63,9 +75,9 @@ class DiscordSink implements CurlSink, MessageSink {
         : null;
 
     await _sender.sendCurlLog(
-      curl: redacted.curl,
-      method: redacted.method,
-      uri: redacted.uri.toString(),
+      curl: req.curl,
+      method: req.method,
+      uri: req.uri.toString(),
       statusCode: statusCode,
       responseBody: response?.body,
       responseTime: '${duration.inMilliseconds}ms',

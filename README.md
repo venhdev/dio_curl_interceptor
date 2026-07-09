@@ -12,7 +12,8 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 📁 Enhanced FormData handling with detailed file information in cURL commands.
 - 💾 Caches cURL commands and responses (via `HiveSink`) with filtering and search options.
 - 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, clear, copy, etc).
-- 🔔 Webhook integration for remote logging and team collaboration — `DiscordSink` / `TelegramSink` redact `Authorization` / `Cookie` headers automatically.
+- 🔔 Webhook integration for remote logging and team collaboration — `DiscordSink` / `TelegramSink` redact `Authorization` / `Cookie` headers automatically. Pass `redactAuthHeaders: false` on each sink to opt out and forward the full headers (useful for trusted debug webhook URLs).
+- 🎯 Filter HTTP events by status before they reach a sink — wrap any `CurlSink` in `StatusFilterSink(allowedStatuses: {clientError, serverError})` to keep only the failure buckets (replaces 3.x `inspectionStatus`).
 - 🛑 Path filtering to stop specific API calls and return custom responses.
 - ⚡ Real-time filter editing with test functionality directly in the CurlViewer UI.
 - 🔁 Per-sink circuit breaker, exponential retry with jitter, and a 1-minute LRU dedupe cache — all on by default via `CurlRelay`.

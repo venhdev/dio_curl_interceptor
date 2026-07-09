@@ -323,8 +323,8 @@ void main() {
 
         expect(response.statusCode, 403);
         expect(response.data, isA<Map>());
-        expect(
-            response.data['message'], contains('blocked by DioCurlInterceptor'));
+        expect(response.data['message'],
+            contains('blocked by DioCurlInterceptor'));
         expect(response.headers.value('X-Blocked-By'), 'DioCurlInterceptor');
       });
 

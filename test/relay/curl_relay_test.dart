@@ -16,17 +16,22 @@ class _RecSink implements CurlSink, MessageSink {
   @override
   String get name => 'rec';
   @override
-  Future<void> handle(CurlEvent e) async { handled.add(e); }
+  Future<void> handle(CurlEvent e) async {
+    handled.add(e);
+  }
+
   @override
   Future<void> sendMessage(String content, {SenderInfo? senderInfo}) async {
     messages.add(content);
   }
+
   @override
   Future<void> dispose() async {}
 }
 
 class _NamedSink implements CurlSink, MessageSink {
-  @override final String name;
+  @override
+  final String name;
   final List<String> messages = [];
   _NamedSink(this.name);
   @override
@@ -35,6 +40,7 @@ class _NamedSink implements CurlSink, MessageSink {
   Future<void> sendMessage(String content, {SenderInfo? senderInfo}) async {
     messages.add(content);
   }
+
   @override
   Future<void> dispose() async {}
 }
@@ -48,7 +54,10 @@ void main() {
       timestamp: DateTime.utc(2026, 7, 7),
       request: RequestInfo.fromTest(),
       response: const ResponseInfo(
-        statusCode: 200, headers: {}, body: null, duration: Duration.zero,
+        statusCode: 200,
+        headers: {},
+        body: null,
+        duration: Duration.zero,
       ),
     ));
     await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -63,7 +72,10 @@ void main() {
       timestamp: DateTime.utc(2026, 7, 7),
       request: RequestInfo.fromTest(),
       response: const ResponseInfo(
-        statusCode: 200, headers: {}, body: null, duration: Duration.zero,
+        statusCode: 200,
+        headers: {},
+        body: null,
+        duration: Duration.zero,
       ),
     );
     relay.dispatch(ev);
@@ -77,19 +89,29 @@ void main() {
     final relay = CurlRelay(sinks: [rec]);
     final base = RequestInfo.fromTest();
     final r = const ResponseInfo(
-      statusCode: 200, headers: {}, body: null, duration: Duration.zero,
+      statusCode: 200,
+      headers: {},
+      body: null,
+      duration: Duration.zero,
     );
     relay.dispatch(ResponseCurlEvent(
-      id: 'a', timestamp: DateTime.utc(2026, 7, 7), request: base, response: r,
+      id: 'a',
+      timestamp: DateTime.utc(2026, 7, 7),
+      request: base,
+      response: r,
     ));
     relay.dispatch(ResponseCurlEvent(
-      id: 'b', timestamp: DateTime.utc(2026, 7, 7), request: base, response: r,
+      id: 'b',
+      timestamp: DateTime.utc(2026, 7, 7),
+      request: base,
+      response: r,
     ));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(rec.handled, hasLength(2));
   });
 
-  test('dispatch with empty id is dropped (no dedupe key → no fan-out)', () async {
+  test('dispatch with empty id is dropped (no dedupe key → no fan-out)',
+      () async {
     final rec = _RecSink();
     final relay = CurlRelay(sinks: [rec]);
     relay.dispatch(ResponseCurlEvent(
@@ -97,7 +119,10 @@ void main() {
       timestamp: DateTime.utc(2026, 7, 7),
       request: RequestInfo.fromTest(),
       response: const ResponseInfo(
-        statusCode: 200, headers: {}, body: null, duration: Duration.zero,
+        statusCode: 200,
+        headers: {},
+        body: null,
+        duration: Duration.zero,
       ),
     ));
     await Future<void>.delayed(const Duration(milliseconds: 50));

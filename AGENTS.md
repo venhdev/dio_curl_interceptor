@@ -20,13 +20,18 @@ golden rules:
 2. No sink holds a reference to another sink.
 3. `CurlRelay` only wraps; it never reads or transforms the event payload
    itself.
+4. **HTTP status-code filtering is the sink layer's responsibility.** Layer 1
+   (`DioCurlInterceptor`) does not switch on status, and Layer 2 (`CurlRelay`)
+   does not read `event.response.statusCode` or `event.error.statusCode`. Use
+   [`StatusFilterSink`](lib/src/sinks/status_filter_sink.dart) to forward only
+   the buckets you care about (e.g. `clientError`, `serverError`).
 
 ## Core Project Architecture
 
 The library is organized inside the `lib/src/` folder:
 - **Interceptors**: `DioCurlInterceptor` — single public interceptor (4.0+), driven by `CurlConfig`.
 - **Relay**: `CurlRelay` orchestrates fan-out to sinks with per-sink circuit breaker, retry with jitter, and LRU dedupe cache. Built on three primitives in `relay/`: `CircuitBreaker`, `RetryPolicy`, `DedupeCache`.
-- **Sinks**: Pluggable terminal handlers — `DiscordSink`, `TelegramSink`, `HiveSink`, `PrinterSink`, `NullSink` — implementing `CurlSink` (and `MessageSink` for message-capable sinks).
+- **Sinks**: Pluggable terminal handlers — `DiscordSink`, `TelegramSink`, `HiveSink`, `PrinterSink`, `NullSink`, `StatusFilterSink` (decorator) — implementing `CurlSink` (and `MessageSink` for message-capable sinks).
 - **Events**: Immutable data layer — `CurlEvent` (sealed: `Request`/`Response`/`Error`) plus `RequestInfo`, `ResponseInfo`, `ErrorInfo`.
 - **Services**: Manages caching operations (`CachedCurlService`) and filters (`FilterManagementService`).
 - **UI Screens**: Built-in overlays (`BubbleOverlay`) and log viewers (`CurlViewer`) for developer debugging.

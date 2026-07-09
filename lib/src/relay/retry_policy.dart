@@ -57,9 +57,8 @@ class RetryPolicy {
         pow(backoffMultiplier, attempt).toDouble();
     final capped = base.clamp(0, maxDelay.inMilliseconds).toInt();
     final jitterRange = (capped * jitterFraction).toInt();
-    final jitter = jitterRange == 0
-        ? 0
-        : _rng.nextInt(2 * jitterRange) - jitterRange;
+    final jitter =
+        jitterRange == 0 ? 0 : _rng.nextInt(2 * jitterRange) - jitterRange;
     final ms = (capped + jitter).clamp(0, maxDelay.inMilliseconds);
     return Duration(milliseconds: ms);
   }

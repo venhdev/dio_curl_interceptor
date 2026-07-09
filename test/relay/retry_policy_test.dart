@@ -43,7 +43,8 @@ void main() {
       jitterFraction: 0.0,
     );
     await expectLater(
-      () => p.execute<int>(() async => throw StateError('always'), operationName: 'test'),
+      () => p.execute<int>(() async => throw StateError('always'),
+          operationName: 'test'),
       throwsA(isA<RetryExhaustedException>()),
     );
   });

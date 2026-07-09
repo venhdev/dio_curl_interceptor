@@ -54,4 +54,18 @@ enum ResponseStatus {
         serverError,
         unknown,
       ];
+
+  /// Maps an HTTP status code to its [ResponseStatus] bucket.
+  ///
+  /// Returns [unknown] for codes outside the 100-599 range (including the
+  /// `-1` sentinel the interceptor uses when Dio returns a null
+  /// statusCode, and 0 / 6xx+ values).
+  static ResponseStatus fromCode(int code) {
+    if (code >= 100 && code < 200) return informational;
+    if (code >= 200 && code < 300) return success;
+    if (code >= 300 && code < 400) return redirection;
+    if (code >= 400 && code < 500) return clientError;
+    if (code >= 500 && code < 600) return serverError;
+    return unknown;
+  }
 }

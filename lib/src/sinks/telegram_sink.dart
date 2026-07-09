@@ -9,11 +9,18 @@ import '_webhook_senders.dart';
 /// Sends cURL events (and arbitrary messages) to Telegram via the Bot API.
 ///
 /// `name` is `Telegram:<botToken>:<sortedChatIds>` so two sinks share a key
-/// only when both token and chat IDs match.
+/// only when both token and chat IDs match. Authorization and Cookie headers
+/// are stripped from the cURL payload by default; pass
+/// `redactAuthHeaders: false` to opt out (useful for trusted debug webhooks).
 class TelegramSink implements CurlSink, MessageSink {
   final String botToken;
   final List<String> chatIds;
   final SenderInfo? senderInfo;
+
+  /// Whether to strip `Authorization`, `Cookie`, and `Set-Cookie` from the
+  /// cURL payload before sending. Defaults to `true` (safe default for
+  /// production webhooks). Set to `false` to send the full headers.
+  final bool redactAuthHeaders;
   TelegramWebhookSender? _ownedSender;
   Dio? _ownedDio;
   bool _disposed = false;
@@ -24,6 +31,7 @@ class TelegramSink implements CurlSink, MessageSink {
     Dio? dio,
     this.senderInfo,
     TelegramWebhookSender? sender,
+    this.redactAuthHeaders = true,
   }) {
     if (sender != null) {
       _ownedSender = sender;
@@ -51,7 +59,9 @@ class TelegramSink implements CurlSink, MessageSink {
 
   @override
   Future<void> handle(CurlEvent event) async {
-    final redacted = event.request.redactForWebhook();
+    // See [DiscordSink.handle] for rationale — same flag, same default.
+    final req =
+        redactAuthHeaders ? event.request.redactForWebhook() : event.request;
     final response = event is ResponseCurlEvent ? event.response : null;
     final duration = response?.duration ?? const Duration(milliseconds: 0);
     final extra = event is ErrorCurlEvent
@@ -62,9 +72,9 @@ class TelegramSink implements CurlSink, MessageSink {
         : null;
 
     await _sender.sendCurlLog(
-      curl: redacted.curl,
-      method: redacted.method,
-      uri: redacted.uri.toString(),
+      curl: req.curl,
+      method: req.method,
+      uri: req.uri.toString(),
       statusCode: response?.statusCode ?? 0,
       responseBody: response?.body,
       responseTime: '${duration.inMilliseconds}ms',

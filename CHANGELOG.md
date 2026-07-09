@@ -17,19 +17,30 @@
 - **`package:logging` integration.** Subscribe via `Logger('CurlInterceptor').onRecord.listen(...)` for visibility into dedupe hits, retry attempts, breaker state changes, and late-event drops.
 - **Header redaction.** `DiscordSink.handle()` and `TelegramSink.handle()` redact `Authorization`, `Cookie`, `Set-Cookie` from the cURL payload before any outbound webhook send.
 
+### 🆕 Added
+
+- **`StatusFilterSink` decorator.** Wrap any `CurlSink` to forward events whose HTTP status code resolves to a configured `Set<ResponseStatus>`. Replaces the 3.x `CurlOptions(inspectionStatus: [...])` knob — see `docs/breaking/v4.0.0.md` for the migration recipe. Defaults to the existing `defaultInspectionStatus` (informational, redirection, clientError, serverError) so omitting `allowedStatuses` matches the 3.x out-of-the-box behavior minus the noisy 2xx.
+- **`ResponseStatus.fromCode(int)` helper.** Static mapper from an HTTP status code (100-599) to its `ResponseStatus` bucket, falling back to `unknown` for out-of-range codes including the interceptor's `-1` sentinel.
+- **`redactAuthHeaders` opt-out flag on `DiscordSink` and `TelegramSink`.** Both sinks still redact `Authorization` / `Cookie` / `Set-Cookie` from the cURL payload by default (safe for production webhooks). Pass `redactAuthHeaders: false` to forward the original payload — useful when sharing a trusted debug webhook URL and you want to debug a cURL failure with the real auth headers visible.
+
 ### 🐛 Bug fixes
 
 - **One HTTP response → exactly one webhook event** (V2 used to dispatch twice).
 - **`requestHeaders: false` actually works.** Authorization/Cookie headers are no longer leaked into webhook payloads.
 - **`response.duration` reflects real elapsed time** (V2 used to always report `N/A`).
 - **`DedupeCache` is LRU-bounded** at 10,000 entries (V2's `WebhookCache` grew unbounded).
+- **`CurlRelay.dispatch` dedupe key now includes `runtimeType`.** Previously the dedupe cache was keyed by `event.id` only, but `RequestCurlEvent` / `ResponseCurlEvent` / `ErrorCurlEvent` of the same logical request share one id — that meant sinks only ever saw the request event and the response/error events were silently dropped. New key is `'${runtimeType}:$id'`, so each variant is dispatched independently while duplicate dispatches of the same event still suppress within TTL.
+- **Updated `curl_viewer_filter_editing_test.dart` widget tests.** The 4 `CurlViewer Integration` tests assumed a direct `Icons.filter_alt` button in the header; after commit `b985749` the filter entry point is a `PopupMenuButton` with icon `Icons.filter_list` and a "Filters" item. Tests now open the menu before asserting.
+- **`CurlRelay` logger calls.** Replaced named `error: e, stackTrace: st` arguments on `Logger.warning` with the positional form expected by `package:logging` (the same pattern already used in `lib/src/util/intercept_safe.dart`). Previously the relay would fail to compile against newer analyzer strictness, which transitively blocked tests in `test/relay/`, `test/sinks/discord_sink_test.dart`, and `test/sinks/telegram_sink_test.dart` from loading.
 - **Telegram sink name key fixed.** Key is now `botToken + sortedChatIds`, not the first 10 chars of the token (collisions across distinct bots).
 - **Telegram inner-Dio no longer leaks outbound payloads** to the user's Hive cache (deleted the embedded `CurlInterceptor` from the Telegram sender's inner Dio).
+- **`InterceptSafe.run` now wraps `handler.next(...)`.** The docstring promises the Dio hot path "must never throw"; previously `handler.next` was called outside the try block. Now the entire body — including handing control back to the interceptor chain — is wrapped, so a thrown `handler.next` is logged + swallowed instead of bubbling into user code. Invariant: user-installed interceptors never see an exception that originated inside this package.
 
 ### ♻️ Internal cleanup
 
 - Removed duplicate `onResponse` / `onError` paths in V1 and V2 (80% code duplication eliminated).
 - Single `InterceptSafe.run()` around every Dio lifecycle body so a thrown exception cannot break the user's request.
+- Cancelled-request stopwatch cleanup no longer double-removes the same id (the earlier `_stopwatches.remove(id)` call inside `if (err.type == DioExceptionType.cancel)` was a redundant no-op now removed).
 - Renamed `_stopwatches` lookup key to a sticky UUID so cleanup is race-free.
 
 ## v3.4.0

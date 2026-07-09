@@ -5,6 +5,7 @@ export 'package:colored_logger/colored_logger.dart' show Ansi;
 
 // Core types and utilities
 export 'src/core/types.dart';
+export 'src/core/constants.dart';
 export 'src/core/utils/curl_utils.dart';
 export 'src/core/utils/filter_utils.dart';
 
@@ -31,6 +32,7 @@ export 'src/sinks/telegram_sink.dart';
 export 'src/sinks/hive_sink.dart';
 export 'src/sinks/printer_sink.dart';
 export 'src/sinks/null_sink.dart';
+export 'src/sinks/status_filter_sink.dart';
 export 'src/relay/curl_relay.dart';
 export 'src/util/log.dart';
 

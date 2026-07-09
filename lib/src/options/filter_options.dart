@@ -48,7 +48,9 @@ class FilterRule {
     this.methods,
     this.mockResponse,
     this.statusCode = 403,
-    this.responseData = const {'message': 'Request blocked by DioCurlInterceptor'},
+    this.responseData = const {
+      'message': 'Request blocked by DioCurlInterceptor'
+    },
     this.headers,
   });
 
@@ -88,7 +90,10 @@ class FilterRule {
         mockResponse: mockResponse,
         statusCode: statusCode,
         responseData: responseData ??
-            {'message': 'Request matching $pattern blocked by DioCurlInterceptor'},
+            {
+              'message':
+                  'Request matching $pattern blocked by DioCurlInterceptor'
+            },
         headers: headers,
       );
 
@@ -108,7 +113,10 @@ class FilterRule {
         mockResponse: mockResponse,
         statusCode: statusCode,
         responseData: responseData ??
-            {'message': 'Request matching $pattern blocked by DioCurlInterceptor'},
+            {
+              'message':
+                  'Request matching $pattern blocked by DioCurlInterceptor'
+            },
         headers: headers,
       );
 }

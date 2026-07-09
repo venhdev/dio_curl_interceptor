@@ -11,7 +11,8 @@ void main() {
     });
 
     test('TTL expiry releases the key', () async {
-      final c = DedupeCache(ttl: const Duration(milliseconds: 1), maxEntries: 100);
+      final c =
+          DedupeCache(ttl: const Duration(milliseconds: 1), maxEntries: 100);
       c.markDispatched('a');
       await Future<void>.delayed(const Duration(milliseconds: 5));
       expect(c.shouldDispatch('a'), isTrue);
