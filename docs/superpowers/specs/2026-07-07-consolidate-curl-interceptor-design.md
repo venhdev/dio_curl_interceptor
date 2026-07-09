@@ -324,11 +324,15 @@ extraction. Only file moves + a re-export are required.
 - `lib/src/interceptors/curl_interceptor_v2.dart`
 - `lib/src/interceptors/curl_interceptor_factory.dart`
 
-### Deprecated (kept for one minor, then removed)
+### Hard-removed in 4.0.0 (no deprecation window)
+
+The 3.x inspector classes had been deprecated for some time and were deleted
+outright in 4.0.0 with no soft-deprecation window — there is no
+`WebhookInspectorBase` or `*Inspector` symbol in the library any more.
 
 - `lib/src/inspector/webhook_inspector_base.dart`
-- `lib/src/inspector/discord_inspector.dart` (wraps `DiscordSink`)
-- `lib/src/inspector/telegram_inspector.dart` (wraps `TelegramSink`)
+- `lib/src/inspector/discord_inspector.dart` (wrapped `DiscordSink`)
+- `lib/src/inspector/telegram_inspector.dart` (wrapped `TelegramSink`)
 
 ### Created
 
@@ -397,15 +401,18 @@ Ten small PRs, each independently mergeable without breaking earlier ones:
 6. `DiscordSink` with header redaction.
 7. `TelegramSink`.
 8. `DioCurlInterceptor` + `CurlConfig` + `InterceptSafe` + integration tests.
-9. Delete V1 / V2 / `CurlInterceptorFactory`; deprecate inspector classes.
+9. Delete V1 / V2 / `CurlInterceptorFactory` and the deprecated inspector classes (`WebhookInspectorBase`, `DiscordInspector`, `TelegramInspector`).
 10. Update `AGENTS.md`, `README.md`, `CHANGELOG.md`, examples, bump major.
 
 Each PR must keep `flutter test` green and `dart analyze --fatal-infos` clean.
 
 ## Risks
 
-- **Public API breaks.** Mitigated by clear migration note + one-version
-  deprecation window for inspector classes.
+- **Public API breaks.** Mitigated by clear migration note covering the
+  inspector → sink translation in `docs/breaking/v4.0.0.md`. Note: the
+  inspector classes had been deprecated in 3.x and were deleted outright in
+  4.0.0 without an additional deprecation window — their consumers were a
+  known small set of Webhook users.
 - **Default behaviour change.** V1 behaviour is gone; users who want synchronous
   webhook delivery must set `RelayOptions(retry: false, circuitBreaker: false)`
   — but they still get the dedupe. Document this.

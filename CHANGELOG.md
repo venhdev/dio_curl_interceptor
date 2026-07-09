@@ -5,7 +5,7 @@
 - **`CurlInterceptor` removed.** Replace with `DioCurlInterceptor(config: CurlConfig(...))`.
 - **`CurlInterceptorV2` removed.** Its retry/circuit-breaker/dedupe behaviour is now part of the single `CurlRelay` inside `DioCurlInterceptor` via `RelayOptions`.
 - **`CurlInterceptorFactory` removed.** Sinks are configured explicitly via `CurlConfig.sinks` (no auto-detection, no implicit V2 forcing).
-- **Webhook inspectors deprecated.** `WebhookInspectorBase`, `DiscordInspector`, `TelegramInspector` keep working but carry a deprecation banner — they will be removed in 5.0.0. Use the new `DiscordSink`, `TelegramSink`, and the `Sink` / `CurlSink` / `MessageSink` interfaces.
+- **Webhook inspectors hard-removed.** The 3.x `WebhookInspectorBase`, `DiscordInspector`, and `TelegramInspector` classes were deleted outright in 4.0.0 with no deprecation window — there is no `WebhookInspectorBase` or `*Inspector` in the library any more. Use the new `DiscordSink` / `TelegramSink` directly, or any class implementing `CurlSink` / `MessageSink`.
 - **Filter-only factory removed.** Construct with `CurlConfig(filterOptions: ...)` instead of the deleted `CurlInterceptorFactory.withFilters(...)`.
 
 ### 🆕 New features
