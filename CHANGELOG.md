@@ -34,7 +34,7 @@
 - **`CurlRelay` logger calls.** Replaced named `error: e, stackTrace: st` arguments on `Logger.warning` with the positional form expected by `package:logging` (the same pattern already used in `lib/src/util/intercept_safe.dart`). Previously the relay would fail to compile against newer analyzer strictness, which transitively blocked tests in `test/relay/`, `test/sinks/discord_sink_test.dart`, and `test/sinks/telegram_sink_test.dart` from loading.
 - **Telegram sink name key fixed.** Key is now `botToken + sortedChatIds`, not the first 10 chars of the token (collisions across distinct bots).
 - **Telegram inner-Dio no longer leaks outbound payloads** to the user's Hive cache (deleted the embedded `CurlInterceptor` from the Telegram sender's inner Dio).
-- **`InterceptSafe.run` now wraps `handler.next(...)`.** The docstring promises the Dio hot path "must never throw"; previously `handler.next` was called outside the try block. Now the entire body — including handing control back to the interceptor chain — is wrapped, so a thrown `handler.next` is logged + swallowed instead of bubbling into user code. Invariant: user-installed interceptors never see an exception that originated inside this package.
+- **`handler.next(...)` is intentionally outside `InterceptSafe.run`.** Dio's interceptor contract requires that the chain handler be called unconditionally — without `next`/`reject`/`resolve`, the request hangs. So the body stays inside `InterceptSafe.run` (our bookkeeping is logged and swallowed) but `handler.next` runs after, even if the body threw. Trade-off documented inline in `lib/src/dio_curl_interceptor.dart`.
 
 ### ♻️ Internal cleanup
 
