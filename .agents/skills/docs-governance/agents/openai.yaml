@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentation Governance"
+  short_description: "Discover and safely update project authorities"
+  default_prompt: "Use $docs-governance to discover this repository’s documentation authorities and update the correct SSOT or ADR without duplication."

@@ -1,4 +1,4 @@
-# .github/workflows/ci.yml
+# .github/workflows/publish.yml
 name: Publish to pub.dev (publish.yml)
 
 on:

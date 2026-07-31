@@ -197,8 +197,7 @@ dio.interceptors.add(DioCurlInterceptor(
   config: CurlConfig(filterOptions: filterOptions),
 ));
 ```
-
-For more detailed documentation on path filtering, see [Path Filtering Guide](doc/PATH_FILTERING.md).
+});
 
 ### Option 4: Real-time filter editing with CurlViewer
 
@@ -355,8 +354,6 @@ class MyApp extends StatelessWidget {
 - **Controller-based**: Full programmatic control via `BubbleOverlayController`
 - **Resizable**: Expand and resize the bubble content
 - **Customizable**: Use custom widgets for minimized and expanded states
-
-> **📖 Complete Integration Guide**: For detailed bubble integration instructions, custom configurations, programmatic control, and best practices, see our comprehensive [Bubble Integration Guide](doc/BUBBLE_INTEGRATION_GUIDE.md).
 
 > **Note**: File export functionality has been removed in v3.3.3. Use copy/share features instead.
 

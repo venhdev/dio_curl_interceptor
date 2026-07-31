@@ -1,3 +1,9 @@
+---
+type: architecture
+authority: constraints
+status: active
+---
+
 # Agent Instructions: dio_curl_interceptor
 
 This repository contains the `dio_curl_interceptor` library, which is a production-ready package for Flutter and Dart. It intercepts Dio HTTP traffic, converts requests into executable cURL commands, and logs them. The library also features an in-app viewer, local logs caching via Hive, path filtering, and webhook logging integrations (such as Discord and Telegram).

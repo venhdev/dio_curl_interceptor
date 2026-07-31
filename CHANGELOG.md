@@ -1,3 +1,10 @@
+---
+type: changelog
+authority: historical
+status: append-only
+version: 4.0.0
+---
+
 ## 4.0.0
 
 ### ⚠️ Breaking changes

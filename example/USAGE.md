@@ -213,9 +213,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-```
-
-> **📖 Complete Bubble Guide**: For detailed bubble integration instructions, custom configurations, programmatic control, and best practices, see our comprehensive [Bubble Integration Guide](../docs/BUBBLE_INTEGRATION_GUIDE.md).
 
 ## Available Utility Methods
 
