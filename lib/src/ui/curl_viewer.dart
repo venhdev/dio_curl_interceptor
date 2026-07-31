@@ -9,12 +9,13 @@ import '../core/helpers/ui_helper.dart';
 import '../core/types.dart';
 import '../core/interfaces/color_palette.dart';
 import '../data/models/cached_curl_entry.dart';
-import 'bubble_overlay.dart';
-import 'controllers/curl_viewer_controller.dart';
-import 'widgets/curl_entry_item.dart';
-import 'widgets/status_summary.dart';
-import 'widgets/curl_viewer_header.dart';
-import 'widgets/filter_rule_editor.dart';
+import '../ui/bubble_overlay.dart';
+import '../ui/controllers/curl_viewer_controller.dart';
+import '../ui/widgets/curl_entry_item.dart';
+import '../ui/widgets/status_summary.dart';
+import '../ui/widgets/curl_viewer_header.dart';
+import '../ui/widgets/filter_rule_editor.dart';
+import '../ui/widgets/icon_styles.dart';
 import '../options/filter_options.dart';
 import '../services/filter_management_service.dart';
 
@@ -1231,7 +1232,7 @@ class _CurlViewerState extends State<CurlViewer> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    icon: const Icon(Icons.clear_all, size: 18),
+                    icon: const Icon(Icons.clear_all, size: ActionIconStyle.sizeMD),
                     label: const Text('Clear All'),
                     onPressed: () async {
                       await _controller.clearAllEntries();
@@ -1253,7 +1254,7 @@ class _CurlViewerState extends State<CurlViewer> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    icon: const Icon(Icons.refresh, size: 18),
+                    icon: const Icon(Icons.refresh, size: ActionIconStyle.sizeMD),
                     label: const Text('Reload'),
                     onPressed: () => _controller.loadEntries(reset: true),
                   ),
@@ -1276,7 +1277,7 @@ class _CurlViewerState extends State<CurlViewer> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    icon: const Icon(Icons.clear_all, size: 18),
+                    icon: const Icon(Icons.clear_all, size: ActionIconStyle.sizeMD),
                     label: const Text('Clear All'),
                     onPressed: () async {
                       await _controller.clearAllEntries();
@@ -1297,7 +1298,7 @@ class _CurlViewerState extends State<CurlViewer> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    icon: const Icon(Icons.refresh, size: 18),
+                    icon: const Icon(Icons.refresh, size: ActionIconStyle.sizeMD),
                     label: const Text('Reload'),
                     onPressed: () => _controller.loadEntries(reset: true),
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../options/filter_options.dart';
 import '../curl_viewer.dart';
+import 'icon_styles.dart';
 
 /// A widget for editing individual filter rules
 class FilterRuleEditor extends StatefulWidget {
@@ -112,7 +113,7 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
         Icon(
           Icons.filter_alt,
           color: theme.primary,
-          size: CurlViewerStyle.iconSize,
+          size: ActionIconStyle.sizeSM,
         ),
         const SizedBox(width: 8),
         Text(
@@ -355,7 +356,7 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
             IconButton(
               icon: Icon(
                 Icons.add,
-                size: CurlViewerStyle.iconSize,
+                size: ActionIconStyle.sizeSM,
                 color: theme.primary,
               ),
               onPressed: _addHeader,
@@ -413,7 +414,7 @@ class _FilterRuleEditorState extends State<FilterRuleEditor> {
           IconButton(
             icon: Icon(
               Icons.delete,
-              size: CurlViewerStyle.iconSize,
+              size: ActionIconStyle.sizeSM,
               color: theme.primary,
             ),
             onPressed: () => _removeHeader(key),

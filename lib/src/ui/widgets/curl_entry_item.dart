@@ -6,6 +6,7 @@ import '../../core/helpers/ui_helper.dart';
 import '../../core/interfaces/color_palette.dart';
 import '../../data/models/cached_curl_entry.dart';
 import '../curl_viewer.dart';
+import 'icon_styles.dart';
 
 class CurlEntryItem extends StatelessWidget {
   final CachedCurlEntry entry;
@@ -98,12 +99,12 @@ class CurlEntryItem extends StatelessWidget {
                 _buildDurationChip(),
                 const SizedBox(width: 4),
                 _buildTimestampChip(),
-                const SizedBox(width: 4),
+                const SizedBox(width: 8),
+                _buildActionButtons(),
               ],
             ),
           ),
         ),
-        _buildActionButtons(),
       ],
     );
   }
@@ -194,20 +195,13 @@ class CurlEntryItem extends StatelessWidget {
     required Color color,
     required VoidCallback? onPressed,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 18, color: color),
-        onPressed: onPressed,
-        padding: const EdgeInsets.all(4),
-        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(ActionIconStyle.radiusSM),
+      child: Container(
+        padding: ActionIconStyle.paddingSM,
+        decoration: ActionIconStyle.actionButtonDecoration(color),
+        child: Icon(icon, size: ActionIconStyle.sizeSM, color: color),
       ),
     );
   }
@@ -243,12 +237,17 @@ class CurlEntryItem extends StatelessWidget {
             Expanded(child: Divider(thickness: 1, height: 1)),
             const Text('cURL', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(Icons.copy,
-                  size: 16, color: UiHelper.getMethodColor('GET')),
-              onPressed: onCopy,
-              padding: const EdgeInsets.all(4),
-              constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+            InkWell(
+              onTap: onCopy,
+              borderRadius: BorderRadius.circular(ActionIconStyle.radiusSM),
+              child: Container(
+                padding: ActionIconStyle.paddingSM,
+                decoration: ActionIconStyle.actionButtonDecoration(
+                    UiHelper.getMethodColor('GET')),
+                child: Icon(Icons.copy,
+                    size: ActionIconStyle.sizeSM,
+                    color: UiHelper.getMethodColor('GET')),
+              ),
             ),
             Expanded(child: Divider(thickness: 1, height: 1)),
           ],

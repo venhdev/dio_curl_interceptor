@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../bubble_overlay.dart';
+import 'icon_styles.dart';
 
 class CurlViewerHeader extends StatelessWidget {
   final TextEditingController searchController;
@@ -94,7 +95,7 @@ class CurlViewerHeader extends StatelessWidget {
     return Container(
       height: 36,
       width: 36,
-      padding: const EdgeInsets.all(4),
+      padding: ActionIconStyle.paddingSM,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -104,7 +105,7 @@ class CurlViewerHeader extends StatelessWidget {
             Colors.white.withValues(alpha: 0.1),
           ],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.4),
           width: 1.5,
@@ -117,7 +118,7 @@ class CurlViewerHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(Icons.terminal, size: 18, color: Colors.white),
+      child: Icon(Icons.terminal, size: ActionIconStyle.sizeMD, color: Colors.white),
     );
   }
 
@@ -158,20 +159,21 @@ class CurlViewerHeader extends StatelessWidget {
             ),
             suffixIcon: searchQuery.isNotEmpty
                 ? Container(
-                    margin: const EdgeInsets.all(6),
+                    margin: ActionIconStyle.paddingSM,
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(ActionIconStyle.radiusSM),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.clear,
-                          color: Colors.white, size: 14),
+                      icon: Icon(Icons.clear,
+                          color: Colors.white, size: ActionIconStyle.sizeXS),
                       onPressed: () {
                         searchController.clear();
                       },
-                      padding: const EdgeInsets.all(4),
-                      constraints:
-                          const BoxConstraints(minWidth: 24, minHeight: 24),
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(
+                          minWidth: ActionIconStyle.sizeXS * 2,
+                          minHeight: ActionIconStyle.sizeXS * 2),
                     ),
                   )
                 : null,
@@ -199,7 +201,7 @@ class CurlViewerHeader extends StatelessWidget {
             Colors.green.withValues(alpha: 0.1),
           ],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
         border: Border.all(
           color: Colors.green.withValues(alpha: 0.4),
           width: 1.5,
@@ -215,9 +217,9 @@ class CurlViewerHeader extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
           onTap: onReload,
-          child: const Icon(Icons.refresh, size: 18, color: Colors.white),
+          child: Icon(Icons.refresh, size: ActionIconStyle.sizeMD, color: Colors.white),
         ),
       ),
     );
@@ -264,7 +266,7 @@ class CurlViewerHeader extends StatelessWidget {
   }
 
   Widget _buildMenuItemIcon(IconData iconData, {Color? color}) {
-    return Icon(iconData, size: 20, color: color);
+    return Icon(iconData, size: ActionIconStyle.sizeLG, color: color);
   }
 }
 
@@ -281,7 +283,7 @@ Widget _buildCloseButton(void Function()? onClose) {
           Colors.red.withValues(alpha: 0.1),
         ],
       ),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
       border: Border.all(
         color: Colors.red.withValues(alpha: 0.4),
         width: 1.5,
@@ -297,9 +299,9 @@ Widget _buildCloseButton(void Function()? onClose) {
     child: Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
         onTap: onClose,
-        child: const Icon(Icons.close, size: 18, color: Colors.white),
+        child: Icon(Icons.close, size: ActionIconStyle.sizeMD, color: Colors.white),
       ),
     ),
   );
