@@ -99,12 +99,12 @@ class CurlEntryItem extends StatelessWidget {
                 _buildDurationChip(),
                 const SizedBox(width: 4),
                 _buildTimestampChip(),
-                const SizedBox(width: 8),
-                _buildActionButtons(),
               ],
             ),
           ),
         ),
+        const SizedBox(width: 8),
+        _buildActionButtons(),
       ],
     );
   }

@@ -118,7 +118,8 @@ class CurlViewerHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(Icons.terminal, size: ActionIconStyle.sizeMD, color: Colors.white),
+      child: Icon(Icons.terminal,
+          size: ActionIconStyle.sizeMD, color: Colors.white),
     );
   }
 
@@ -162,7 +163,8 @@ class CurlViewerHeader extends StatelessWidget {
                     margin: ActionIconStyle.paddingSM,
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(ActionIconStyle.radiusSM),
+                      borderRadius:
+                          BorderRadius.circular(ActionIconStyle.radiusSM),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.clear,
@@ -219,7 +221,8 @@ class CurlViewerHeader extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
           onTap: onReload,
-          child: Icon(Icons.refresh, size: ActionIconStyle.sizeMD, color: Colors.white),
+          child: Icon(Icons.refresh,
+              size: ActionIconStyle.sizeMD, color: Colors.white),
         ),
       ),
     );
@@ -301,7 +304,8 @@ Widget _buildCloseButton(void Function()? onClose) {
       child: InkWell(
         borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
         onTap: onClose,
-        child: Icon(Icons.close, size: ActionIconStyle.sizeMD, color: Colors.white),
+        child: Icon(Icons.close,
+            size: ActionIconStyle.sizeMD, color: Colors.white),
       ),
     ),
   );
