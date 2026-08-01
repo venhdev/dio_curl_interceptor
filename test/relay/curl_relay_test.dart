@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dio_curl_interceptor/src/data/models/sender_info.dart';
 import 'package:dio_curl_interceptor/src/events/curl_event.dart';
 import 'package:dio_curl_interceptor/src/events/request_info.dart';

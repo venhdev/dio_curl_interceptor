@@ -96,7 +96,8 @@ class SimpleBubbleExampleHome extends StatelessWidget {
   void _makeHttpRequests() {
     // This would typically be done through your Dio interceptor
     // For demonstration purposes, we'll just show the concept
-    print('Making HTTP requests... Check the floating bubble for cURL logs!');
+    debugPrint(
+        'Making HTTP requests... Check the floating bubble for cURL logs!');
   }
 }
 

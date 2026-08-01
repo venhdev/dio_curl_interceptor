@@ -72,16 +72,16 @@ class RequestInfo {
         final k = RegExp.escape(key);
         // -H "KEY: VALUE"  /  -H 'KEY: VALUE'  -> drop the whole -H... token
         final shortRe = RegExp(
-          "-H\\s+['\"`]${k}:.*?['\"`]\\s*",
+          "-H\\s+['\"`]$k:.*?['\"`]\\s*",
           caseSensitive: false,
         );
         newCurl = newCurl!.replaceAllMapped(shortRe, (_) => '');
         // --header "KEY: VALUE"  /  --header 'KEY: VALUE'  -> drop the whole token
         final longRe = RegExp(
-          "--header\\s+['\"`]${k}:.*?['\"`]\\s*",
+          "--header\\s+['\"`]$k:.*?['\"`]\\s*",
           caseSensitive: false,
         );
-        newCurl = newCurl!.replaceAllMapped(longRe, (_) => '');
+        newCurl = newCurl.replaceAllMapped(longRe, (_) => '');
       }
     }
     return RequestInfo(

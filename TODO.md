@@ -59,16 +59,16 @@ Use `T1`, `T2`, and so on for sequential tasks. For parallel work, use
   (`Row([Expanded(SCSV(chips)), SizedBox(8), _buildActionButtons()])`) — `Expanded`
   absorbs the remaining width, so the row cannot overflow horizontally.
 
-- **F2 — pre-existing analyze failures (outside batch scope):** `dart analyze
-  --fatal-infos` fails on files this batch does not touch (pre-existing):
-  `example/example.dart` (4 errors: missing `config` argument, `int`→`String` list
-  elements, non-const constructor/list), `example/webhook_example.dart` (2 errors);
-  plus warnings/infos in `lib/src/services/filter_management_service.dart`
-  (unused import), `lib/src/sinks/_webhook_senders.dart` (unused import/element),
-  `lib/src/events/request_info.dart`, `lib/src/dio_curl_interceptor.dart`,
-  `lib/src/services/curl_viewer_persistence_service.dart`,
-  `lib/src/ui/controllers/curl_viewer_controller.dart`, and 2 test files. Fixing
-  them is a separate task — do not fold into this batch.
+- **F2 — resolved (pre-existing analyze failures):** `dart analyze --fatal-infos`
+  previously failed on 30 pre-existing issues outside the T1-T6 batch
+  (`example/`, `lib/src/services`, `lib/src/sinks`, `lib/src/events`,
+  `lib/src/ui/controllers`, `lib/src/dio_curl_interceptor.dart`, 2 test files).
+  Fixed in a follow-up audit: removed unused/unnecessary imports (4); fixed
+  example API/type errors — missing `config`, `chatIds` `int`→`String`, non-const
+  `NullSink()` (6); removed unnecessary `!`/braces/dead `_replacementsEmbedField`
+  and made `_stopwatchTtl` final (6); replaced `print` with
+  `logger.warning`/`debugPrint` (14). `dart analyze --fatal-infos` now passes
+  with no issues.
 
 ## Active Tasks
 

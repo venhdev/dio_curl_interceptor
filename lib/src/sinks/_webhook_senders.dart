@@ -9,7 +9,6 @@ import 'package:dio/dio.dart';
 import 'package:type_caster/type_caster.dart';
 
 import '../core/constants.dart';
-import '../core/types.dart';
 import '../data/models/discord_webhook_model.dart';
 import '../data/models/sender_info.dart';
 
@@ -147,8 +146,6 @@ class DiscordWebhookSender extends WebhookSenderBase {
     return send(message);
   }
 }
-
-const Map<String, String> _replacementsEmbedField = {'```': ''};
 
 // ─── Telegram ────────────────────────────────────────────────────────────────
 
@@ -314,9 +311,8 @@ class TelegramWebhookSender {
       final max = maxMessageLength - indicator.length;
       // Naive close: drop everything after `max`, then drop any unclosed <pre>.
       final cut = message.substring(0, max);
-      final cleaned = cut.contains('<pre>') && !cut.contains('</pre>')
-          ? '${cut}</pre>'
-          : cut;
+      final cleaned =
+          cut.contains('<pre>') && !cut.contains('</pre>') ? '$cut</pre>' : cut;
       return cleaned + indicator;
     } catch (_) {
       if (message.length <= maxMessageLength) return message;

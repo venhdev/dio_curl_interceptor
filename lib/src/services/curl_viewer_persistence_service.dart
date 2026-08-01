@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/types.dart';
 import '../options/filter_options.dart';
+import '../util/log.dart';
 
 /// Simple class to hold a date range
 class DateRange {
@@ -28,7 +29,7 @@ class CurlViewerPersistenceService {
     try {
       return await operation();
     } catch (e) {
-      print('Persistence error: $e');
+      logger.warning('Persistence error: $e');
       return null;
     }
   }

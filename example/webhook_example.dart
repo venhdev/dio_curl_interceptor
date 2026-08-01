@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:flutter/foundation.dart';
 
 /// Demonstrates Discord + Telegram webhook integration via the 4.0.0
 /// `DioCurlInterceptor(config: CurlConfig(sinks: [...])))` API.
@@ -18,7 +19,7 @@ void main() async {
         ),
         TelegramSink(
           botToken: 'YOUR_BOT_TOKEN',
-          chatIds: const [-1003019608685, 123456789],
+          chatIds: const ['-1003019608685', '123456789'],
         ),
         PrinterSink(printer: print),
       ],
@@ -31,7 +32,7 @@ void main() async {
   try {
     await dio.get('https://api.example.com/users');
   } on DioException catch (e) {
-    print('Request failed: $e');
+    debugPrint('Request failed: $e');
   }
 
   // Manual, non-Dio messages: sendMessage reaches every MessageSink.

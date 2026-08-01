@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+import 'package:flutter/foundation.dart';
 
 /// 4.0.0 example: pass [FilterOptions] to [CurlConfig.filterOptions] and
 /// add the interceptor as usual — no factory class required.
@@ -61,25 +62,25 @@ void main() async {
   try {
     await dio.get('https://example.com/api/sensitive-data');
   } catch (e) {
-    print('Expected error for blocked endpoint: $e');
+    debugPrint('Expected error for blocked endpoint: $e');
   }
 
   final profileResponse =
       await dio.get('https://example.com/api/users/profile');
-  print('Profile response: ${profileResponse.data}');
+  debugPrint('Profile response: ${profileResponse.data}');
 
   try {
     await dio.get('https://example.com/api/v1/users');
   } catch (e) {
-    print('Expected error for deprecated API: $e');
+    debugPrint('Expected error for deprecated API: $e');
   }
 
   try {
     await dio.get('https://example.com/api/admin/settings');
   } catch (e) {
-    print('Expected error for admin endpoint: $e');
+    debugPrint('Expected error for admin endpoint: $e');
   }
 
   final healthResponse = await dio.get('https://example.com/api/health');
-  print('Health response: ${healthResponse.data}');
+  debugPrint('Health response: ${healthResponse.data}');
 }

@@ -27,8 +27,8 @@ class _ControllerUsageExampleState extends State<ControllerUsageExample> {
   @override
   Widget build(BuildContext context) {
     _controller.configure(
-      onExpanded: () => print('Bubble expanded'),
-      onMinimized: () => print('Bubble minimized'),
+      onExpanded: () => debugPrint('Bubble expanded'),
+      onMinimized: () => debugPrint('Bubble minimized'),
     );
 
     return BubbleOverlay(

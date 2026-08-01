@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import '../options/filter_options.dart';
 import '../config/curl_config.dart';
 import '../dio_curl_interceptor.dart';
-import '../options/curl_options.dart';
 
 /// Service to manage filter operations and bridge between UI and interceptors
 class FilterManagementService {

@@ -4,6 +4,7 @@ import '../../core/types.dart';
 import '../../data/models/cached_curl_entry.dart';
 import '../../services/cached_curl_service.dart';
 import '../../services/curl_viewer_persistence_service.dart';
+import '../../util/log.dart';
 import '../../options/filter_options.dart';
 
 class CurlViewerController {
@@ -417,7 +418,7 @@ class CurlViewerController {
           filterEditingMode.value);
     } catch (e) {
       // Log error but don't fail the operation
-      print('Failed to save state: $e');
+      logger.warning('Failed to save state: $e');
     }
   }
 

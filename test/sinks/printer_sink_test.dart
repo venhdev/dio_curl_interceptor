@@ -1,4 +1,3 @@
-import 'package:dio_curl_interceptor/src/core/types.dart';
 import 'package:dio_curl_interceptor/src/events/curl_event.dart';
 import 'package:dio_curl_interceptor/src/events/request_info.dart';
 import 'package:dio_curl_interceptor/src/events/response_info.dart';

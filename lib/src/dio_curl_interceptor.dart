@@ -21,7 +21,7 @@ class DioCurlInterceptor extends Interceptor {
   final Map<String, Stopwatch> _stopwatches = {};
   final Random _rng = Random();
   Timer? _cleanupTimer;
-  Duration _stopwatchTtl;
+  final Duration _stopwatchTtl;
 
   DioCurlInterceptor({
     required this.config,
