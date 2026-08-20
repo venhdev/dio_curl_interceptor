@@ -36,3 +36,4 @@ secret/
 
 # FVM Version Cache
 .fvm/
+.vscode/

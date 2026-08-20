@@ -8,34 +8,20 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 
 ## Features
 
-- 🔍 Converts Dio HTTP requests to cURL commands for easy debugging and sharing.
-- 📁 Enhanced FormData handling with detailed file information in cURL commands.
-- 💾 Caches cURL commands and responses (via `HiveSink`) with filtering and search options.
-- 🖥️ Modern Flutter widget for viewing and managing cURL logs (search, filter by status/date, clear, copy, etc).
-- 🔔 Webhook integration for remote logging and team collaboration — `DiscordSink` / `TelegramSink` redact `Authorization` / `Cookie` headers automatically. Pass `redactAuthHeaders: false` on each sink to opt out and forward the full headers (useful for trusted debug webhook URLs).
-- 🎯 Filter HTTP events by status before they reach a sink — wrap any `CurlSink` in `StatusFilterSink(allowedStatuses: {clientError, serverError})` to keep only the failure buckets (replaces 3.x `inspectionStatus`). Helper `ResponseStatus.fromCode(int)` maps a status code (100-599) to its bucket, falling back to `unknown` for codes outside the range.
-- 🛑 Path filtering to stop specific API calls and return custom responses.
-- ⚡ Real-time filter editing with test functionality directly in the CurlViewer UI.
-- 🔁 Per-sink circuit breaker, exponential retry with jitter, and a 1-minute LRU dedupe cache — all on by default via `CurlRelay`.
-- 📨 `interceptor.sendMessage(...)` for manual, non-HTTP messages (app-start, button taps, error reports).
-- 🔌 Pluggable `Sink` / `CurlSink` / `MessageSink` interfaces — write your own sinks.
-- 📝 Utility methods for custom interceptors and direct use (`CurlUtils`).
+- 🔍 **Core** – Convert Dio HTTP requests to executable cURL commands; detailed FormData file info
+- 🖥️ **Viewer** – In-app log viewer with search, status/date filtering, copy, clear, share
+- 💾 **Storage** – Local Hive cache with filtering & search
+- 🔔 **Webhooks** – Discord & Telegram sinks; automatic sensitive header redaction
+- 🎯 **Filtering** – Status filtering (forward only client/server errors or custom buckets); Path filtering (block/mock endpoints via exact/regex/glob; live editor in viewer)
+- 🔁 **Reliability** – Per-sink circuit breaker, exponential retry with jitter, dedupe cache
+- 🔌 **Extensibility** – Pluggable sink interfaces; send manual non-HTTP logs (app start, button taps, errors) to any sink
+- 📝 **Utilities** – Standalone helpers for custom interceptors or ad-hoc logging
 
-For detailed screenshots of the interceptor's behavior, including simultaneous and chronological logging, please refer to the [Screenshots](#screenshots) section at the bottom of this README.
+See [Screenshots](#screenshots) for simultaneous vs. chronological logging examples.
 
 ## Migration Guide
 
-Upgrading from 3.x? See [docs/breaking/v4.0.0.md](docs/breaking/v4.0.0.md) for the breaking-change mapping and code examples.
-The legacy [MIGRATION.md](MIGRATION.md) covers 3.3 → 3.4 only.
-
-## Terminal Compatibility
-
-Below is a compatibility table for different terminals and their support for printing and ANSI colors:
-
-| Terminal/Console      | print | debugPrint | log (dart:developer) | ANSI Colors Support |
-| --------------------- | :---: | :--------: | :------------------: | :-----------------: |
-| VS Code Debug Console |   ✅  |     ✅     |          ✅          |         ✅          |
-| IntelliJ IDEA Console |   ❌  |     ❌     |          ❌          |         ❌          |
+Upgrading from 3.x? See [doc/breaking-changes/v4.0.0.md](doc/breaking-changes/v4.0.0.md) for the breaking-change mapping and code examples.
 
 ## Usage
 
