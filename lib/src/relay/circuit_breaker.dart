@@ -15,6 +15,7 @@ class CircuitOpenException implements Exception {
 class CircuitBreaker {
   final int failureThreshold;
   final Duration resetTimeout;
+  final DateTime Function() _now;
 
   CircuitState _state = CircuitState.closed;
   int _consecutiveFailures = 0;
@@ -23,14 +24,15 @@ class CircuitBreaker {
   CircuitBreaker({
     this.failureThreshold = 5,
     this.resetTimeout = const Duration(minutes: 1),
-  });
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
 
   CircuitState get state => _state;
   int get failureCount => _consecutiveFailures;
 
   Future<T> call<T>(Future<T> Function() op) async {
     if (_state == CircuitState.open) {
-      if (DateTime.now().difference(_openedAt) >= resetTimeout) {
+      if (_now().difference(_openedAt) >= resetTimeout) {
         _state = CircuitState.halfOpen;
       } else {
         throw CircuitOpenException('circuit open');
@@ -56,7 +58,7 @@ class CircuitBreaker {
     if (_state == CircuitState.halfOpen ||
         _consecutiveFailures >= failureThreshold) {
       _state = CircuitState.open;
-      _openedAt = DateTime.now();
+      _openedAt = _now();
     }
   }
 }

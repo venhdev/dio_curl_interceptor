@@ -13,11 +13,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _SpySink implements CurlSink {
   final List<CurlEvent> events = [];
+  final Completer<void> firstEvent = Completer<void>();
   @override
   String get name => 'spy';
   @override
   Future<void> handle(CurlEvent e) async {
     events.add(e);
+    if (!firstEvent.isCompleted) firstEvent.complete();
   }
 
   @override
@@ -77,7 +79,7 @@ void main() {
         duration: Duration.zero,
       ),
     ));
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await spy.firstEvent.future;
     expect(spy.events, hasLength(1));
   });
 
@@ -91,7 +93,7 @@ void main() {
       options: Options(responseType: ResponseType.plain),
     );
     expect(resp.statusCode, 200);
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await spy.firstEvent.future;
     expect(spy.events.whereType<ResponseCurlEvent>(), hasLength(1));
   });
 
@@ -104,7 +106,7 @@ void main() {
       'http://example.test/slow',
       options: Options(responseType: ResponseType.plain),
     );
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await spy.firstEvent.future;
     final ev = spy.events.whereType<ResponseCurlEvent>().single;
     expect(ev.response.duration, isNot(Duration.zero));
   });
@@ -115,7 +117,6 @@ void main() {
       config: CurlConfig(sinks: [spy, NullSink()]),
     );
     await interceptor.sendMessage('manual');
-    await Future<void>.delayed(const Duration(milliseconds: 100));
     expect(spy.events, isEmpty);
   });
 
@@ -131,7 +132,7 @@ void main() {
       ),
       throwsA(isA<DioException>()),
     );
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await spy.firstEvent.future;
     expect(spy.events.whereType<ErrorCurlEvent>(), isNotEmpty);
   });
 
@@ -151,7 +152,7 @@ void main() {
         responseType: ResponseType.plain,
       ),
     );
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await spy.firstEvent.future;
     final ev = spy.events.whereType<ResponseCurlEvent>().single;
     final redacted = ev.request.redactForWebhook();
     expect(redacted.headers.containsKey('Authorization'), isFalse);

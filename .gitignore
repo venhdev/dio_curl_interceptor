@@ -37,3 +37,8 @@ secret/
 # FVM Version Cache
 .fvm/
 .vscode/
+
+# Agent-private scratch files
+.agents/scratch/
+.agents/skills/
+skills-lock.json

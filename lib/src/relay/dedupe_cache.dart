@@ -12,17 +12,19 @@ import 'dart:collection';
 class DedupeCache {
   final Duration ttl;
   final int maxEntries;
+  final DateTime Function() _now;
   final LinkedHashMap<String, DateTime> _entries = LinkedHashMap();
 
   DedupeCache({
     this.ttl = const Duration(minutes: 1),
     this.maxEntries = 10000,
-  });
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
 
   bool shouldDispatch(String id) {
     _evictExpired();
     final last = _entries[id];
-    final now = DateTime.now();
+    final now = _now();
     if (last != null && now.difference(last) < ttl) {
       // Refresh position: re-insert at the most-recent end while preserving
       // the original timestamp.
@@ -34,7 +36,7 @@ class DedupeCache {
   }
 
   void markDispatched(String id) {
-    _entries[id] = DateTime.now();
+    _entries[id] = _now();
     if (_entries.length > maxEntries) {
       _entries.remove(_entries.keys.first);
     }
@@ -43,7 +45,7 @@ class DedupeCache {
   int get size => _entries.length;
 
   void _evictExpired() {
-    final now = DateTime.now();
+    final now = _now();
     _entries.removeWhere((_, t) => now.difference(t) >= ttl);
   }
 }

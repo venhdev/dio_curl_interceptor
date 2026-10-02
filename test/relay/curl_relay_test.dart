@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio_curl_interceptor/src/data/models/sender_info.dart';
 import 'package:dio_curl_interceptor/src/events/curl_event.dart';
 import 'package:dio_curl_interceptor/src/events/request_info.dart';
@@ -9,18 +11,29 @@ import 'package:dio_curl_interceptor/src/sinks/null_sink.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _RecSink implements CurlSink, MessageSink {
+  _RecSink({this.expectedEvents = 1});
+
+  final int expectedEvents;
   final List<CurlEvent> handled = [];
   final List<String> messages = [];
+  final Completer<void> eventsDelivered = Completer<void>();
+  final Completer<void> messagesDelivered = Completer<void>();
   @override
   String get name => 'rec';
   @override
   Future<void> handle(CurlEvent e) async {
     handled.add(e);
+    if (handled.length >= expectedEvents && !eventsDelivered.isCompleted) {
+      eventsDelivered.complete();
+    }
   }
 
   @override
   Future<void> sendMessage(String content, {SenderInfo? senderInfo}) async {
     messages.add(content);
+    if (messages.isNotEmpty && !messagesDelivered.isCompleted) {
+      messagesDelivered.complete();
+    }
   }
 
   @override
@@ -31,12 +44,14 @@ class _NamedSink implements CurlSink, MessageSink {
   @override
   final String name;
   final List<String> messages = [];
+  final Completer<void> messagesDelivered = Completer<void>();
   _NamedSink(this.name);
   @override
   Future<void> handle(CurlEvent e) async {}
   @override
   Future<void> sendMessage(String content, {SenderInfo? senderInfo}) async {
     messages.add(content);
+    if (!messagesDelivered.isCompleted) messagesDelivered.complete();
   }
 
   @override
@@ -58,7 +73,7 @@ void main() {
         duration: Duration.zero,
       ),
     ));
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await rec.eventsDelivered.future;
     expect(rec.handled, hasLength(1));
   });
 
@@ -78,12 +93,12 @@ void main() {
     );
     relay.dispatch(ev);
     relay.dispatch(ev);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await rec.eventsDelivered.future;
     expect(rec.handled, hasLength(1));
   });
 
   test('dispatch with different ids delivers separately', () async {
-    final rec = _RecSink();
+    final rec = _RecSink(expectedEvents: 2);
     final relay = CurlRelay(sinks: [rec]);
     final base = RequestInfo.fromTest();
     final r = const ResponseInfo(
@@ -104,7 +119,7 @@ void main() {
       request: base,
       response: r,
     ));
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await rec.eventsDelivered.future;
     expect(rec.handled, hasLength(2));
   });
 
@@ -123,7 +138,6 @@ void main() {
         duration: Duration.zero,
       ),
     ));
-    await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(rec.handled, isEmpty);
   });
 
@@ -132,8 +146,10 @@ void main() {
     final rec2 = _RecSink();
     final relay = CurlRelay(sinks: [rec1, rec2, NullSink()]);
     await relay.sendMessage('hello');
-    // sendMessage is fire-and-forget; allow the unawaited tasks to land.
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await Future.wait([
+      rec1.messagesDelivered.future,
+      rec2.messagesDelivered.future,
+    ]);
     expect(rec1.messages, ['hello']);
     expect(rec2.messages, ['hello']);
   });
@@ -143,7 +159,7 @@ void main() {
     final b = _NamedSink('b');
     final relay = CurlRelay(sinks: [a, b]);
     await relay.sendMessage('hi', targetSinks: const ['a']);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await a.messagesDelivered.future;
     expect(a.messages, ['hi']);
     expect(b.messages, isEmpty);
   });
@@ -153,4 +169,49 @@ void main() {
     await relay.dispose();
     await relay.dispose();
   });
+
+  test('retries a failing sink and continues delivering to other sinks',
+      () async {
+    final failedThenRecovered = _RecSink();
+    final recoveringSink = _FailOnceSink();
+    final relay = CurlRelay(
+      sinks: [recoveringSink, failedThenRecovered],
+      options: const RelayOptions(
+        retryMaxRetries: 1,
+        retryInitialDelay: Duration.zero,
+        retryJitterFraction: 0,
+      ),
+    );
+    relay.dispatch(ResponseCurlEvent(
+      id: 'retry',
+      timestamp: DateTime.utc(2026, 7, 7),
+      request: RequestInfo.fromTest(),
+      response: const ResponseInfo(
+        statusCode: 200,
+        headers: {},
+        body: null,
+        duration: Duration.zero,
+      ),
+    ));
+
+    await failedThenRecovered.eventsDelivered.future;
+    expect(recoveringSink.attempts, 2);
+    expect(failedThenRecovered.handled, hasLength(1));
+  });
+}
+
+class _FailOnceSink implements CurlSink {
+  var attempts = 0;
+
+  @override
+  String get name => 'fail-once';
+
+  @override
+  Future<void> handle(CurlEvent event) async {
+    attempts++;
+    if (attempts == 1) throw StateError('first attempt fails');
+  }
+
+  @override
+  Future<void> dispose() async {}
 }

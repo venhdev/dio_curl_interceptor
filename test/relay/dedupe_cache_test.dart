@@ -1,6 +1,8 @@
 import 'package:dio_curl_interceptor/src/relay/dedupe_cache.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/test_clock.dart';
+
 void main() {
   group('DedupeCache', () {
     test('first call passes; second within TTL is blocked', () {
@@ -10,11 +12,15 @@ void main() {
       expect(c.shouldDispatch('a'), isFalse);
     });
 
-    test('TTL expiry releases the key', () async {
-      final c =
-          DedupeCache(ttl: const Duration(milliseconds: 1), maxEntries: 100);
+    test('TTL expiry releases the key', () {
+      final clock = TestClock(DateTime.utc(2026));
+      final c = DedupeCache(
+        ttl: const Duration(seconds: 1),
+        maxEntries: 100,
+        now: clock.now,
+      );
       c.markDispatched('a');
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      clock.elapse(const Duration(seconds: 1));
       expect(c.shouldDispatch('a'), isTrue);
     });
 

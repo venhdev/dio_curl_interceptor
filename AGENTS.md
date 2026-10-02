@@ -48,3 +48,8 @@ The library is organized inside the `lib/src/` folder:
 2. Maintain backward compatibility when updating public APIs.
 3. Write clean, descriptive code and ensure changes are verified by running `flutter test`.
 4. Use standard absolute file URI links in markdown logs (e.g. `[filename](file:///...)`).
+
+## Agent Workflow
+- **Task Tracker**: Governed by `.agents/task-tracker.md`.
+- **Harness Anchor**: Governed by `.agents/harness-anchor.md` (via `/harness-audit`).
+- **Documentation**: Governed by `docs/README.md` (via `/ssot`).

@@ -1,6 +1,8 @@
 import 'package:dio_curl_interceptor/src/relay/circuit_breaker.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/test_clock.dart';
+
 void main() {
   test('starts closed; calls succeed', () async {
     final cb = CircuitBreaker(
@@ -25,25 +27,33 @@ void main() {
   });
 
   test('half-open success closes the breaker', () async {
+    final clock = TestClock(DateTime.utc(2026));
     final cb = CircuitBreaker(
-        failureThreshold: 2, resetTimeout: const Duration(milliseconds: 1));
+      failureThreshold: 2,
+      resetTimeout: const Duration(seconds: 1),
+      now: clock.now,
+    );
     Future<int> boom() async => throw StateError('x');
     await expectLater(() => cb.call(boom), throwsA(isA<StateError>()));
     await expectLater(() => cb.call(boom), throwsA(isA<StateError>()));
     expect(cb.state, CircuitState.open);
-    await Future<void>.delayed(const Duration(milliseconds: 5));
+    clock.elapse(const Duration(seconds: 1));
     final r = await cb.call<int>(() async => 99);
     expect(r, 99);
     expect(cb.state, CircuitState.closed);
   });
 
   test('half-open failure reopens the breaker', () async {
+    final clock = TestClock(DateTime.utc(2026));
     final cb = CircuitBreaker(
-        failureThreshold: 2, resetTimeout: const Duration(milliseconds: 1));
+      failureThreshold: 2,
+      resetTimeout: const Duration(seconds: 1),
+      now: clock.now,
+    );
     Future<int> boom() async => throw StateError('x');
     await expectLater(() => cb.call(boom), throwsA(isA<StateError>()));
     await expectLater(() => cb.call(boom), throwsA(isA<StateError>()));
-    await Future<void>.delayed(const Duration(milliseconds: 5));
+    clock.elapse(const Duration(seconds: 1));
     await expectLater(() => cb.call(boom), throwsA(isA<StateError>()));
     expect(cb.state, CircuitState.open);
   });
