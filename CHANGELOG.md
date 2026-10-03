@@ -7,6 +7,7 @@ version: 4.0.0
 
 ## Unreleased
 
+- Remove retry policy and retry configuration. Sink delivery is fire-and-forget; each sink's circuit breaker opens after five consecutive failures.
 - Make Hive cache encryption opt-in with caller-provided keys; remove `flutter_secure_storage`.
 
 ## 4.0.0

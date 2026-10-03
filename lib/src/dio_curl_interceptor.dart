@@ -112,8 +112,8 @@ class DioCurlInterceptor extends Interceptor {
   }
 
   /// Send a manual message to every [MessageSink] (or `targetSinks` subset),
-  /// no Dio request required. Surviving CircuitBreakers and RetryPolicy are
-  /// re-used.
+  /// no Dio request required. The sink's circuit breaker is shared with event
+  /// dispatches.
   Future<void> sendMessage(
     String content, {
     SenderInfo? senderInfo,

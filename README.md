@@ -13,7 +13,7 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 💾 **Storage** – Local Hive cache with filtering & search
 - 🔔 **Webhooks** – Discord & Telegram sinks; automatic sensitive header redaction
 - 🎯 **Filtering** – Status filtering (forward only client/server errors or custom buckets); Path filtering (block/mock endpoints via exact/regex/glob; live editor in viewer)
-- 🔁 **Reliability** – Per-sink circuit breaker, exponential retry with jitter, dedupe cache
+- 🔁 **Reliability** – Per-sink circuit breaker (opens after 5 consecutive failures), dedupe cache
 - 🔌 **Extensibility** – Pluggable sink interfaces; send manual non-HTTP logs (app start, button taps, errors) to any sink
 - 📝 **Utilities** – Standalone helpers for custom interceptors or ad-hoc logging
 
@@ -50,7 +50,7 @@ final dio = Dio()..interceptors.add(interceptor);
 await interceptor.sendMessage('App started');
 ```
 
-You can customize the relay behaviour with `RelayOptions` inside `CurlConfig` and fan out to multiple sinks:
+You can customize deduplication with `RelayOptions` inside `CurlConfig` and fan out to multiple sinks:
 
 ```dart
 DioCurlInterceptor(
@@ -65,8 +65,6 @@ DioCurlInterceptor(
       PrinterSink(printer: print),
     ],
     relayOptions: const RelayOptions(
-      retry: true,
-      circuitBreaker: true,
       dedupeTtl: Duration(minutes: 1),
     ),
     onRequest: const RequestDetails(

@@ -13,7 +13,7 @@ class CircuitOpenException implements Exception {
 /// [failureThreshold]. After [resetTimeout] the next call tries in
 /// [halfOpen]: success closes, failure reopens.
 class CircuitBreaker {
-  final int failureThreshold;
+  static const int failureThreshold = 5;
   final Duration resetTimeout;
   final DateTime Function() _now;
 
@@ -22,7 +22,6 @@ class CircuitBreaker {
   DateTime _openedAt = DateTime.fromMillisecondsSinceEpoch(0);
 
   CircuitBreaker({
-    this.failureThreshold = 5,
     this.resetTimeout = const Duration(minutes: 1),
     DateTime Function()? now,
   }) : _now = now ?? DateTime.now;

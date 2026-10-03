@@ -41,4 +41,5 @@ secret/
 # Agent-private scratch files
 .agents/scratch/
 .agents/skills/
+.agents/tasks/
 skills-lock.json

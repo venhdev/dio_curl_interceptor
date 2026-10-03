@@ -44,10 +44,6 @@ void main() async {
           HiveSink(),
           PrinterSink(printer: print),
         ],
-        relayOptions: const RelayOptions(
-          retry: true,
-          circuitBreaker: true,
-        ),
       ),
     ),
   );
@@ -58,13 +54,11 @@ void main() async {
   );
   await interceptor.sendMessage('App started');
 
-  // Example 5: Custom relay tuning — turn off dedupe while keeping retry.
+  // Example 5: Disable dedupe for repeated events.
   dio.interceptors.add(
     DioCurlInterceptor(
       config: CurlConfig(
         relayOptions: const RelayOptions(
-          retry: true,
-          circuitBreaker: true,
           dedupeTtl: Duration.zero,
         ),
         sinks: [PrinterSink(printer: print)],

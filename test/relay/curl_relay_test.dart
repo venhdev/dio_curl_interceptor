@@ -170,20 +170,14 @@ void main() {
     await relay.dispose();
   });
 
-  test('retries a failing sink and continues delivering to other sinks',
-      () async {
-    final failedThenRecovered = _RecSink();
-    final recoveringSink = _FailOnceSink();
+  test('failed sink does not block delivery to other sinks', () async {
+    final healthySink = _RecSink();
+    final failingSink = _AlwaysFailSink();
     final relay = CurlRelay(
-      sinks: [recoveringSink, failedThenRecovered],
-      options: const RelayOptions(
-        retryMaxRetries: 1,
-        retryInitialDelay: Duration.zero,
-        retryJitterFraction: 0,
-      ),
+      sinks: [failingSink, healthySink],
     );
     relay.dispatch(ResponseCurlEvent(
-      id: 'retry',
+      id: 'failed-sink',
       timestamp: DateTime.utc(2026, 7, 7),
       request: RequestInfo.fromTest(),
       response: const ResponseInfo(
@@ -194,22 +188,22 @@ void main() {
       ),
     ));
 
-    await failedThenRecovered.eventsDelivered.future;
-    expect(recoveringSink.attempts, 2);
-    expect(failedThenRecovered.handled, hasLength(1));
+    await healthySink.eventsDelivered.future;
+    expect(failingSink.attempts, 1);
+    expect(healthySink.handled, hasLength(1));
   });
 }
 
-class _FailOnceSink implements CurlSink {
+class _AlwaysFailSink implements CurlSink {
   var attempts = 0;
 
   @override
-  String get name => 'fail-once';
+  String get name => 'always-fail';
 
   @override
   Future<void> handle(CurlEvent event) async {
     attempts++;
-    if (attempts == 1) throw StateError('first attempt fails');
+    throw StateError('send failed');
   }
 
   @override

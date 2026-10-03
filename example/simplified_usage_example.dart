@@ -2,8 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
 import 'package:flutter/foundation.dart';
 
-/// Demonstrates the 4.0.0 minimal config: pass in sinks, get async, retry,
-/// circuit-breaker, dedupe for free.
+/// Demonstrates async sink delivery with a circuit breaker and deduplication.
 void main() async {
   final dio = Dio();
   dio.interceptors.add(
