@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Records the last arguments passed to sendCurlLog and sendMessage without
 /// involving mockito (avoids Dart-3 / mockito matcher issues).
 class _CapturingSender extends DiscordWebhookSender {
-  _CapturingSender() : super(hookUrls: const ['https://unused.example/test']);
+  _CapturingSender() : super(webhookUrl: 'https://unused.example/test');
   String? capturedCurl;
   int capturedStatus = 0;
   String? capturedContent;
@@ -18,7 +18,7 @@ class _CapturingSender extends DiscordWebhookSender {
   bool sentMessageCalled = false;
 
   @override
-  Future<List<Response>> sendCurlLog({
+  Future<void> sendCurlLog({
     required String? curl,
     required String method,
     required String uri,
@@ -31,17 +31,15 @@ class _CapturingSender extends DiscordWebhookSender {
     capturedCurl = curl;
     capturedStatus = statusCode;
     sentCurlCalled = true;
-    return <Response>[];
   }
 
   @override
-  Future<List<Response>> sendMessage({
+  Future<void> sendMessage({
     required String content,
     SenderInfo? senderInfo,
   }) async {
     capturedContent = content;
     sentMessageCalled = true;
-    return <Response>[];
   }
 }
 
@@ -50,7 +48,8 @@ void main() {
       () async {
     final sender = _CapturingSender();
     final sink = DiscordSink(
-      webhookUrls: const ['https://hook.example/test'],
+      name: 'discord-test',
+      webhookUrl: 'https://hook.example/test',
       sender: sender,
     );
 
@@ -85,7 +84,8 @@ void main() {
       () async {
     final sender = _CapturingSender();
     final sink = DiscordSink(
-      webhookUrls: const ['https://hook.example/test'],
+      name: 'discord-test',
+      webhookUrl: 'https://hook.example/test',
       sender: sender,
       redactAuthHeaders: false,
     );
@@ -118,13 +118,15 @@ void main() {
     expect(sender.capturedCurl!.contains('Authorization'), isTrue);
   });
 
-  test('name is unique per webhook URL', () {
+  test('name is an explicit safe sink alias', () {
     final a = DiscordSink(
-      webhookUrls: const ['https://hook.example/A'],
+      name: 'alerts',
+      webhookUrl: 'https://hook.example/A',
       sender: _CapturingSender(),
     );
     final b = DiscordSink(
-      webhookUrls: const ['https://hook.example/B'],
+      name: 'errors',
+      webhookUrl: 'https://hook.example/B',
       sender: _CapturingSender(),
     );
     expect(a.name, isNot(b.name));
@@ -133,11 +135,32 @@ void main() {
   test('sendMessage posts raw content via the sender', () async {
     final sender = _CapturingSender();
     final sink = DiscordSink(
-      webhookUrls: const ['https://hook.example/A'],
+      name: 'discord-test',
+      webhookUrl: 'https://hook.example/A',
       sender: sender,
     );
     await sink.sendMessage('App started');
     expect(sender.sentMessageCalled, isTrue);
     expect(sender.capturedContent, 'App started');
+  });
+
+  test('does not close caller-injected Dio on dispose', () async {
+    final externalDio = Dio()
+      ..interceptors.add(InterceptorsWrapper(
+        onRequest: (options, handler) => handler.resolve(
+          Response(requestOptions: options, data: 'still open'),
+        ),
+      ));
+    final sink = DiscordSink(
+      name: 'external',
+      webhookUrl: 'https://hook.example/test',
+      dio: externalDio,
+    );
+
+    await sink.dispose();
+    final response = await externalDio.get<String>('https://example.test');
+
+    expect(response.data, 'still open');
+    externalDio.close(force: true);
   });
 }

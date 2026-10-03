@@ -80,17 +80,6 @@ dio.interceptors.add(
   DioCurlInterceptor(
     config: CurlConfig(
       sinks: const [NullSink()],
-      onRequest: const RequestDetails(visible: true),
-      onResponse: const ResponseDetails(
-        visible: true,
-        requestBody: true,
-        responseBody: true,
-      ),
-      onError: const ErrorDetails(
-        visible: true,
-        requestBody: true,
-        responseBody: true,
-      ),
     ),
   ),
 );
@@ -98,15 +87,13 @@ dio.interceptors.add(
 
 ## Pretty Printing
 
-You can enable pretty printing through `PrettyConfig` and a `PrinterSink`:
+`PrettyConfig` and `CurlOptions` configure standalone `CurlUtils` output:
 
 ```dart
-dio.interceptors.add(
-  DioCurlInterceptor(
-    config: CurlConfig(
-      sinks: [PrinterSink(printer: print)],
-      prettyConfig: const PrettyConfig(blockEnabled: true),
-    ),
+CurlUtils.logCurl(
+  requestOptions,
+  curlOptions: const CurlOptions(
+    prettyConfig: PrettyConfig(blockEnabled: true),
   ),
 );
 ```

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import '../options/filter_options.dart';
-import '../config/curl_config.dart';
-import '../dio_curl_interceptor.dart';
+import '../core/utils/filter_utils.dart';
 
 /// Service to manage filter operations and bridge between UI and interceptors
 class FilterManagementService {
@@ -135,18 +134,6 @@ class FilterManagementService {
         enabled: true,
       );
 
-      // Create a temporary interceptor for testing
-      final testInterceptor = DioCurlInterceptor(
-        config: CurlConfig(
-          filterOptions: testFilterOptions,
-        ),
-      );
-
-      // Use the interceptor to test the filter
-      // ignore: unused_local_variable
-      final _ = testInterceptor;
-
-      // Test the filter
       final shouldBlock = _shouldBlockRequest(sampleRequest, testFilterOptions);
 
       if (shouldBlock) {
@@ -183,73 +170,7 @@ class FilterManagementService {
   /// Internal method to check if a request should be blocked
   bool _shouldBlockRequest(
       RequestOptions request, FilterOptions filterOptions) {
-    if (!filterOptions.enabled || filterOptions.rules.isEmpty) {
-      return false;
-    }
-
-    // Check exclusions first
-    if (filterOptions.exclusions != null) {
-      for (final exclusion in filterOptions.exclusions!) {
-        if (_matchesPath(request.path, exclusion, PathMatchType.exact)) {
-          return false;
-        }
-      }
-    }
-
-    // Check rules
-    for (final rule in filterOptions.rules) {
-      if (_matchesRule(request, rule)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /// Check if a request matches a specific rule
-  bool _matchesRule(RequestOptions request, FilterRule rule) {
-    // Check path matching
-    if (!_matchesPath(request.path, rule.pathPattern, rule.matchType)) {
-      return false;
-    }
-
-    // Check HTTP method if specified
-    if (rule.methods != null && !rule.methods!.contains(request.method)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /// Check if a path matches a pattern
-  bool _matchesPath(String path, String pattern, PathMatchType matchType) {
-    switch (matchType) {
-      case PathMatchType.exact:
-        return path == pattern;
-      case PathMatchType.regex:
-        try {
-          return RegExp(pattern).hasMatch(path);
-        } catch (e) {
-          return false;
-        }
-      case PathMatchType.glob:
-        return _matchesGlobPattern(path, pattern);
-    }
-  }
-
-  /// Simple glob pattern matching
-  bool _matchesGlobPattern(String path, String pattern) {
-    // Convert glob pattern to regex
-    String regexPattern = pattern
-        .replaceAll('*', '.*')
-        .replaceAll('?', '.')
-        .replaceAll('.', r'\.');
-
-    try {
-      return RegExp('^$regexPattern\$').hasMatch(path);
-    } catch (e) {
-      return false;
-    }
+    return FilterUtils.shouldFilter(request, filterOptions);
   }
 
   /// Generate a blocked response for a request

@@ -12,12 +12,12 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🖥️ **Viewer** – In-app log viewer with search, status/date filtering, copy, clear, share
 - 💾 **Storage** – Local Hive cache with filtering & search
 - 🔔 **Webhooks** – Discord & Telegram sinks; automatic sensitive header redaction
-- 🎯 **Filtering** – Status filtering (forward only client/server errors or custom buckets); Path filtering (block/mock endpoints via exact/regex/glob; live editor in viewer)
+- 🎯 **Filtering** – Status-filter sink and viewer tools to manage and preview exact, regex, and glob path rules
 - 🔁 **Reliability** – Per-sink circuit breaker (opens after 5 consecutive failures), dedupe cache
 - 🔌 **Extensibility** – Pluggable sink interfaces; send manual non-HTTP logs (app start, button taps, errors) to any sink
 - 📝 **Utilities** – Standalone helpers for custom interceptors or ad-hoc logging
 
-See [Screenshots](#screenshots) for simultaneous vs. chronological logging examples.
+See [Screenshots](#screenshots) for the viewer and overlay.
 
 ## Migration Guide
 
@@ -27,20 +27,11 @@ Upgrading from 3.x? See [doc/breaking-changes/v4.0.0.md](doc/breaking-changes/v4
 
 ### Option 1: Using `DioCurlInterceptor` (4.0+)
 
-Add the interceptor to your Dio instance; one config object drives everything:
+Add the interceptor to your Dio instance and configure its sinks:
 
 ```dart
 final interceptor = DioCurlInterceptor(
   config: CurlConfig(
-    behavior: CurlBehavior.chronological,
-    onRequest: const RequestDetails(visible: true),
-    onResponse: const ResponseDetails(
-      visible: true,
-      requestBody: true,
-      responseBody: true,
-      limitResponseBody: 4096,
-    ),
-    onError: const ErrorDetails(visible: true),
     sinks: [PrinterSink(printer: print)],
   ),
 );
@@ -56,10 +47,11 @@ You can customize deduplication with `RelayOptions` inside `CurlConfig` and fan 
 DioCurlInterceptor(
   config: CurlConfig(
     sinks: [
-      DiscordSink(webhookUrls: ['https://your-webhook']),
+      DiscordSink(name: 'discord-alerts', webhookUrl: 'https://your-webhook'),
       TelegramSink(
+        name: 'telegram-alerts',
         botToken: 'YOUR_BOT_TOKEN',
-        chatIds: ['-1003019608685'], // note: chatIds is List<String>
+        chatId: '-1003019608685',
       ),
       HiveSink(),
       PrinterSink(printer: print),
@@ -67,42 +59,6 @@ DioCurlInterceptor(
     relayOptions: const RelayOptions(
       dedupeTtl: Duration(minutes: 1),
     ),
-    onRequest: const RequestDetails(
-      visible: true,
-      ansi: Ansi.yellow, // ANSI color for request
-    ),
-    onResponse: const ResponseDetails(
-      visible: true,
-      requestHeaders: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeaders: true,
-      limitResponseBody: null,
-      ansi: Ansi.green, // ANSI color for response
-    ),
-    onError: const ErrorDetails(
-      visible: true,
-      requestHeaders: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeaders: true,
-      limitResponseBody: null,
-      ansi: Ansi.red, // ANSI color for errors
-    ),
-    // Configure pretty printing options
-    prettyConfig: PrettyConfig(
-      blockEnabled: true, // Enable pretty printing
-      colorEnabled: true, // Force enable/disable colored
-      emojiEnabled: true, // Enable/disable emoji
-      lineLength: 100, // Set the length of separator lines
-    ),
-    // Custom printer function to override default logging behavior
-    printer: (String text) {
-      // do whatever you want with the text
-      // ...
-      // Your custom logging implementation
-      print('Custom log: $text'); // remember to print the text
-    },
   ),
 );
 ```
@@ -142,48 +98,7 @@ class YourInterceptor extends Interceptor {
 
 > Note: `CurlUtils.handleOnRequest/handleOnResponse/handleOnError` no longer accept `webhookInspectors`. Configure webhooks via `CurlConfig(sinks: [DiscordSink(...), TelegramSink(...)])` instead.
 
-### Option 3: Using path filtering
-
-You can use path filtering to stop specific API calls and return custom responses:
-
-```dart
-final dio = Dio();
-
-// Create filter options
-final filterOptions = FilterOptions(
-  rules: [
-    // Block access to a specific endpoint
-    FilterRule.exact('/api/sensitive-data'),
-
-    // Mock a response for a specific endpoint
-    FilterRule.exact(
-      '/api/users/profile',
-      responseData: {
-        'id': 'mock-user-123',
-        'name': 'Mock User',
-        'email': 'mock@example.com',
-      },
-    ),
-
-    // Use regex pattern to match multiple endpoints
-    FilterRule.regex(
-      r'/api/v1/.*',
-      responseData: {'message': 'API v1 is deprecated'},
-      statusCode: 410,
-    ),
-  ],
-  // Never filter these paths
-  exclusions: ['/api/health', '/api/version'],
-);
-
-// Add the interceptor with filtering
-dio.interceptors.add(DioCurlInterceptor(
-  config: CurlConfig(filterOptions: filterOptions),
-));
-```
-});
-
-### Option 4: Real-time filter editing with CurlViewer
+### Option 3: Filter rule management with CurlViewer
 
 You can now edit filter rules directly in the CurlViewer interface:
 
@@ -199,14 +114,11 @@ showDialog(
   ),
 );
 
-// Users can now:
-// 1. Click the filters button (🔍) in the CurlViewer header
-// 2. Add, edit, and delete filter rules in real-time
-// 3. Test filter rules against sample requests
-// 4. See immediate effects on API blocking
 ```
 
-### Option 5: Using webhook integration
+The viewer lets users add, edit, delete, and preview filter rules.
+
+### Option 4: Using webhook integration
 
 You can use webhook integration to send cURL logs to Discord channels or Telegram chats for remote logging and team collaboration:
 
@@ -226,19 +138,27 @@ For Telegram integration, you need to:
    - Find your chat ID in the response (it's a number, can be negative for groups)
 
 3. **Configure the `TelegramSink`:**
-   - Use `botToken` and `chatIds` parameters directly
-   - Example: `TelegramSink(botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatIds: ['123456789'])`
+   - Use `botToken` and one `chatId` per sink
+   - Example: `TelegramSink(name: 'alerts', botToken: 'YOUR_BOT_TOKEN', chatId: '123456789')`
+
+Each Discord or Telegram sink sends to one destination. Create another sink
+with a distinct safe `name` for each additional destination. Webhook sinks share
+the package-owned Dio when `dio` is omitted; when a Dio is supplied, it remains
+owned by the caller and is never disposed by the package. Dispose the
+interceptor when its owning application lifecycle ends.
 
 ```dart
 final interceptor = DioCurlInterceptor(
   config: CurlConfig(
     sinks: [
       DiscordSink(
-        webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+        name: 'discord-alerts',
+        webhookUrl: 'https://discord.com/api/webhooks/your-webhook-url',
       ),
       TelegramSink(
+        name: 'telegram-alerts',
         botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
-        chatIds: ['-1003019608685'], // List<String>; get from getUpdates API
+        chatId: '-1003019608685', // Get from getUpdates API
       ),
     ],
   ),
@@ -249,11 +169,11 @@ dio.interceptors.add(interceptor);
 await interceptor.sendMessage('Hello from the app!');
 await interceptor.sendMessage(
   'Only Discord will receive this',
-  targetSinks: ['Discord:https://discord.com/api/webhooks/your-webhook-url'],
+  targetSinks: ['discord-alerts'],
 );
 ```
 
-### Option 6: Using utility functions directly
+### Option 5: Using utility functions directly
 
 If you don't want to add a full interceptor, you can use the utility functions directly in your code:
 
@@ -280,6 +200,7 @@ try {
   // Cache an error response
   CurlUtils.cacheError(e);
 }
+```
 
 ## Dio Cache Storage
 

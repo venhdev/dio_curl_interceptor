@@ -107,20 +107,24 @@ class FilterUtils {
 
   /// Simple glob pattern matching implementation
   static bool _isGlobMatch(String text, String pattern) {
-    // Convert glob pattern to regex
-    final regexPattern = pattern
-        .replaceAll('.', '\\.')
-        .replaceAll('?', '.')
-        .replaceAll('*', '.*')
-        .replaceAll('/**/', '(/.*)?/');
-
-    try {
-      final regex = RegExp('^$regexPattern\$');
-      return regex.hasMatch(text);
-    } catch (e) {
-      developer.log('Invalid glob pattern: $pattern - $e', name: 'FilterUtils');
-      return false;
+    final regex = StringBuffer('^');
+    for (var index = 0; index < pattern.length; index++) {
+      if (pattern.startsWith('/**/', index)) {
+        regex.write(r'(?:/.*)?/');
+        index += 3;
+      } else if (pattern.startsWith('**', index)) {
+        regex.write('.*');
+        index++;
+      } else if (pattern[index] == '*') {
+        regex.write('.*');
+      } else if (pattern[index] == '?') {
+        regex.write('.');
+      } else {
+        regex.write(RegExp.escape(pattern[index]));
+      }
     }
+    regex.write(r'$');
+    return RegExp(regex.toString()).hasMatch(text);
   }
 
   /// Generates a response for a blocked request

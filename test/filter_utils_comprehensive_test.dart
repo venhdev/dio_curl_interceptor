@@ -90,6 +90,45 @@ void main() {
         }
       });
 
+      test('glob escapes regex metacharacters and supports optional deep paths',
+          () {
+        final filterOptions = FilterOptions(
+          rules: [
+            FilterRule.glob('/v1.0/*'),
+            FilterRule.glob('/api/**/users'),
+          ],
+        );
+
+        expect(
+          FilterUtils.shouldFilter(
+            RequestOptions(path: '/v1.0/users'),
+            filterOptions,
+          ),
+          isTrue,
+        );
+        expect(
+          FilterUtils.shouldFilter(
+            RequestOptions(path: '/v1x0/users'),
+            filterOptions,
+          ),
+          isFalse,
+        );
+        expect(
+          FilterUtils.shouldFilter(
+            RequestOptions(path: '/api/users'),
+            filterOptions,
+          ),
+          isTrue,
+        );
+        expect(
+          FilterUtils.shouldFilter(
+            RequestOptions(path: '/api/v2/private/users'),
+            filterOptions,
+          ),
+          isTrue,
+        );
+      });
+
       test('should handle invalid regex patterns gracefully', () {
         final filterOptions = FilterOptions(
           rules: [

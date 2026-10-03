@@ -36,6 +36,8 @@ class CircuitBreaker {
       } else {
         throw CircuitOpenException('circuit open');
       }
+    } else if (_state == CircuitState.halfOpen) {
+      throw CircuitOpenException('half-open probe in progress');
     }
     try {
       final result = await op();

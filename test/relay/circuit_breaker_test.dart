@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio_curl_interceptor/src/relay/circuit_breaker.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -54,5 +56,30 @@ void main() {
     clock.elapse(const Duration(seconds: 1));
     await expectLater(() => cb.call(boom), throwsA(isA<StateError>()));
     expect(cb.state, CircuitState.open);
+  });
+
+  test('allows only one half-open probe at a time', () async {
+    final clock = TestClock(DateTime.utc(2026));
+    final cb = CircuitBreaker(
+      resetTimeout: const Duration(seconds: 1),
+      now: clock.now,
+    );
+    Future<int> boom() async => throw StateError('x');
+    for (var i = 0; i < CircuitBreaker.failureThreshold; i++) {
+      await expectLater(() => cb.call(boom), throwsA(isA<StateError>()));
+    }
+    clock.elapse(const Duration(seconds: 1));
+
+    final completer = Completer<int>();
+    final probe = cb.call(() => completer.future);
+    await Future<void>.delayed(Duration.zero);
+    expect(cb.state, CircuitState.halfOpen);
+    await expectLater(
+      () => cb.call<int>(() async => 2),
+      throwsA(isA<CircuitOpenException>()),
+    );
+    completer.complete(1);
+    expect(await probe, 1);
+    expect(cb.state, CircuitState.closed);
   });
 }

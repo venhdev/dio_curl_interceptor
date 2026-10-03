@@ -8,9 +8,6 @@ void main() async {
   dio.interceptors.add(
     DioCurlInterceptor(
       config: CurlConfig(
-        onRequest: const RequestDetails(visible: true),
-        onResponse: const ResponseDetails(visible: true),
-        onError: const ErrorDetails(visible: true),
         sinks: [PrinterSink(printer: print)],
       ),
     ),

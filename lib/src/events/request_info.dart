@@ -56,34 +56,29 @@ class RequestInfo {
   /// Returns a copy with Authorization/Cookie/Set-Cookie headers stripped
   /// and [curl] rewritten to remove the same headers in-place.
   ///
-  /// The cURL pass uses two strategies per key:
-  ///   - ` -H 'KEY: VALUE'`  /  ` -H "KEY: VALUE"`  (curl's typical header form)
-  ///   - ` --header 'KEY: VALUE'`  /  ` --header "KEY: VALUE"`  (curl long-form)
-  /// Either ASCII double-quote or single-quote is consumed as the wrapping
-  /// character; the inner capture group + back-reference is included exactly.
+  /// Header names are matched case-insensitively. The cURL pass recognizes
+  /// quoted `-H` and `--header` arguments, including escaped quotes.
   RequestInfo redactForWebhook() {
-    const redactedKeys = {'Authorization', 'Cookie', 'Set-Cookie'};
+    const redactedKeys = {'authorization', 'cookie', 'set-cookie'};
     final newHeaders = Map<String, String>.fromEntries(
-      headers.entries.where((e) => !redactedKeys.contains(e.key)),
+      headers.entries.where((e) => !redactedKeys.contains(e.key.toLowerCase())),
     );
-    String? newCurl = curl;
-    if (newCurl != null) {
-      for (final key in redactedKeys) {
-        final k = RegExp.escape(key);
-        // -H "KEY: VALUE"  /  -H 'KEY: VALUE'  -> drop the whole -H... token
-        final shortRe = RegExp(
-          "-H\\s+['\"`]$k:.*?['\"`]\\s*",
-          caseSensitive: false,
-        );
-        newCurl = newCurl!.replaceAllMapped(shortRe, (_) => '');
-        // --header "KEY: VALUE"  /  --header 'KEY: VALUE'  -> drop the whole token
-        final longRe = RegExp(
-          "--header\\s+['\"`]$k:.*?['\"`]\\s*",
-          caseSensitive: false,
-        );
-        newCurl = newCurl.replaceAllMapped(longRe, (_) => '');
-      }
-    }
+    final newCurl = curl?.replaceAllMapped(
+      RegExp(
+        r'''(?<!\S)(?:-H|--header)\s+(?:"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'|`((?:\\.|[^`\\])*)`)\s*''',
+        caseSensitive: false,
+      ),
+      (match) {
+        final header = match[1] ?? match[2] ?? match[3] ?? '';
+        final colon = header.indexOf(':');
+        if (colon >= 0 &&
+            redactedKeys
+                .contains(header.substring(0, colon).trim().toLowerCase())) {
+          return '';
+        }
+        return match[0]!;
+      },
+    );
     return RequestInfo(
       method: method,
       uri: uri,

@@ -9,6 +9,8 @@ version: 4.0.0
 
 - Remove retry policy and retry configuration. Sink delivery is fire-and-forget; each sink's circuit breaker opens after five consecutive failures.
 - Make Hive cache encryption opt-in with caller-provided keys; remove `flutter_secure_storage`.
+- Restrict Discord and Telegram sinks to one endpoint each; share the package-owned Dio unless a caller injects one.
+- Remove unused interceptor config fields; harden webhook redaction, filter matching, and half-open circuit breaker probing.
 
 ## 4.0.0
 

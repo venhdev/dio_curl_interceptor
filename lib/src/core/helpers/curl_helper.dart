@@ -33,7 +33,12 @@ class CurlHelper {
 
     options.headers.forEach((k, v) {
       if (k != 'Cookie' && k != 'content-length') {
-        components.add('-H "$k: $v"');
+        final escapedHeader = '$k: $v'
+            .replaceAll(r'\', r'\\')
+            .replaceAll('"', r'\"')
+            .replaceAll(r'$', r'\$')
+            .replaceAll('`', r'\`');
+        components.add('-H "$escapedHeader"');
       }
     });
 
