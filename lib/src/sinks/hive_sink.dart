@@ -8,7 +8,7 @@ import 'curl_sink.dart';
 /// have no final status yet.
 ///
 /// [saver] is injectable so unit tests can capture entries without spinning up
-/// Hive + path_provider + flutter_secure_storage. Defaults to
+/// Hive + path_provider. Defaults to
 /// [CachedCurlService.save].
 class HiveSink implements CurlSink {
   final Future<int?> Function(CachedCurlEntry) saver;

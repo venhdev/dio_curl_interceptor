@@ -355,6 +355,20 @@ void main() async {
 }
 ```
 
+The cache is unencrypted by default. To encrypt it, pass a stable 32-byte key
+when initializing the service:
+
+```dart
+await CachedCurlService.init(encryptionKey: appManagedKey);
+```
+
+The package does not store the key. It derives the Hive box name from a
+SHA-256 fingerprint, so each key uses its own box and supplying a previous key
+reopens that key's box. Keep the key stable and manage its storage in your app.
+The previous automatically encrypted cache is left untouched and is not
+migrated automatically. Cache initialization and I/O failures only emit a
+warning; they do not throw or delete the cache data.
+
 > **Note**: In v3.3.3, `CachedCurlStorage` was renamed to `CachedCurlService`. See [MIGRATION.md](MIGRATION.md) for details.
 
 ## Screenshots

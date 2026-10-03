@@ -5,6 +5,10 @@ status: append-only
 version: 4.0.0
 ---
 
+## Unreleased
+
+- Make Hive cache encryption opt-in with caller-provided keys; remove `flutter_secure_storage`.
+
 ## 4.0.0
 
 ### ⚠️ Breaking

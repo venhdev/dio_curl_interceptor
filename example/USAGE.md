@@ -37,6 +37,16 @@ void main() async {
 }
 ```
 
+The cache is unencrypted by default. To use encryption, pass a stable 32-byte
+key that your app manages:
+
+```dart
+await CachedCurlService.init(encryptionKey: appManagedKey);
+```
+
+Each key selects a separate cache box using a SHA-256 fingerprint. Passing the
+same key again opens its existing box. The package does not store the key.
+
 #### View Cached cURL Logs
 
 To view the cached cURL logs, use the `showCurlViewer` function:
