@@ -7,6 +7,9 @@ version: 4.0.0
 
 ## Unreleased
 
+- Replace dialog/sheet modes with one full-screen viewer and an app-root bubble that opens it as a temporary overlay route. Records open in a separate detail page; expanded list tiles contain actions only.
+- Remove viewer filter-rule editing/preview and its FilterOptions API, remove viewer UI persistence and `shared_preferences`.
+- Clear All now clears only the active cache box. See the [v4.1.0 migration guide](doc/breaking-changes/v4.1.0.md).
 - Remove retry policy and retry configuration. Sink delivery is fire-and-forget; each sink's circuit breaker opens after five consecutive failures.
 - Make Hive cache encryption opt-in with caller-provided keys; remove `flutter_secure_storage`.
 - Restrict Discord and Telegram sinks to one endpoint each; share the package-owned Dio unless a caller injects one.

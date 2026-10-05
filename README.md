@@ -4,7 +4,7 @@
 [![pub points](https://img.shields.io/pub/points/dio_curl_interceptor?logo=dart)](https://pub.dev/packages/dio_curl_interceptor/score)
 [![popularity](https://img.shields.io/pub/popularity/dio_curl_interceptor?logo=dart)](https://pub.dev/packages/dio_curl_interceptor/score)
 
-A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal for debugging. Includes a modern UI to view, filter, and manage logs, plus webhook integration for team collaboration.
+A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal for debugging. Includes a UI for viewing, searching, filtering, and managing cached logs, plus webhook integration for team collaboration.
 
 ## Features
 
@@ -12,16 +12,18 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🖥️ **Viewer** – In-app log viewer with search, status/date filtering, copy, clear, share
 - 💾 **Storage** – Local Hive cache with filtering & search
 - 🔔 **Webhooks** – Discord & Telegram sinks; automatic sensitive header redaction
-- 🎯 **Filtering** – Status-filter sink and viewer tools to manage and preview exact, regex, and glob path rules
+- 🎯 **Filtering** – Filter webhook delivery by status with `StatusFilterSink`; filter cached logs by status, date, or text in the viewer
 - 🔁 **Reliability** – Per-sink circuit breaker (opens after 5 consecutive failures), dedupe cache
 - 🔌 **Extensibility** – Pluggable sink interfaces; send manual non-HTTP logs (app start, button taps, errors) to any sink
 - 📝 **Utilities** – Standalone helpers for custom interceptors or ad-hoc logging
 
-See [Screenshots](#screenshots) for the viewer and overlay.
+See [Screenshots](#screenshots) for console output and webhook examples.
 
 ## Migration Guide
 
 Upgrading from 3.x? See [doc/breaking-changes/v4.0.0.md](doc/breaking-changes/v4.0.0.md) for the breaking-change mapping and code examples.
+
+The next planned UI/API breaking changes are listed in [doc/breaking-changes/v4.1.0.md](doc/breaking-changes/v4.1.0.md).
 
 ## Usage
 
@@ -98,25 +100,16 @@ class YourInterceptor extends Interceptor {
 
 > Note: `CurlUtils.handleOnRequest/handleOnResponse/handleOnError` no longer accept `webhookInspectors`. Configure webhooks via `CurlConfig(sinks: [DiscordSink(...), TelegramSink(...)])` instead.
 
-### Option 3: Filter rule management with CurlViewer
+### Option 3: Full-screen log viewer
 
-You can now edit filter rules directly in the CurlViewer interface:
+Open the viewer as a full-screen route. The list opens each record in a dedicated detail page:
 
 ```dart
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-
-// Show CurlViewer with filter editing capabilities
-showDialog(
-  context: context,
-  builder: (context) => CurlViewer(
-    displayType: CurlViewerDisplayType.dialog,
-    enablePersistence: true, // Enable filter persistence
-  ),
+FilledButton(
+  onPressed: () => showCurlViewer(context),
+  child: const Text('View cURL logs'),
 );
-
 ```
-
-The viewer lets users add, edit, delete, and preview filter rules.
 
 ### Option 4: Using webhook integration
 
@@ -206,7 +199,7 @@ try {
 
 ### Public Flutter Widget: cURL Log Viewer
 
-Show pre-built popup cURL log viewer widget with `showCurlViewer(context)`:
+Open the full-screen cURL log viewer with `showCurlViewer(context)`:
 
 ```dart
 ElevatedButton(
@@ -219,32 +212,34 @@ The log viewer supports:
 
 - Search and filter by status code, date range, or text
 - Copy cURL command
-- Clear all logs
+- Clear records in the active cache box
 - Enhanced sharing functionality with improved system integration
 - Better error handling and UI responsiveness
 
 ### Floating Bubble Overlay
 
-For a non-intrusive debugging experience, use the floating bubble overlay that wraps your main app content:
+Put `CurlBubble` in `MaterialApp.builder` and share the app's navigator key with it. The viewer opens as a temporary full-screen overlay route. The current app page remains mounted underneath and Back closes the overlay.
 
 ```dart
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: CurlBubble(
-          // Wrap your main app content
-          body: YourMainContent(),
-          controller: BubbleOverlayController(),
-          style: BubbleStyle(
-            initialPosition: const Offset(50, 200),
-            snapToEdges: false, // Stays where you drag it
-          ),
-          onExpanded: () => debugPrint('Bubble expanded'),
-          onMinimized: () => debugPrint('Bubble minimized'),
-        ),
+      navigatorKey: navigatorKey,
+      builder: (context, child) => CurlBubble(
+        navigatorKey: navigatorKey,
+        child: child ?? const SizedBox(),
       ),
+      home: const YourHomePage(),
     );
   }
 }
@@ -252,13 +247,11 @@ class MyApp extends StatelessWidget {
 
 #### Bubble Features
 
-- **Draggable**: Drag the bubble around the screen
-- **Free Positioning**: Stays where you drag it (no auto-snapping by default)
-- **Expandable**: Tap to expand and view cURL logs
-- **Non-intrusive**: Stays on top without blocking your app
-- **Controller-based**: Full programmatic control via `BubbleOverlayController`
-- **Resizable**: Expand and resize the bubble content
-- **Customizable**: Use custom widgets for minimized and expanded states
+- **Draggable**: Move the floating button around the screen
+- **Page preserving**: The viewer overlays the current page and restores it when closed
+- **Back navigation**: Back returns from details to the list, then closes the overlay
+
+Clear All removes records from the currently active cache box only.
 
 > **Note**: File export functionality has been removed in v3.3.3. Use copy/share features instead.
 
@@ -299,10 +292,6 @@ warning; they do not throw or delete the cache data.
 ### Chronological (log the curl immediately after the request is made)
 
 <img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png" width="300" alt="Chronological Screenshot">
-
-### Cached Viewer
-
-<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-cached-viewer.jpg" width="300" alt="Cached Viewer Screenshot">
 
 ### Inspect Bug Discord
 
