@@ -8,7 +8,7 @@ part of 'cached_curl_entry.dart';
 
 class CachedCurlEntryAdapter extends TypeAdapter<CachedCurlEntry> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   CachedCurlEntry read(BinaryReader reader) {
@@ -19,10 +19,10 @@ class CachedCurlEntryAdapter extends TypeAdapter<CachedCurlEntry> {
     return CachedCurlEntry(
       curlCommand: fields[0] as String,
       responseBody: fields[1] as String?,
-      statusCode: fields[2] as int?,
+      statusCode: (fields[2] as num?)?.toInt(),
       timestamp: fields[3] as DateTime,
       url: fields[4] as String?,
-      duration: fields[5] as int?,
+      duration: (fields[5] as num?)?.toInt(),
       responseHeaders: (fields[6] as Map?)?.map((dynamic k, dynamic v) =>
           MapEntry(k as String, (v as List).cast<String>())),
       method: fields[7] as String?,

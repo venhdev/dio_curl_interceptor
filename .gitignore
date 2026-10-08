@@ -37,3 +37,7 @@ secret/
 # FVM Version Cache
 .fvm/
 .vscode/
+
+.agents/
+skills-lock.json
+coverage/

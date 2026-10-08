@@ -1,5 +1,3 @@
-library dio_curl_interceptor;
-
 // External dependencies
 export 'package:colored_logger/colored_logger.dart' show Ansi;
 
@@ -49,5 +47,10 @@ export 'src/options/filter_options.dart';
 
 // UI components
 export 'src/ui/curl_viewer.dart';
+export 'src/ui/curl_detail_viewer.dart';
 export 'src/ui/bubble_overlay.dart';
 export 'src/ui/curl_bubble.dart';
+export 'src/ui/widgets/json_tree/flat_json_node.dart';
+export 'src/ui/widgets/json_tree/json_tree_controller.dart';
+export 'src/ui/widgets/json_tree/json_tree_theme.dart';
+export 'src/ui/widgets/json_tree/json_tree_viewer.dart';

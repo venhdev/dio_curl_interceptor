@@ -259,7 +259,6 @@ CurlUtils.handleOnError(
     status: true,
     responseTime: true,
   ),
-  ),
 );
 ```
 

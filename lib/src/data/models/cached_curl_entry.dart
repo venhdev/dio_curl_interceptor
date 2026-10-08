@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'cached_curl_entry.g.dart';
 
@@ -38,4 +38,26 @@ class CachedCurlEntry extends HiveObject {
     this.responseHeaders,
     this.method,
   });
+
+  CachedCurlEntry copyWith({
+    String? curlCommand,
+    String? responseBody,
+    int? statusCode,
+    DateTime? timestamp,
+    String? url,
+    int? duration,
+    Map<String, List<String>>? responseHeaders,
+    String? method,
+  }) {
+    return CachedCurlEntry(
+      curlCommand: curlCommand ?? this.curlCommand,
+      responseBody: responseBody ?? this.responseBody,
+      statusCode: statusCode ?? this.statusCode,
+      timestamp: timestamp ?? this.timestamp,
+      url: url ?? this.url,
+      duration: duration ?? this.duration,
+      responseHeaders: responseHeaders ?? this.responseHeaders,
+      method: method ?? this.method,
+    );
+  }
 }

@@ -1,3 +1,7 @@
 screenshots/
 build/
 .env
+.agents/
+skills-lock.json
+coverage/
+AGENTS.md

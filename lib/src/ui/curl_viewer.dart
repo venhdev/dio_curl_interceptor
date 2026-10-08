@@ -11,6 +11,7 @@ import '../core/interfaces/color_palette.dart';
 import '../data/models/cached_curl_entry.dart';
 import 'bubble_overlay.dart';
 import 'controllers/curl_viewer_controller.dart';
+import 'curl_detail_viewer.dart';
 import 'widgets/curl_entry_item.dart';
 import 'widgets/status_summary.dart';
 import 'widgets/curl_viewer_header.dart';
@@ -1038,6 +1039,7 @@ class _CurlViewerState extends State<CurlViewer> {
                     );
                   },
                   onShare: () => _shareCurlCommand(entries[index]),
+                  onTap: () => CurlDetailViewer.show(context, entries[index]),
                 );
               },
             );

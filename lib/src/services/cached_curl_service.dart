@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../core/types.dart';
 import '../data/models/cached_curl_entry.dart';
 import '../data/repositories/cache_repository.dart';
@@ -9,7 +11,23 @@ import '../data/repositories/impl/impl.dart';
 /// over the repository pattern. It maintains backward compatibility while
 /// providing a clean service layer interface.
 class CachedCurlService {
-  static final CacheRepository _repository = HiveCacheRepositoryImpl();
+  static final CacheRepository _defaultRepository = HiveCacheRepositoryImpl();
+  static CacheRepository? _customRepository;
+
+  static CacheRepository get _repository =>
+      _customRepository ?? _defaultRepository;
+
+  /// Injects a custom repository instance for unit testing.
+  @visibleForTesting
+  static void setRepositoryForTesting(CacheRepository repository) {
+    _customRepository = repository;
+  }
+
+  /// Resets the repository back to the default [HiveCacheRepositoryImpl].
+  @visibleForTesting
+  static void resetRepositoryForTesting() {
+    _customRepository = null;
+  }
 
   /// Initialize the cache service
   static Future<void> init() async {

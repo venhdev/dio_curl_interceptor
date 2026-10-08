@@ -2,8 +2,23 @@
 type: changelog
 authority: historical
 status: append-only
-version: 4.0.0
+version: 4.1.0-beta.1
 ---
+
+## 4.1.0-beta.1
+
+### ✨ New
+- **Dedicated Peak JSON Detail Viewer (`CurlDetailViewer`)**: Full inspection modal with segmented tabs for Overview, Headers, Response Body, and cURL.
+- **High-Performance Virtualized JSON Tree Engine (`JsonTreeViewer`)**: $O(1)$ memory virtualized rendering via `ListView.builder` for seamless 60/120 FPS scrolling even on large payloads.
+- **Collapsible/Expandable Nodes**: Interactive fold/unfold with animated chevrons, Expand All, and Collapse All controls.
+- **Real-Time In-Body Search**: Live query filtering highlighting matched keys and values with match counter.
+- **Deep Clipboard Context**: One-tap copying of keys, values, subtrees, and JSONPath pointers (`data.items[0].id`).
+- **Theme-Adaptive Monospace Syntax Colors**: Color-coded tokens for keys, strings, numbers, booleans, and nulls with vertical indentation guide lines.
+
+### ♻️ Internal
+- Migrated local cache engine from legacy `hive` to `hive_ce` (`hive_ce: ^2.20.2`, `hive_ce_flutter: ^2.4.0`, `hive_ce_generator: >=1.4.0 <2.0.0`).
+- Deduplicated filtering logic in `HiveCacheRepositoryImpl.countByStatusGroup`.
+- Unblocked Flutter Web WASM support and modernized build toolchain.
 
 ## 4.0.0
 

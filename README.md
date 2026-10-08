@@ -10,7 +10,8 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 
 - 🔍 **Core** – Convert Dio HTTP requests to executable cURL commands; detailed FormData file info
 - 🖥️ **Viewer** – In-app log viewer with search, status/date filtering, copy, clear, share
-- 💾 **Storage** – Local Hive cache with filtering & search
+- 🌳 **JSON Detail Inspector** – Virtualized 60 FPS tree viewer (`JsonTreeViewer`) with node folding, search match navigation, JSONPath copying, and 4-tab modal (`CurlDetailViewer`)
+- 💾 **Storage** – Local Hive cache with filtering & search (powered by `hive_ce`)
 - 🔔 **Webhooks** – Discord & Telegram sinks; automatic sensitive header redaction
 - 🎯 **Filtering** – Status filtering (forward only client/server errors or custom buckets); Path filtering (block/mock endpoints via exact/regex/glob; live editor in viewer)
 - 🔁 **Reliability** – Per-sink circuit breaker, exponential retry with jitter, dedupe cache
@@ -183,7 +184,6 @@ dio.interceptors.add(DioCurlInterceptor(
   config: CurlConfig(filterOptions: filterOptions),
 ));
 ```
-});
 
 ### Option 4: Real-time filter editing with CurlViewer
 
@@ -304,6 +304,23 @@ The log viewer supports:
 - Enhanced sharing functionality with improved system integration
 - Better error handling and UI responsiveness
 
+### JSON Detail Inspector & Virtualized Tree (`CurlDetailViewer`)
+
+Tap any entry item in `CurlViewer` to open the full inspection modal, or launch it programmatically:
+
+```dart
+// Launch the dedicated detail modal directly:
+CurlDetailViewer.show(context, entry);
+```
+
+The inspector includes:
+- **4 Segmented Tabs**: Overview metrics (status code, method, timing, payload size), Headers with live search filtering, Response Body, and executable cURL command.
+- **Virtualized JSON Tree (`JsonTreeViewer`)**: Smooth 60/120 FPS scrolling on large payloads via $O(1)$ memory 1D flattened node projection.
+- **Interactive Node Folding**: Expand All, Collapse All, and animated per-node collapse/expand chevrons.
+- **In-Tree Search**: Live substring search highlighting matching keys and values with match counter and jump-to navigation.
+- **Deep Clipboard Context**: Long-press any JSON node to copy its Value, Key, Subtree JSON, or JSONPath pointer (e.g. `$.data.users[0].id`).
+- **Multiple Body Modes**: Switch between **Tree**, **Pretty** formatted text, and **Raw** network payload.
+
 ### Floating Bubble Overlay
 
 For a non-intrusive debugging experience, use the floating bubble overlay that wraps your main app content:
@@ -355,7 +372,7 @@ void main() async {
 }
 ```
 
-> **Note**: In v3.3.3, `CachedCurlStorage` was renamed to `CachedCurlService`. See [MIGRATION.md](MIGRATION.md) for details.
+> **Note**: In v3.3.3, `CachedCurlStorage` was renamed to `CachedCurlService`.
 
 ## Screenshots
 

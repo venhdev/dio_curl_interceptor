@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:colored_logger/colored_logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce/hive.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../models/cached_curl_entry.dart';
@@ -174,29 +174,11 @@ class HiveCacheRepositoryImpl implements CacheRepository {
         ResponseStatus.serverError: 0,
       };
     }
-
-    final box = Hive.box<CachedCurlEntry>(_boxName);
-    Iterable<CachedCurlEntry> entries = box.values.toList().reversed;
-
-    // Apply filters first (same logic as _getFilteredEntries)
-    if (search.isNotEmpty) {
-      final lower = search.toLowerCase();
-      entries = entries.where((entry) =>
-          entry.curlCommand.toLowerCase().contains(lower) ||
-          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-          entry.statusCode.toString().contains(lower) ||
-          (entry.url ?? '').toLowerCase().contains(lower));
-    }
-
-    if (startDate != null) {
-      entries = entries.where((entry) => entry.timestamp
-          .isAfter(startDate.subtract(const Duration(seconds: 1))));
-    }
-
-    if (endDate != null) {
-      entries = entries.where((entry) =>
-          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
-    }
+    final entries = _getFilteredEntries(
+      search: search,
+      startDate: startDate,
+      endDate: endDate,
+    );
 
     // Count all groups in a single iteration
     int informationalCount = 0;

@@ -1,23 +1,29 @@
+/// Individual log entry card widget for the cURL viewer list.
+library;
+
 import 'package:flutter/material.dart';
-import 'package:type_caster/type_caster.dart';
 
 import '../../core/constants.dart';
 import '../../core/helpers/ui_helper.dart';
 import '../../core/interfaces/color_palette.dart';
 import '../../data/models/cached_curl_entry.dart';
+import '../curl_detail_viewer.dart';
 import '../curl_viewer.dart';
 import 'icon_styles.dart';
 
+/// Clean, high-performance summary card for a [CachedCurlEntry] in the cURL log list.
 class CurlEntryItem extends StatelessWidget {
   final CachedCurlEntry entry;
   final VoidCallback? onCopy;
   final VoidCallback? onShare;
+  final VoidCallback? onTap;
 
   const CurlEntryItem({
     super.key,
     required this.entry,
     this.onCopy,
     this.onShare,
+    this.onTap,
   });
 
   @override
@@ -27,29 +33,25 @@ class CurlEntryItem extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
         decoration: _buildDecoration(context),
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            dividerColor: Colors.transparent,
-          ),
-          child: ExpansionTile(
-            dense: true,
-            showTrailingIcon: false,
-            tilePadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-            collapsedShape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap ?? () => CurlDetailViewer.show(context, entry),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 6),
+                  _buildUrl(context),
+                  const SizedBox(height: 6),
+                  _buildFooter(context),
+                ],
+              ),
             ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            childrenPadding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            iconColor: UiHelper.getStatusColor(entry.statusCode ?? 200),
-            collapsedIconColor:
-                UiHelper.getStatusColorPalette(entry.statusCode ?? 200)
-                    .secondary,
-            title: _buildTitle(context),
-            subtitle: _buildSubtitle(context),
-            children: _buildChildren(context),
           ),
         ),
       ),
@@ -58,6 +60,9 @@ class CurlEntryItem extends StatelessWidget {
 
   BoxDecoration _buildDecoration(BuildContext context) {
     final colors = CurlViewerColors.theme;
+    final statusCode = entry.statusCode ?? 200;
+    final statusPalette = UiHelper.getStatusColorPalette(statusCode);
+
     return BoxDecoration(
       gradient: LinearGradient(
         colors: [colors.surface, colors.surfaceContainer],
@@ -66,25 +71,25 @@ class CurlEntryItem extends StatelessWidget {
       ),
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).border,
-        width: 2,
+        color: statusPalette.border,
+        width: 1.5,
       ),
       boxShadow: [
         BoxShadow(
-          color: UiHelper.getStatusColorPalette(entry.statusCode ?? 200).shadow,
-          blurRadius: 8,
-          offset: const Offset(0, 4),
+          color: statusPalette.shadow,
+          blurRadius: 6,
+          offset: const Offset(0, 3),
         ),
         BoxShadow(
           color: colors.shadowLight,
-          blurRadius: 4,
-          offset: const Offset(0, 2),
+          blurRadius: 3,
+          offset: const Offset(0, 1),
         ),
       ],
     );
   }
 
-  Widget _buildTitle(BuildContext context) {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -103,8 +108,8 @@ class CurlEntryItem extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        _buildActionButtons(),
+        const SizedBox(width: 6),
+        _buildActionButtons(context),
       ],
     );
   }
@@ -165,13 +170,12 @@ class CurlEntryItem extends StatelessWidget {
           color: colorPalette.dark,
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          // letterSpacing: 0.5,
         ),
       ),
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -179,12 +183,21 @@ class CurlEntryItem extends StatelessWidget {
           icon: Icons.copy,
           color: UiHelper.getMethodColor('GET'),
           onPressed: onCopy,
+          tooltip: 'Copy cURL',
         ),
         const SizedBox(width: 4),
         _buildActionButton(
           icon: Icons.share,
           color: UiHelper.getStatusColor(200),
           onPressed: onShare,
+          tooltip: 'Share cURL',
+        ),
+        const SizedBox(width: 4),
+        _buildActionButton(
+          icon: Icons.open_in_new,
+          color: Theme.of(context).colorScheme.primary,
+          onPressed: onTap ?? () => CurlDetailViewer.show(context, entry),
+          tooltip: 'Inspect detail',
         ),
       ],
     );
@@ -194,6 +207,7 @@ class CurlEntryItem extends StatelessWidget {
     required IconData icon,
     required Color color,
     required VoidCallback? onPressed,
+    String? tooltip,
   }) {
     return InkWell(
       onTap: onPressed,
@@ -206,90 +220,65 @@ class CurlEntryItem extends StatelessWidget {
     );
   }
 
-  Widget _buildSubtitle(BuildContext context) {
+  Widget _buildUrl(BuildContext context) {
     final colors = CurlViewerColors.theme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: Text(
-        entry.url ?? kNA,
-        style: TextStyle(
-          fontSize: 12,
-          color: colors.onSurfaceSecondary,
-        ),
+    return Text(
+      entry.url ?? kNA,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w500,
+        color: colors.onSurface,
       ),
     );
   }
 
-  List<Widget> _buildChildren(BuildContext context) {
-    return [
-      _buildCurlSection(),
-      if (entry.responseHeaders != null && entry.responseHeaders!.isNotEmpty)
-        _buildResponseHeadersSection(),
-      _buildResponseBodySection(),
-    ];
-  }
+  Widget _buildFooter(BuildContext context) {
+    final colors = CurlViewerColors.theme;
+    final hasBody =
+        entry.responseBody != null && entry.responseBody!.isNotEmpty;
 
-  Widget _buildCurlSection() {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(child: Divider(thickness: 1, height: 1)),
-            const Text('cURL', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: onCopy,
-              borderRadius: BorderRadius.circular(ActionIconStyle.radiusSM),
-              child: Container(
-                padding: ActionIconStyle.paddingSM,
-                decoration: ActionIconStyle.actionButtonDecoration(
-                    UiHelper.getMethodColor('GET')),
-                child: Icon(Icons.copy,
-                    size: ActionIconStyle.sizeSM,
-                    color: UiHelper.getMethodColor('GET')),
-              ),
-            ),
-            Expanded(child: Divider(thickness: 1, height: 1)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        SelectableText(entry.curlCommand, style: const TextStyle(fontSize: 12)),
-        const SizedBox(height: 4),
-      ],
-    );
-  }
-
-  Widget _buildResponseHeadersSection() {
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      dense: true,
-      title: const Text('Response Headers:',
-          style: TextStyle(fontWeight: FontWeight.bold)),
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: SelectableText(
-            stringify(entry.responseHeaders, indent: '  '),
-            style: const TextStyle(fontSize: 12),
+        if (hasBody) ...[
+          Icon(Icons.data_object, size: 13, color: colors.onSurfaceSecondary),
+          const SizedBox(width: 4),
+          Text(
+            'JSON Response',
+            style: TextStyle(
+                fontSize: 11,
+                color: colors.onSurfaceSecondary,
+                fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(width: 10),
+        ],
+        if (entry.responseHeaders != null &&
+            entry.responseHeaders!.isNotEmpty) ...[
+          Icon(Icons.view_list_outlined,
+              size: 13, color: colors.onSurfaceSecondary),
+          const SizedBox(width: 4),
+          Text(
+            '${entry.responseHeaders!.length} Headers',
+            style: TextStyle(
+                fontSize: 11,
+                color: colors.onSurfaceSecondary,
+                fontWeight: FontWeight.w500),
+          ),
+        ],
+        const Spacer(),
+        Text(
+          'Inspect',
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w700,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildResponseBodySection() {
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      dense: true,
-      title: const Text('Response Body:',
-          style: TextStyle(fontWeight: FontWeight.bold)),
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: SelectableText(
-            entry.responseBody ?? '<no body>',
-            style: const TextStyle(fontSize: 12),
-          ),
+        Icon(
+          Icons.chevron_right,
+          size: 14,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ],
     );
