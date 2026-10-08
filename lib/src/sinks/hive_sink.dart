@@ -14,7 +14,7 @@ class HiveSink implements CurlSink {
   final Future<int?> Function(CachedCurlEntry) saver;
 
   HiveSink({Future<int?> Function(CachedCurlEntry)? saver})
-      : saver = saver ?? CachedCurlService.save;
+    : saver = saver ?? CachedCurlService.save;
 
   @override
   String get name => 'HiveSink';
@@ -27,8 +27,8 @@ class HiveSink implements CurlSink {
     final response = event is ResponseCurlEvent
         ? event.response
         : event is ErrorCurlEvent
-            ? event.response
-            : null;
+        ? event.response
+        : null;
     final statusCode = response?.statusCode ?? 0;
     final durationMs = response?.duration.inMilliseconds ?? 0;
     final bodyText = response?.body == null ? null : response!.body.toString();

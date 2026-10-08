@@ -45,10 +45,7 @@ class DiscordSink implements CurlSink, MessageSink {
       _ownedSender = sender;
     } else {
       final sinkDio = dio ?? (_dioLease = WebhookDioPool.acquire()).dio;
-      _ownedSender = DiscordWebhookSender(
-        webhookUrl: webhookUrl,
-        dio: sinkDio,
-      );
+      _ownedSender = DiscordWebhookSender(webhookUrl: webhookUrl, dio: sinkDio);
     }
   }
 
@@ -64,8 +61,9 @@ class DiscordSink implements CurlSink, MessageSink {
     // When redactAuthHeaders is false, skip the redaction so the original
     // RequestInfo (with full Authorization/Cookie headers and original
     // cURL string) is shipped to the webhook.
-    final req =
-        redactAuthHeaders ? event.request.redactForWebhook() : event.request;
+    final req = redactAuthHeaders
+        ? event.request.redactForWebhook()
+        : event.request;
     final response = event is ResponseCurlEvent ? event.response : null;
     final duration = response?.duration ?? const Duration(milliseconds: 0);
     final statusCode = response?.statusCode ?? 0;

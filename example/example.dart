@@ -50,9 +50,7 @@ void main() async {
   dio.interceptors.add(
     DioCurlInterceptor(
       config: CurlConfig(
-        relayOptions: const RelayOptions(
-          dedupeTtl: Duration.zero,
-        ),
+        relayOptions: const RelayOptions(dedupeTtl: Duration.zero),
         sinks: [PrinterSink(printer: print)],
       ),
     ),

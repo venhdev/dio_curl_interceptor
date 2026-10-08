@@ -17,29 +17,29 @@ class CurlOptions {
   });
 
   factory CurlOptions.allEnabled() => const CurlOptions(
-        status: true,
-        responseTime: true,
-        onRequest: RequestDetails(visible: true),
-        onResponse: ResponseDetails(
-          visible: true,
-          requestHeaders: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeaders: true,
-        ),
-        onError: ErrorDetails(
-          visible: true,
-          requestHeaders: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeaders: true,
-        ),
-        prettyConfig: PrettyConfig(
-          blockEnabled: true,
-          colorEnabled: true,
-          emojiEnabled: true,
-        ),
-      );
+    status: true,
+    responseTime: true,
+    onRequest: RequestDetails(visible: true),
+    onResponse: ResponseDetails(
+      visible: true,
+      requestHeaders: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeaders: true,
+    ),
+    onError: ErrorDetails(
+      visible: true,
+      requestHeaders: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeaders: true,
+    ),
+    prettyConfig: PrettyConfig(
+      blockEnabled: true,
+      colorEnabled: true,
+      emojiEnabled: true,
+    ),
+  );
 
   /// Show the result summary _(include: status code, status name, method, uri, response time)_
   final bool status;
@@ -133,19 +133,13 @@ class CurlOptions {
 
 /// see [Ansi] for more colors and styles
 class CurlDetails {
-  const CurlDetails({
-    this.visible = true,
-    this.ansi,
-  });
+  const CurlDetails({this.visible = true, this.ansi});
   final bool visible;
   final Ansi? ansi;
 
   CurlDetails invisible() => const CurlDetails(visible: false);
 
-  CurlDetails copyWith({
-    bool? visible,
-    Ansi? ansi,
-  }) {
+  CurlDetails copyWith({bool? visible, Ansi? ansi}) {
     return CurlDetails(
       visible: visible ?? this.visible,
       ansi: ansi ?? this.ansi,
@@ -154,10 +148,7 @@ class CurlDetails {
 }
 
 class RequestDetails extends CurlDetails {
-  const RequestDetails({
-    super.visible,
-    super.ansi = Ansi.yellow,
-  });
+  const RequestDetails({super.visible, super.ansi = Ansi.yellow});
 }
 
 class ResponseDetails extends CurlDetails {

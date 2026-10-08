@@ -9,20 +9,22 @@ void main() {
     final captured = <String>[];
     final sink = PrinterSink(printer: captured.add, header: 'TestSink');
 
-    await sink.handle(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 1, 1),
-      request: RequestInfo.fromTest(
-        method: 'GET',
-        uri: Uri.parse('https://example.test/health'),
+    await sink.handle(
+      ResponseCurlEvent(
+        id: '1',
+        timestamp: DateTime.utc(2026, 1, 1),
+        request: RequestInfo.fromTest(
+          method: 'GET',
+          uri: Uri.parse('https://example.test/health'),
+        ),
+        response: const ResponseInfo(
+          statusCode: 200,
+          headers: {},
+          body: 'ok',
+          duration: Duration(milliseconds: 42),
+        ),
       ),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: 'ok',
-        duration: Duration(milliseconds: 42),
-      ),
-    ));
+    );
 
     expect(captured, hasLength(1));
     expect(captured.first, contains('GET'));

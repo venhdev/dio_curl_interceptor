@@ -54,7 +54,8 @@ class CurlHelper {
           final fieldName = fileEntry.key;
           final multipartFile = fileEntry.value;
           final fileName = multipartFile.filename ?? 'unknown_file';
-          final contentType = multipartFile.contentType?.toString() ??
+          final contentType =
+              multipartFile.contentType?.toString() ??
               'application/octet-stream';
           final fileLength = multipartFile.length;
 

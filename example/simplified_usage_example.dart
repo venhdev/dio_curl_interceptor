@@ -7,15 +7,14 @@ void main() async {
   final dio = Dio();
   dio.interceptors.add(
     DioCurlInterceptor(
-      config: CurlConfig(
-        sinks: [PrinterSink(printer: print)],
-      ),
+      config: CurlConfig(sinks: [PrinterSink(printer: print)]),
     ),
   );
 
   try {
-    final response =
-        await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+    final response = await dio.get(
+      'https://jsonplaceholder.typicode.com/posts/1',
+    );
     debugPrint('Response: ${response.data}');
   } catch (e) {
     debugPrint('Error: $e');

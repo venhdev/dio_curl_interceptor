@@ -3,15 +3,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('redacts sensitive header names case-insensitively and quote-safely',
-      () {
+  test('redacts sensitive header names case-insensitively and quote-safely', () {
     final request = RequestInfo.fromTest(
       headers: const {
         'aUtHoRiZaTiOn': 'Bearer TOP_SECRET',
         'cOoKiE': 'sid=COOKIE_SECRET',
         'content-type': 'application/json',
       },
-      curl: 'curl -H "aUtHoRiZaTiOn: Bearer TOP_SECRET" '
+      curl:
+          'curl -H "aUtHoRiZaTiOn: Bearer TOP_SECRET" '
           '-H "Cookie: sid=COOKIE_SECRET" -H "content-type: application/json"',
     );
 

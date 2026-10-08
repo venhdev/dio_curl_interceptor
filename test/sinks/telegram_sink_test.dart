@@ -51,24 +51,24 @@ void main() {
       sender: sender,
     );
 
-    await sink.handle(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(
-        method: 'POST',
-        uri: Uri.parse('https://api.example.test/login'),
-        headers: const {
-          'Authorization': 'Bearer SECRET_TOKEN',
-        },
-        curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+    await sink.handle(
+      ResponseCurlEvent(
+        id: '1',
+        timestamp: DateTime.utc(2026, 7, 7),
+        request: RequestInfo.fromTest(
+          method: 'POST',
+          uri: Uri.parse('https://api.example.test/login'),
+          headers: const {'Authorization': 'Bearer SECRET_TOKEN'},
+          curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+        ),
+        response: const ResponseInfo(
+          statusCode: 200,
+          headers: {},
+          body: 'ok',
+          duration: Duration(milliseconds: 1),
+        ),
       ),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: 'ok',
-        duration: Duration(milliseconds: 1),
-      ),
-    ));
+    );
 
     expect(sender.curlCalls, 1);
     expect(sender.capturedStatus, 200);
@@ -76,40 +76,42 @@ void main() {
     expect(sender.capturedCurl!.contains('Authorization'), isFalse);
   });
 
-  test('handle forwards Authorization when redactAuthHeaders is false',
-      () async {
-    final sender = _CapturingTelegram();
-    final sink = TelegramSink(
-      botToken: '123:abc',
-      name: 'telegram-test',
-      chatId: '1',
-      sender: sender,
-      redactAuthHeaders: false,
-    );
+  test(
+    'handle forwards Authorization when redactAuthHeaders is false',
+    () async {
+      final sender = _CapturingTelegram();
+      final sink = TelegramSink(
+        botToken: '123:abc',
+        name: 'telegram-test',
+        chatId: '1',
+        sender: sender,
+        redactAuthHeaders: false,
+      );
 
-    await sink.handle(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(
-        method: 'POST',
-        uri: Uri.parse('https://api.example.test/login'),
-        headers: const {
-          'Authorization': 'Bearer SECRET_TOKEN',
-        },
-        curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
-      ),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: 'ok',
-        duration: Duration(milliseconds: 1),
-      ),
-    ));
+      await sink.handle(
+        ResponseCurlEvent(
+          id: '1',
+          timestamp: DateTime.utc(2026, 7, 7),
+          request: RequestInfo.fromTest(
+            method: 'POST',
+            uri: Uri.parse('https://api.example.test/login'),
+            headers: const {'Authorization': 'Bearer SECRET_TOKEN'},
+            curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+          ),
+          response: const ResponseInfo(
+            statusCode: 200,
+            headers: {},
+            body: 'ok',
+            duration: Duration(milliseconds: 1),
+          ),
+        ),
+      );
 
-    expect(sender.curlCalls, 1);
-    expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isTrue);
-    expect(sender.capturedCurl!.contains('Authorization'), isTrue);
-  });
+      expect(sender.curlCalls, 1);
+      expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isTrue);
+      expect(sender.capturedCurl!.contains('Authorization'), isTrue);
+    },
+  );
 
   test('name is an explicit safe sink alias', () {
     final s1 = TelegramSink(

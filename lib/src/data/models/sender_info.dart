@@ -7,10 +7,7 @@ class SenderInfo {
   ///
   /// [username] The username to display for webhook messages.
   /// [avatarUrl] The avatar URL to display for webhook messages.
-  const SenderInfo({
-    this.username,
-    this.avatarUrl,
-  });
+  const SenderInfo({this.username, this.avatarUrl});
 
   /// The username to display for webhook messages.
   final String? username;
@@ -22,10 +19,7 @@ class SenderInfo {
   ///
   /// [username] If provided, replaces the current username.
   /// [avatarUrl] If provided, replaces the current avatar URL.
-  SenderInfo copyWith({
-    String? username,
-    String? avatarUrl,
-  }) {
+  SenderInfo copyWith({String? username, String? avatarUrl}) {
     return SenderInfo(
       username: username ?? this.username,
       avatarUrl: avatarUrl ?? this.avatarUrl,
@@ -47,16 +41,10 @@ class SenderInfo {
   String toString() => 'SenderInfo(username: $username, avatarUrl: $avatarUrl)';
 
   factory SenderInfo.fromJson(Map<String, dynamic> json) {
-    return SenderInfo(
-      username: json['username'],
-      avatarUrl: json['avatarUrl'],
-    );
+    return SenderInfo(username: json['username'], avatarUrl: json['avatarUrl']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'username': username,
-      'avatarUrl': avatarUrl,
-    };
+    return {'username': username, 'avatarUrl': avatarUrl};
   }
 }

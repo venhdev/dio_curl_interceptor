@@ -23,10 +23,11 @@ class HiveCacheRepositoryImpl implements CacheRepository {
   HiveCacheRepositoryImpl({
     Uint8List? encryptionKey,
     Future<Directory> Function()? documentsDirectoryProvider,
-  })  : _encryptionKey =
-            encryptionKey == null ? null : Uint8List.fromList(encryptionKey),
-        _documentsDirectoryProvider =
-            documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
+  }) : _encryptionKey = encryptionKey == null
+           ? null
+           : Uint8List.fromList(encryptionKey),
+       _documentsDirectoryProvider =
+           documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
 
   bool _isInitialized() {
     try {
@@ -60,18 +61,21 @@ class HiveCacheRepositoryImpl implements CacheRepository {
         if (!completion.isCompleted) completion.complete();
       }
 
-      runZonedGuarded<void>(() {
-        Future<void>.sync(openBox).then<void>(
-          (_) => finish(),
-          onError: (Object error, StackTrace _) {
-            _warnOpenFailure(error);
-            finish();
-          },
-        );
-      }, (error, _) {
-        _warnOpenFailure(error);
-        finish();
-      });
+      runZonedGuarded<void>(
+        () {
+          Future<void>.sync(openBox).then<void>(
+            (_) => finish(),
+            onError: (Object error, StackTrace _) {
+              _warnOpenFailure(error);
+              finish();
+            },
+          );
+        },
+        (error, _) {
+          _warnOpenFailure(error);
+          finish();
+        },
+      );
       await completion.future;
     } catch (e) {
       _warnOpenFailure(e);
@@ -205,21 +209,28 @@ class HiveCacheRepositoryImpl implements CacheRepository {
       // Apply filters first (same logic as _getFilteredEntries)
       if (search.isNotEmpty) {
         final lower = search.toLowerCase();
-        entries = entries.where((entry) =>
-            entry.curlCommand.toLowerCase().contains(lower) ||
-            (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-            entry.statusCode.toString().contains(lower) ||
-            (entry.url ?? '').toLowerCase().contains(lower));
+        entries = entries.where(
+          (entry) =>
+              entry.curlCommand.toLowerCase().contains(lower) ||
+              (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+              entry.statusCode.toString().contains(lower) ||
+              (entry.url ?? '').toLowerCase().contains(lower),
+        );
       }
 
       if (startDate != null) {
-        entries = entries.where((entry) => entry.timestamp
-            .isAfter(startDate.subtract(const Duration(seconds: 1))));
+        entries = entries.where(
+          (entry) => entry.timestamp.isAfter(
+            startDate.subtract(const Duration(seconds: 1)),
+          ),
+        );
       }
 
       if (endDate != null) {
-        entries = entries.where((entry) =>
-            entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+        entries = entries.where(
+          (entry) =>
+              entry.timestamp.isBefore(endDate.add(const Duration(days: 1))),
+        );
       }
 
       // Count all groups in a single iteration
@@ -268,21 +279,28 @@ class HiveCacheRepositoryImpl implements CacheRepository {
 
     if (search.isNotEmpty) {
       final lower = search.toLowerCase();
-      entries = entries.where((entry) =>
-          entry.curlCommand.toLowerCase().contains(lower) ||
-          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-          entry.statusCode.toString().contains(lower) ||
-          (entry.url ?? '').toLowerCase().contains(lower));
+      entries = entries.where(
+        (entry) =>
+            entry.curlCommand.toLowerCase().contains(lower) ||
+            (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+            entry.statusCode.toString().contains(lower) ||
+            (entry.url ?? '').toLowerCase().contains(lower),
+      );
     }
 
     if (startDate != null) {
-      entries = entries.where((entry) => entry.timestamp
-          .isAfter(startDate.subtract(const Duration(seconds: 1))));
+      entries = entries.where(
+        (entry) => entry.timestamp.isAfter(
+          startDate.subtract(const Duration(seconds: 1)),
+        ),
+      );
     }
 
     if (endDate != null) {
-      entries = entries.where((entry) =>
-          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+      entries = entries.where(
+        (entry) =>
+            entry.timestamp.isBefore(endDate.add(const Duration(days: 1))),
+      );
     }
 
     if (statusGroup != null) {
@@ -308,12 +326,12 @@ class HiveCacheRepositoryImpl implements CacheRepository {
   }
 
   Map<ResponseStatus, int> _emptyStatusCounts() => {
-        ResponseStatus.informational: 0,
-        ResponseStatus.success: 0,
-        ResponseStatus.redirection: 0,
-        ResponseStatus.clientError: 0,
-        ResponseStatus.serverError: 0,
-      };
+    ResponseStatus.informational: 0,
+    ResponseStatus.success: 0,
+    ResponseStatus.redirection: 0,
+    ResponseStatus.clientError: 0,
+    ResponseStatus.serverError: 0,
+  };
 
   void _warn(String message) {
     try {

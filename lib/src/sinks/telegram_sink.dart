@@ -61,8 +61,9 @@ class TelegramSink implements CurlSink, MessageSink {
   @override
   Future<void> handle(CurlEvent event) async {
     // See [DiscordSink.handle] for rationale — same flag, same default.
-    final req =
-        redactAuthHeaders ? event.request.redactForWebhook() : event.request;
+    final req = redactAuthHeaders
+        ? event.request.redactForWebhook()
+        : event.request;
     final response = event is ResponseCurlEvent ? event.response : null;
     final duration = response?.duration ?? const Duration(milliseconds: 0);
     final extra = event is ErrorCurlEvent

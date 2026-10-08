@@ -38,22 +38,22 @@ enum ResponseStatus {
 
   /// Returns a list of all possible response statuses
   static List<ResponseStatus> get allRecognized => [
-        informational,
-        success,
-        redirection,
-        clientError,
-        serverError,
-      ];
+    informational,
+    success,
+    redirection,
+    clientError,
+    serverError,
+  ];
 
   /// Returns a list of all possible response statuses, including unknown.
   static List<ResponseStatus> get all => [
-        informational,
-        success,
-        redirection,
-        clientError,
-        serverError,
-        unknown,
-      ];
+    informational,
+    success,
+    redirection,
+    clientError,
+    serverError,
+    unknown,
+  ];
 
   /// Maps an HTTP status code to its [ResponseStatus] bucket.
   ///

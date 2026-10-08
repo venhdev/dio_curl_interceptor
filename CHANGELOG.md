@@ -5,7 +5,7 @@ status: append-only
 version: 4.0.0
 ---
 
-## Unreleased
+## 4.1.0-beta
 
 - Replace dialog/sheet modes with one full-screen viewer and an app-root bubble that opens it as a temporary overlay route. Records open in a separate detail page; expanded list tiles contain actions only.
 - Remove viewer filter-rule editing/preview and its FilterOptions API, remove viewer UI persistence and `shared_preferences`.

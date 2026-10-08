@@ -1,5 +1,3 @@
-library dio_curl_interceptor;
-
 // External dependencies
 export 'package:colored_logger/colored_logger.dart' show Ansi;
 

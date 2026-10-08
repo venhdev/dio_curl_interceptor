@@ -23,10 +23,8 @@ class WebhookDeliveryException implements Exception {
 
 /// Common base for one-endpoint webhook senders.
 abstract class WebhookSenderBase {
-  WebhookSenderBase({
-    required this.webhookUrl,
-    Dio? dio,
-  }) : _innerDio = dio ?? Dio();
+  WebhookSenderBase({required this.webhookUrl, Dio? dio})
+    : _innerDio = dio ?? Dio();
 
   final String webhookUrl;
   final Dio _innerDio;
@@ -55,10 +53,7 @@ abstract class WebhookSenderBase {
 // ─── Discord ────────────────────────────────────────────────────────────────
 
 class DiscordWebhookSender extends WebhookSenderBase {
-  DiscordWebhookSender({
-    required super.webhookUrl,
-    super.dio,
-  });
+  DiscordWebhookSender({required super.webhookUrl, super.dio});
 
   Future<void> send(DiscordWebhookMessage message) async {
     final String jsonPayload = jsonEncode(message.toJson());
@@ -110,18 +105,22 @@ class DiscordWebhookSender extends WebhookSenderBase {
       ),
     ];
     if (stackTrace != null) {
-      fields.add(DiscordEmbedField(
-        name: 'Stack Trace',
-        value: formatEmbedValue(stackTrace),
-        inline: false,
-      ));
+      fields.add(
+        DiscordEmbedField(
+          name: 'Stack Trace',
+          value: formatEmbedValue(stackTrace),
+          inline: false,
+        ),
+      );
     }
     if (extraInfo != null) {
-      fields.add(DiscordEmbedField(
-        name: 'Extra Info',
-        value: formatEmbedValue(extraInfo, lang: 'json'),
-        inline: false,
-      ));
+      fields.add(
+        DiscordEmbedField(
+          name: 'Extra Info',
+          value: formatEmbedValue(extraInfo, lang: 'json'),
+          inline: false,
+        ),
+      );
     }
     final embed = DiscordEmbed(
       title: 'Bug Report / Exception',
@@ -227,11 +226,7 @@ class TelegramWebhookSender {
   Future<void> _sendHtmlMessage(String message) async {
     final response = await _dio.post(
       'https://api.telegram.org/bot$botToken/sendMessage',
-      data: {
-        'chat_id': chatId,
-        'text': message,
-        'parse_mode': 'HTML',
-      },
+      data: {'chat_id': chatId, 'text': message, 'parse_mode': 'HTML'},
       options: Options(headers: {'Content-Type': 'application/json'}),
     );
     final responseData = response.data;
@@ -283,8 +278,9 @@ class TelegramWebhookSender {
       final max = maxMessageLength - indicator.length;
       // Naive close: drop everything after `max`, then drop any unclosed <pre>.
       final cut = message.substring(0, max);
-      final cleaned =
-          cut.contains('<pre>') && !cut.contains('</pre>') ? '$cut</pre>' : cut;
+      final cleaned = cut.contains('<pre>') && !cut.contains('</pre>')
+          ? '$cut</pre>'
+          : cut;
       return cleaned + indicator;
     } catch (_) {
       if (message.length <= maxMessageLength) return message;
@@ -308,8 +304,11 @@ class TelegramWebhookSender {
       try {
         return indentJson(rawValue, indent: '  ');
       } catch (_) {
-        return stringify(rawValue,
-            maxLen: 1000, replacements: const {'```': ''});
+        return stringify(
+          rawValue,
+          maxLen: 1000,
+          replacements: const {'```': ''},
+        );
       }
     }
     return stringify(rawValue, maxLen: 1000, replacements: const {'```': ''});
@@ -353,7 +352,8 @@ class TelegramWebhookSender {
     }
     buffer.writeln();
     buffer.writeln(
-        '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>');
+      '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>',
+    );
     return buffer.toString();
   }
 
@@ -372,12 +372,14 @@ class TelegramWebhookSender {
     }
     buffer.writeln('<b>Error:</b>');
     buffer.writeln(
-        '<pre><code>${_escapeHtml(_formatForTelegram(error))}</code></pre>');
+      '<pre><code>${_escapeHtml(_formatForTelegram(error))}</code></pre>',
+    );
     if (stackTrace != null) {
       buffer.writeln();
       buffer.writeln('<b>Stack Trace:</b>');
       buffer.writeln(
-          '<pre><code>${_escapeHtml(_formatForTelegram(stackTrace))}</code></pre>');
+        '<pre><code>${_escapeHtml(_formatForTelegram(stackTrace))}</code></pre>',
+      );
     }
     if (extraInfo != null && extraInfo.isNotEmpty) {
       buffer.writeln();
@@ -387,7 +389,8 @@ class TelegramWebhookSender {
     }
     buffer.writeln();
     buffer.writeln(
-        '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>');
+      '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>',
+    );
     return buffer.toString();
   }
 
