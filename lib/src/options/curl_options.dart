@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:colored_logger/colored_logger.dart';
 
 import '../core/types.dart';
-import 'filter_options.dart';
 
 class CurlOptions {
   const CurlOptions({
@@ -15,39 +14,32 @@ class CurlOptions {
     this.behavior = CurlBehavior.simultaneous,
     this.printer = log,
     this.prettyConfig = const PrettyConfig(),
-    this.filterOptions = const FilterOptions.disabled(),
   });
 
   factory CurlOptions.allEnabled() => const CurlOptions(
-        status: true,
-        responseTime: true,
-        onRequest: RequestDetails(visible: true),
-        onResponse: ResponseDetails(
-          visible: true,
-          requestHeaders: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeaders: true,
-        ),
-        onError: ErrorDetails(
-          visible: true,
-          requestHeaders: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeaders: true,
-        ),
-        prettyConfig: PrettyConfig(
-          blockEnabled: true,
-          colorEnabled: true,
-          emojiEnabled: true,
-        ),
-        filterOptions: FilterOptions.disabled(),
-      );
-
-  /// Creates CurlOptions with path filtering enabled
-  factory CurlOptions.withFilters(FilterOptions filterOptions) => CurlOptions(
-        filterOptions: filterOptions,
-      );
+    status: true,
+    responseTime: true,
+    onRequest: RequestDetails(visible: true),
+    onResponse: ResponseDetails(
+      visible: true,
+      requestHeaders: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeaders: true,
+    ),
+    onError: ErrorDetails(
+      visible: true,
+      requestHeaders: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeaders: true,
+    ),
+    prettyConfig: PrettyConfig(
+      blockEnabled: true,
+      colorEnabled: true,
+      emojiEnabled: true,
+    ),
+  );
 
   /// Show the result summary _(include: status code, status name, method, uri, response time)_
   final bool status;
@@ -64,9 +56,6 @@ class CurlOptions {
   /// Configuration for pretty printing HTTP requests and responses.
   /// Controls the visual appearance of the output when pretty printing is enabled.
   final PrettyConfig prettyConfig;
-
-  /// Configuration for path filtering to stop specific API calls
-  final FilterOptions filterOptions;
 
   final RequestDetails? onRequest;
   final ResponseDetails? onResponse;
@@ -110,7 +99,6 @@ class CurlOptions {
     CurlBehavior? behavior,
     Printer? printer,
     PrettyConfig? prettyConfig,
-    FilterOptions? filterOptions,
     RequestDetails? onRequest,
     ResponseDetails? onResponse,
     ErrorDetails? onError,
@@ -121,7 +109,6 @@ class CurlOptions {
       behavior: behavior ?? this.behavior,
       printer: printer ?? this.printer,
       prettyConfig: prettyConfig ?? this.prettyConfig,
-      filterOptions: filterOptions ?? this.filterOptions,
       onRequest: onRequest ?? this.onRequest,
       onResponse: onResponse ?? this.onResponse,
       onError: onError ?? this.onError,
@@ -146,19 +133,13 @@ class CurlOptions {
 
 /// see [Ansi] for more colors and styles
 class CurlDetails {
-  const CurlDetails({
-    this.visible = true,
-    this.ansi,
-  });
+  const CurlDetails({this.visible = true, this.ansi});
   final bool visible;
   final Ansi? ansi;
 
   CurlDetails invisible() => const CurlDetails(visible: false);
 
-  CurlDetails copyWith({
-    bool? visible,
-    Ansi? ansi,
-  }) {
+  CurlDetails copyWith({bool? visible, Ansi? ansi}) {
     return CurlDetails(
       visible: visible ?? this.visible,
       ansi: ansi ?? this.ansi,
@@ -167,10 +148,7 @@ class CurlDetails {
 }
 
 class RequestDetails extends CurlDetails {
-  const RequestDetails({
-    super.visible,
-    super.ansi = Ansi.yellow,
-  });
+  const RequestDetails({super.visible, super.ansi = Ansi.yellow});
 }
 
 class ResponseDetails extends CurlDetails {

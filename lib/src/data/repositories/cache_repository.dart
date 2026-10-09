@@ -3,8 +3,8 @@ import '../../core/types.dart';
 
 /// Abstract repository interface for managing cached curl entries
 abstract class CacheRepository {
-  /// Initialize the repository
-  Future<void> init();
+  /// Initialize the repository and report whether the cache can be used.
+  Future<CacheInitResult> init();
 
   /// Save a cached curl entry
   /// Returns the key/index of the saved entry, or null if failed
@@ -47,4 +47,18 @@ abstract class CacheRepository {
     DateTime? startDate,
     DateTime? endDate,
   });
+}
+
+/// Safe failure categories returned when cache initialization is unavailable.
+enum CacheInitFailure { invalidEncryptionKey, openFailed, initializationFailed }
+
+/// Outcome of opening the local cache without exposing storage exceptions.
+class CacheInitResult {
+  const CacheInitResult.success() : failure = null;
+
+  const CacheInitResult.failure(this.failure);
+
+  final CacheInitFailure? failure;
+
+  bool get succeeded => failure == null;
 }

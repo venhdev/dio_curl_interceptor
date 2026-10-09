@@ -25,13 +25,12 @@ void main() {
       );
     });
 
-    testWidgets('renders all 4 tabs and initial Overview information',
-        (tester) async {
+    testWidgets('renders all 4 tabs and initial Overview information', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: CurlDetailViewer(entry: testEntry),
-          ),
+          home: Scaffold(body: CurlDetailViewer(entry: testEntry)),
         ),
       );
 
@@ -57,9 +56,7 @@ void main() {
     testWidgets('switches to Headers tab and filters headers', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: CurlDetailViewer(entry: testEntry),
-          ),
+          home: Scaffold(body: CurlDetailViewer(entry: testEntry)),
         ),
       );
 
@@ -81,13 +78,12 @@ void main() {
       expect(find.text('content-type'), findsNothing);
     });
 
-    testWidgets('switches to Response Body tab and supports mode switching',
-        (tester) async {
+    testWidgets('switches to Response Body tab and supports mode switching', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: CurlDetailViewer(entry: testEntry),
-          ),
+          home: Scaffold(body: CurlDetailViewer(entry: testEntry)),
         ),
       );
 
@@ -117,13 +113,12 @@ void main() {
       expect(find.textContaining('{"status":"ok"'), findsOneWidget);
     });
 
-    testWidgets('switches to cURL tab and displays executable command',
-        (tester) async {
+    testWidgets('switches to cURL tab and displays executable command', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: CurlDetailViewer(entry: testEntry),
-          ),
+          home: Scaffold(body: CurlDetailViewer(entry: testEntry)),
         ),
       );
 
@@ -135,12 +130,14 @@ void main() {
 
       expect(find.text('Executable cURL'), findsOneWidget);
       expect(
-          find.textContaining("curl -X POST 'https://api.example.com/v1/auth'"),
-          findsOneWidget);
+        find.textContaining("curl -X POST 'https://api.example.com/v1/auth'"),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('CurlDetailViewer.show triggers bottom sheet display',
-        (tester) async {
+    testWidgets('CurlDetailViewer.show triggers bottom sheet display', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

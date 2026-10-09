@@ -16,7 +16,7 @@ import 'message_sink.dart';
 ///
 /// ```dart
 /// StatusFilterSink(
-///   DiscordSink(webhookUrls: ['…']),
+///   DiscordSink(name: 'alerts', webhookUrl: '…'),
 ///   allowedStatuses: {ResponseStatus.clientError, ResponseStatus.serverError},
 /// )
 /// ```

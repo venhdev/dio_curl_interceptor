@@ -1,7 +1,7 @@
-import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:colored_logger/colored_logger.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:crypto/crypto.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,73 +10,77 @@ import '../../models/cached_curl_entry.dart';
 import '../../../core/types.dart';
 import '../cache_repository.dart';
 
-const _boxName = 'cachedCurlBox';
+const _plainBoxName = 'curlCache';
+const _encryptedBoxPrefix = 'curlCache_';
 
 class HiveCacheRepositoryImpl implements CacheRepository {
-  static bool _isInitialized() {
-    if (!Hive.isBoxOpen(_boxName)) {
-      final msg =
-          'HiveCacheRepositoryImpl is not initialized. Call `await HiveCacheRepositoryImpl.init()` first.';
-      ColoredLogger.info(msg);
-      return false;
+  HiveCacheRepositoryImpl({
+    Uint8List? encryptionKey,
+    Future<Directory> Function()? documentsDirectoryProvider,
+  }) : _encryptionKey = encryptionKey == null
+           ? null
+           : Uint8List.fromList(encryptionKey),
+       _documentsDirectoryProvider =
+           documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
+
+  final Uint8List? _encryptionKey;
+  final Future<Directory> Function() _documentsDirectoryProvider;
+  String? _boxName;
+  bool _availabilityWarningShown = false;
+
+  bool _isInitialized() {
+    final boxName = _boxName;
+    if (boxName != null && Hive.isBoxOpen(boxName)) return true;
+    if (!_availabilityWarningShown) {
+      _availabilityWarningShown = true;
+      ColoredLogger.warning('Hive cache is not initialized or unavailable.');
     }
-    return true;
+    return false;
   }
 
-  Future<bool> _openHiveBox(Uint8List? encryptionKey) async {
+  Future<CacheInitResult> _openHiveBox(String boxName) async {
     try {
-      if (encryptionKey != null) {
-        await Hive.openBox<CachedCurlEntry>(
-          _boxName,
-          encryptionCipher: HiveAesCipher(encryptionKey),
-        );
+      final encryptionKey = _encryptionKey;
+      if (encryptionKey == null) {
+        await Hive.openBox<CachedCurlEntry>(boxName, crashRecovery: false);
       } else {
-        await Hive.openBox<CachedCurlEntry>(_boxName);
+        await Hive.openBox<CachedCurlEntry>(
+          boxName,
+          encryptionCipher: HiveAesCipher(encryptionKey),
+          crashRecovery: false,
+        );
       }
-      return true;
+      return const CacheInitResult.success();
     } catch (e) {
-      ColoredLogger.error('Failed to open Hive box: $e');
       ColoredLogger.warning(
-          'Attempting to delete and recreate the box without encryption...');
-      await Hive.deleteBoxFromDisk(_boxName);
-      try {
-        await Hive.openBox<CachedCurlEntry>(_boxName);
-        return true;
-      } catch (e2) {
-        ColoredLogger.error(
-            'Failed to open Hive box even without encryption: $e2');
-        return false;
-      }
-    }
-  }
-
-  Future<Uint8List?> _getEncryptionKey() async {
-    const secureStorage = FlutterSecureStorage();
-    String? encryptionKey =
-        await secureStorage.read(key: 'hive_encryption_key');
-
-    if (encryptionKey == null) {
-      final key = Hive.generateSecureKey();
-      await secureStorage.write(
-        key: 'hive_encryption_key',
-        value: base64UrlEncode(key),
+        'Failed to open Hive cache box; existing data was retained: $e',
       );
-      encryptionKey = base64UrlEncode(
-          key); // Update encryptionKey with the newly generated one
+      return const CacheInitResult.failure(CacheInitFailure.openFailed);
     }
-
-    return base64Url.decode(encryptionKey);
   }
 
   @override
-  Future<void> init() async {
-    if (Hive.isBoxOpen(_boxName)) {
-      ColoredLogger.warning('HiveCacheRepositoryImpl is already initialized.');
-      return;
-    }
-
+  Future<CacheInitResult> init() async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
+      final encryptionKey = _encryptionKey;
+      if (encryptionKey != null && encryptionKey.length != 32) {
+        ColoredLogger.warning('Hive encryption key must be exactly 32 bytes.');
+        _availabilityWarningShown = true;
+        return const CacheInitResult.failure(
+          CacheInitFailure.invalidEncryptionKey,
+        );
+      }
+
+      final boxName = encryptionKey == null
+          ? _plainBoxName
+          : '$_encryptedBoxPrefix${sha256.convert(encryptionKey)}';
+      _boxName = boxName;
+      if (Hive.isBoxOpen(boxName)) {
+        _availabilityWarningShown = false;
+        return const CacheInitResult.success();
+      }
+
+      final dir = await _documentsDirectoryProvider();
       if (!await dir.exists()) {
         await dir.create(recursive: true);
       }
@@ -86,18 +90,24 @@ class HiveCacheRepositoryImpl implements CacheRepository {
         Hive.registerAdapter(CachedCurlEntryAdapter());
       }
 
-      final encryptionKey = await _getEncryptionKey();
-      await _openHiveBox(encryptionKey);
+      final result = await _openHiveBox(boxName);
+      if (result.succeeded) {
+        _availabilityWarningShown = false;
+      }
+      return result;
     } catch (e) {
-      ColoredLogger.error('Failed to initialize HiveCacheRepositoryImpl: $e');
-      // Fire and forget: Do not rethrow the exception
+      ColoredLogger.warning('Failed to initialize Hive cache: $e');
+      _availabilityWarningShown = true;
+      return const CacheInitResult.failure(
+        CacheInitFailure.initializationFailed,
+      );
     }
   }
 
   @override
   Future<int?> save(CachedCurlEntry entry) async {
     if (_isInitialized()) {
-      final box = Hive.box<CachedCurlEntry>(_boxName);
+      final box = Hive.box<CachedCurlEntry>(_boxName!);
       return await box.add(entry);
     }
     return null;
@@ -108,14 +118,14 @@ class HiveCacheRepositoryImpl implements CacheRepository {
     if (!_isInitialized()) {
       return [];
     }
-    final box = Hive.box<CachedCurlEntry>(_boxName);
+    final box = Hive.box<CachedCurlEntry>(_boxName!);
     return box.values.toList().reversed.toList();
   }
 
   @override
   Future<void> clear() async {
     if (_isInitialized()) {
-      final box = Hive.box<CachedCurlEntry>(_boxName);
+      final box = Hive.box<CachedCurlEntry>(_boxName!);
       await box.clear();
     }
   }
@@ -217,26 +227,33 @@ class HiveCacheRepositoryImpl implements CacheRepository {
     DateTime? endDate,
     ResponseStatus? statusGroup,
   }) {
-    final box = Hive.box<CachedCurlEntry>(_boxName);
+    final box = Hive.box<CachedCurlEntry>(_boxName!);
     Iterable<CachedCurlEntry> entries = box.values.toList().reversed;
 
     if (search.isNotEmpty) {
       final lower = search.toLowerCase();
-      entries = entries.where((entry) =>
-          entry.curlCommand.toLowerCase().contains(lower) ||
-          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-          entry.statusCode.toString().contains(lower) ||
-          (entry.url ?? '').toLowerCase().contains(lower));
+      entries = entries.where(
+        (entry) =>
+            entry.curlCommand.toLowerCase().contains(lower) ||
+            (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+            entry.statusCode.toString().contains(lower) ||
+            (entry.url ?? '').toLowerCase().contains(lower),
+      );
     }
 
     if (startDate != null) {
-      entries = entries.where((entry) => entry.timestamp
-          .isAfter(startDate.subtract(const Duration(seconds: 1))));
+      entries = entries.where(
+        (entry) => entry.timestamp.isAfter(
+          startDate.subtract(const Duration(seconds: 1)),
+        ),
+      );
     }
 
     if (endDate != null) {
-      entries = entries.where((entry) =>
-          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+      entries = entries.where(
+        (entry) =>
+            entry.timestamp.isBefore(endDate.add(const Duration(days: 1))),
+      );
     }
 
     if (statusGroup != null) {

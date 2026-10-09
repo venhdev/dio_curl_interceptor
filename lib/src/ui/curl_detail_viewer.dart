@@ -97,7 +97,10 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: const [
           BoxShadow(
-              color: Colors.black26, blurRadius: 16, offset: Offset(0, -4)),
+            color: Colors.black26,
+            blurRadius: 16,
+            offset: Offset(0, -4),
+          ),
         ],
       ),
       child: SafeArea(
@@ -123,8 +126,10 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
                 children: [
                   // Method badge
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: methodPalette.light,
                       borderRadius: BorderRadius.circular(6),
@@ -143,8 +148,10 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
 
                   // Status badge
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: statusPalette.light,
                       borderRadius: BorderRadius.circular(6),
@@ -168,7 +175,9 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 13),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
 
@@ -196,18 +205,24 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
             Container(
               decoration: BoxDecoration(
                 border: Border(
-                    bottom: BorderSide(
-                        color: Theme.of(context)
-                            .dividerColor
-                            .withValues(alpha: 0.2))),
+                  bottom: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).dividerColor.withValues(alpha: 0.2),
+                  ),
+                ),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicatorWeight: 3,
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                unselectedLabelStyle:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
                 tabs: const [
                   Tab(text: 'Overview'),
                   Tab(text: 'Headers'),
@@ -289,8 +304,11 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
     final headers = widget.entry.responseHeaders ?? {};
     if (headers.isEmpty) {
       return const Center(
-          child: Text('No response headers available',
-              style: TextStyle(color: Colors.grey)));
+        child: Text(
+          'No response headers available',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
     }
 
     final filteredEntries = headers.entries.where((e) {
@@ -318,9 +336,12 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
                       hintText: 'Filter headers...',
                       prefixIcon: const Icon(Icons.search, size: 16),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 0),
+                        horizontal: 8,
+                        vertical: 0,
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                     ),
                   ),
@@ -332,8 +353,9 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
                 icon: const Icon(Icons.copy, size: 18),
                 onPressed: () {
                   final buffer = StringBuffer();
-                  headers
-                      .forEach((k, v) => buffer.writeln('$k: ${v.join(', ')}'));
+                  headers.forEach(
+                    (k, v) => buffer.writeln('$k: ${v.join(', ')}'),
+                  );
                   _copyToClipboard(buffer.toString(), 'All Headers');
                 },
               ),
@@ -344,7 +366,7 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             itemCount: filteredEntries.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, i) {
               final item = filteredEntries[i];
               final valueStr = item.value.join(', ');
@@ -367,7 +389,9 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
                       SelectableText(
                         valueStr,
                         style: const TextStyle(
-                            fontSize: 12, fontFamily: 'monospace'),
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ],
                   ),
@@ -387,8 +411,11 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
     final body = widget.entry.responseBody;
     if (body == null || body.isEmpty) {
       return const Center(
-          child: Text('No response body returned',
-              style: TextStyle(color: Colors.grey)));
+        child: Text(
+          'No response body returned',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
     }
 
     return Column(
@@ -399,21 +426,27 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             border: Border(
-                bottom: BorderSide(
-                    color:
-                        Theme.of(context).dividerColor.withValues(alpha: 0.2))),
+              bottom: BorderSide(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+              ),
+            ),
           ),
           child: Row(
             children: [
               SegmentedButton<ResponseBodyViewMode>(
                 segments: const [
                   ButtonSegment(
-                      value: ResponseBodyViewMode.tree, label: Text('Tree')),
+                    value: ResponseBodyViewMode.tree,
+                    label: Text('Tree'),
+                  ),
                   ButtonSegment(
-                      value: ResponseBodyViewMode.pretty,
-                      label: Text('Pretty')),
+                    value: ResponseBodyViewMode.pretty,
+                    label: Text('Pretty'),
+                  ),
                   ButtonSegment(
-                      value: ResponseBodyViewMode.raw, label: Text('Raw')),
+                    value: ResponseBodyViewMode.raw,
+                    label: Text('Raw'),
+                  ),
                 ],
                 selected: {_bodyViewMode},
                 onSelectionChanged: (s) =>
@@ -427,8 +460,8 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
                 onPressed: () {
                   final textToCopy =
                       _bodyViewMode == ResponseBodyViewMode.pretty
-                          ? _jsonTreeController.toPrettyJson()
-                          : body;
+                      ? _jsonTreeController.toPrettyJson()
+                      : body;
                   _copyToClipboard(textToCopy, 'Response Body');
                 },
               ),
@@ -439,25 +472,31 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
         Expanded(
           child: switch (_bodyViewMode) {
             ResponseBodyViewMode.tree => JsonTreeViewer(
-                controller: _jsonTreeController,
-                theme: JsonTreeTheme.of(context),
-              ),
+              controller: _jsonTreeController,
+              theme: JsonTreeTheme.of(context),
+            ),
             ResponseBodyViewMode.pretty => SingleChildScrollView(
-                padding: const EdgeInsets.all(12),
-                child: SelectableText(
-                  _jsonTreeController.toPrettyJson(),
-                  style: const TextStyle(
-                      fontFamily: 'monospace', fontSize: 12, height: 1.4),
+              padding: const EdgeInsets.all(12),
+              child: SelectableText(
+                _jsonTreeController.toPrettyJson(),
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  height: 1.4,
                 ),
               ),
+            ),
             ResponseBodyViewMode.raw => SingleChildScrollView(
-                padding: const EdgeInsets.all(12),
-                child: SelectableText(
-                  body,
-                  style: const TextStyle(
-                      fontFamily: 'monospace', fontSize: 12, height: 1.4),
+              padding: const EdgeInsets.all(12),
+              child: SelectableText(
+                body,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  height: 1.4,
                 ),
               ),
+            ),
           },
         ),
       ],
@@ -474,8 +513,10 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
       children: [
         Row(
           children: [
-            const Text('Executable cURL',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            const Text(
+              'Executable cURL',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
             const Spacer(),
             IconButton(
               icon: const Icon(Icons.copy, size: 20),
@@ -497,7 +538,10 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
           child: SelectableText(
             curl,
             style: const TextStyle(
-                fontFamily: 'monospace', fontSize: 12.5, height: 1.4),
+              fontFamily: 'monospace',
+              fontSize: 12.5,
+              height: 1.4,
+            ),
           ),
         ),
       ],
@@ -510,16 +554,21 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 13.5)),
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13.5,
+              ),
+            ),
             const Divider(height: 16),
             ...children,
           ],
@@ -536,8 +585,10 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
         children: [
           SizedBox(
             width: 130,
-            child: Text(label,
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
           ),
           Expanded(
             child: Row(
@@ -546,7 +597,9 @@ class _CurlDetailViewerState extends State<CurlDetailViewer>
                   child: Text(
                     value,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 12.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ),
                 if (copyable)

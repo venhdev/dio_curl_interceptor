@@ -27,15 +27,14 @@ class RequestInfo {
     String? body,
     String? curl,
     Map<String, dynamic> extra = const {},
-  }) =>
-      RequestInfo(
-        method: method,
-        uri: uri ?? Uri.parse('https://example.test'),
-        headers: headers,
-        body: body,
-        curl: curl,
-        extra: extra,
-      );
+  }) => RequestInfo(
+    method: method,
+    uri: uri ?? Uri.parse('https://example.test'),
+    headers: headers,
+    body: body,
+    curl: curl,
+    extra: extra,
+  );
 
   /// Build a [RequestInfo] from a live Dio [RequestOptions]. The cURL string is
   /// generated via [CurlHelper.generateCurlFromRequestOptions].

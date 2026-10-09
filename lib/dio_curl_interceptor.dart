@@ -5,7 +5,6 @@ export 'package:colored_logger/colored_logger.dart' show Ansi;
 export 'src/core/types.dart';
 export 'src/core/constants.dart';
 export 'src/core/utils/curl_utils.dart';
-export 'src/core/utils/filter_utils.dart';
 
 // Data models
 export 'src/data/models/cached_curl_entry.dart';
@@ -35,20 +34,18 @@ export 'src/relay/curl_relay.dart';
 export 'src/util/log.dart';
 
 // (4.0.0) Removed legacy `src/patterns/patterns.dart` re-export — the
-// CircuitBreaker / RetryPolicy / FireAndForget / WebhookCache helpers there
-// are superseded by `src/relay/{circuit_breaker,retry_policy,dedupe_cache}.dart`.
+// CircuitBreaker / FireAndForget / WebhookCache helpers there are superseded
+// by `src/relay/{circuit_breaker,dedupe_cache}.dart`.
 // External code that pulled them in via `package:dio_curl_interceptor`
 // should import directly from `src/relay/*` going forward.
 
 // Options and configuration
 export 'src/options/cache_options.dart';
 export 'src/options/curl_options.dart';
-export 'src/options/filter_options.dart';
 
 // UI components
 export 'src/ui/curl_viewer.dart';
 export 'src/ui/curl_detail_viewer.dart';
-export 'src/ui/bubble_overlay.dart';
 export 'src/ui/curl_bubble.dart';
 export 'src/ui/widgets/json_tree/flat_json_node.dart';
 export 'src/ui/widgets/json_tree/json_tree_controller.dart';

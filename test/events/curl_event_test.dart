@@ -63,15 +63,26 @@ void main() {
         body: 'ok',
         duration: const Duration(milliseconds: 12),
       );
-      final e =
-          ResponseCurlEvent(id: 'b', timestamp: ts, request: req, response: r);
+      final e = ResponseCurlEvent(
+        id: 'b',
+        timestamp: ts,
+        request: req,
+        response: r,
+      );
       expect(e.response.duration.inMilliseconds, 12);
     });
     test('ErrorCurlEvent carries ErrorInfo', () {
       final err = ErrorInfo(
-          type: 'connectionTimeout', message: 'oops', statusCode: null);
-      final e =
-          ErrorCurlEvent(id: 'c', timestamp: ts, request: req, error: err);
+        type: 'connectionTimeout',
+        message: 'oops',
+        statusCode: null,
+      );
+      final e = ErrorCurlEvent(
+        id: 'c',
+        timestamp: ts,
+        request: req,
+        error: err,
+      );
       expect(e.error.type, 'connectionTimeout');
     });
   });

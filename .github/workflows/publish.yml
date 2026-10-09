@@ -1,39 +1,31 @@
-# .github/workflows/publish.yml
-name: Publish to pub.dev (publish.yml)
+name: Validate and publish to pub.dev
 
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*' # tag pattern on pub.dev: 'v{{version}}'
-    # branches: [ main ] # Enable this to test the workflow on every push
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
-# Publish using custom workflow
 jobs:
-  publish:
-    permissions:
-      id-token: write # Required for authentication using OIDC
-      contents: read
+  validate:
+    name: Validate and test
     runs-on: ubuntu-latest
     steps:
-      # Checkout repository
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.44.4
-      - run: flutter --version
+          flutter-version: 3.47.0
 
-      # Install dependencies
       - run: flutter pub get
-      # Here you can insert custom steps you need
-      # - run: dart tool/generate-code.dart
-      
-      # Quality checks
       - run: dart format --output=none --set-exit-if-changed .
       - run: dart analyze --fatal-infos
-      # - run: dart test
+      - run: flutter test
 
-      - name: Publish
-        run: dart pub publish --force
+  publish:
+    name: Publish to pub.dev
+    needs: validate
+    permissions:
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1

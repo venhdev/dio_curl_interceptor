@@ -8,7 +8,7 @@ import 'package:dio_curl_interceptor/src/sinks/telegram_sink.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _CapturingTelegram extends TelegramWebhookSender {
-  _CapturingTelegram() : super(botToken: 'unused:token', chatIds: const ['0']);
+  _CapturingTelegram() : super(botToken: 'unused:token', chatId: '0');
 
   String? capturedCurl;
   int capturedStatus = 0;
@@ -17,7 +17,7 @@ class _CapturingTelegram extends TelegramWebhookSender {
   int messageCalls = 0;
 
   @override
-  Future<List<Response>> sendCurlLog({
+  Future<void> sendCurlLog({
     required String? curl,
     required String method,
     required String uri,
@@ -30,17 +30,15 @@ class _CapturingTelegram extends TelegramWebhookSender {
     capturedCurl = curl;
     capturedStatus = statusCode;
     curlCalls++;
-    return <Response>[];
   }
 
   @override
-  Future<List<Response>> sendMessage({
+  Future<void> sendMessage({
     required String content,
     SenderInfo? senderInfo,
   }) async {
     capturedMessageContent = content;
     messageCalls++;
-    return <Response>[];
   }
 }
 
@@ -49,28 +47,29 @@ void main() {
     final sender = _CapturingTelegram();
     final sink = TelegramSink(
       botToken: '123:abc',
-      chatIds: const ['1', '2'],
+      name: 'telegram-test',
+      chatId: '1',
       sender: sender,
     );
 
-    await sink.handle(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(
-        method: 'POST',
-        uri: Uri.parse('https://api.example.test/login'),
-        headers: const {
-          'Authorization': 'Bearer SECRET_TOKEN',
-        },
-        curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+    await sink.handle(
+      ResponseCurlEvent(
+        id: '1',
+        timestamp: DateTime.utc(2026, 7, 7),
+        request: RequestInfo.fromTest(
+          method: 'POST',
+          uri: Uri.parse('https://api.example.test/login'),
+          headers: const {'Authorization': 'Bearer SECRET_TOKEN'},
+          curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+        ),
+        response: const ResponseInfo(
+          statusCode: 200,
+          headers: {},
+          body: 'ok',
+          duration: Duration(milliseconds: 1),
+        ),
       ),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: 'ok',
-        duration: Duration(milliseconds: 1),
-      ),
-    ));
+    );
 
     expect(sender.curlCalls, 1);
     expect(sender.capturedStatus, 200);
@@ -78,70 +77,101 @@ void main() {
     expect(sender.capturedCurl!.contains('Authorization'), isFalse);
   });
 
-  test('handle forwards Authorization when redactAuthHeaders is false',
-      () async {
-    final sender = _CapturingTelegram();
-    final sink = TelegramSink(
-      botToken: '123:abc',
-      chatIds: const ['1', '2'],
-      sender: sender,
-      redactAuthHeaders: false,
-    );
+  test(
+    'handle forwards Authorization when redactAuthHeaders is false',
+    () async {
+      final sender = _CapturingTelegram();
+      final sink = TelegramSink(
+        botToken: '123:abc',
+        name: 'telegram-test',
+        chatId: '1',
+        sender: sender,
+        redactAuthHeaders: false,
+      );
 
-    await sink.handle(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(
-        method: 'POST',
-        uri: Uri.parse('https://api.example.test/login'),
-        headers: const {
-          'Authorization': 'Bearer SECRET_TOKEN',
-        },
-        curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
-      ),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: 'ok',
-        duration: Duration(milliseconds: 1),
-      ),
-    ));
+      await sink.handle(
+        ResponseCurlEvent(
+          id: '1',
+          timestamp: DateTime.utc(2026, 7, 7),
+          request: RequestInfo.fromTest(
+            method: 'POST',
+            uri: Uri.parse('https://api.example.test/login'),
+            headers: const {'Authorization': 'Bearer SECRET_TOKEN'},
+            curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+          ),
+          response: const ResponseInfo(
+            statusCode: 200,
+            headers: {},
+            body: 'ok',
+            duration: Duration(milliseconds: 1),
+          ),
+        ),
+      );
 
-    expect(sender.curlCalls, 1);
-    expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isTrue);
-    expect(sender.capturedCurl!.contains('Authorization'), isTrue);
-  });
+      expect(sender.curlCalls, 1);
+      expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isTrue);
+      expect(sender.capturedCurl!.contains('Authorization'), isTrue);
+    },
+  );
 
-  test('name keys on botToken + sortedChatIds so identical configs collide',
-      () {
+  test('name is an explicit safe sink alias', () {
     final s1 = TelegramSink(
       botToken: '123:abc',
-      chatIds: const ['11', '22'],
+      name: 'alerts',
+      chatId: '11',
       sender: _CapturingTelegram(),
     );
     final s2 = TelegramSink(
       botToken: '123:abc',
-      chatIds: const ['22', '11'],
+      name: 'errors',
+      chatId: '22',
       sender: _CapturingTelegram(),
     );
     final s3 = TelegramSink(
       botToken: '123:abc',
-      chatIds: const ['33'],
+      name: 'other',
+      chatId: '33',
       sender: _CapturingTelegram(),
     );
-    expect(s1.name, s2.name);
-    expect(s1.name, isNot(s3.name));
+    expect(s1.name, 'alerts');
+    expect(s2.name, 'errors');
+    expect(s3.name, 'other');
+    expect(s1.name, isNot(contains('123:abc')));
   });
 
   test('sendMessage delegates once per call to the sender', () async {
     final sender = _CapturingTelegram();
     final sink = TelegramSink(
       botToken: '123:abc',
-      chatIds: const ['111', '222'],
+      name: 'telegram-test',
+      chatId: '111',
       sender: sender,
     );
     await sink.sendMessage('hello');
     expect(sender.messageCalls, 1);
     expect(sender.capturedMessageContent, 'hello');
+  });
+
+  test('does not close caller-injected Dio on dispose', () async {
+    final externalDio = Dio()
+      ..interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) => handler.resolve(
+            Response(requestOptions: options, data: 'still open'),
+          ),
+        ),
+      );
+    final sink = TelegramSink(
+      botToken: 'unused:token',
+      name: 'external',
+      chatId: 'chat',
+      dio: externalDio,
+    );
+
+    await sink.dispose();
+    final response = await externalDio.get<String>('https://example.test');
+
+    expect(response.data, 'still open');
+    externalDio.close(force: true);
   });
 }

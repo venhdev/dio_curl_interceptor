@@ -5,16 +5,20 @@ import '../events/curl_event.dart';
 import 'curl_sink.dart';
 import 'message_sink.dart';
 import '_webhook_senders.dart';
+import 'webhook_dio_pool.dart';
 
 /// Sends cURL events (and arbitrary messages) to Telegram via the Bot API.
 ///
-/// `name` is `Telegram:<botToken>:<sortedChatIds>` so two sinks share a key
-/// only when both token and chat IDs match. Authorization and Cookie headers
-/// are stripped from the cURL payload by default; pass
+/// Authorization and Cookie headers are stripped from the cURL payload by
+/// default; pass
 /// `redactAuthHeaders: false` to opt out (useful for trusted debug webhooks).
 class TelegramSink implements CurlSink, MessageSink {
   final String botToken;
-  final List<String> chatIds;
+
+  /// Safe caller-defined alias used by `targetSinks` and relay logs.
+  @override
+  final String name;
+  final String chatId;
   final SenderInfo? senderInfo;
 
   /// Whether to strip `Authorization`, `Cookie`, and `Set-Cookie` from the
@@ -22,25 +26,27 @@ class TelegramSink implements CurlSink, MessageSink {
   /// production webhooks). Set to `false` to send the full headers.
   final bool redactAuthHeaders;
   TelegramWebhookSender? _ownedSender;
-  Dio? _ownedDio;
+  DioLease? _dioLease;
   bool _disposed = false;
 
   TelegramSink({
     required this.botToken,
-    required this.chatIds,
+    required this.name,
+    required this.chatId,
     Dio? dio,
     this.senderInfo,
     TelegramWebhookSender? sender,
     this.redactAuthHeaders = true,
   }) {
+    assert(name.trim().isNotEmpty, 'Sink name cannot be empty');
     if (sender != null) {
       _ownedSender = sender;
     } else {
-      _ownedDio = dio ?? Dio();
+      final sinkDio = dio ?? (_dioLease = WebhookDioPool.acquire()).dio;
       _ownedSender = TelegramWebhookSender(
         botToken: botToken,
-        chatIds: chatIds,
-        dio: _ownedDio,
+        chatId: chatId,
+        dio: sinkDio,
       );
     }
   }
@@ -52,16 +58,12 @@ class TelegramSink implements CurlSink, MessageSink {
   }
 
   @override
-  String get name {
-    final sorted = [...chatIds]..sort();
-    return 'Telegram:$botToken:${sorted.join(",")}';
-  }
-
   @override
   Future<void> handle(CurlEvent event) async {
     // See [DiscordSink.handle] for rationale — same flag, same default.
-    final req =
-        redactAuthHeaders ? event.request.redactForWebhook() : event.request;
+    final req = redactAuthHeaders
+        ? event.request.redactForWebhook()
+        : event.request;
     final response = event is ResponseCurlEvent ? event.response : null;
     final duration = response?.duration ?? const Duration(milliseconds: 0);
     final extra = event is ErrorCurlEvent
@@ -95,9 +97,9 @@ class TelegramSink implements CurlSink, MessageSink {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
-    final dio = _ownedDio;
-    _ownedDio = null;
+    final lease = _dioLease;
+    _dioLease = null;
     _ownedSender = null;
-    dio?.close(force: true);
+    lease?.release();
   }
 }

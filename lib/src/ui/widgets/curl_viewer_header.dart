@@ -1,312 +1,64 @@
 import 'package:flutter/material.dart';
 
-import '../bubble_overlay.dart';
-import 'icon_styles.dart';
-
 class CurlViewerHeader extends StatelessWidget {
-  final TextEditingController searchController;
-  final String searchQuery;
-  final VoidCallback onReload;
-  final VoidCallback? onClose;
-  final bool showCloseButton;
-  final VoidCallback? onFiltersPressed;
-  final VoidCallback? onClearAll;
-
   const CurlViewerHeader({
     super.key,
     required this.searchController,
     required this.searchQuery,
     required this.onReload,
-    this.onClose,
-    this.showCloseButton = false,
-    this.onFiltersPressed,
-    this.onClearAll,
+    required this.onClearFilters,
+    required this.onDateRange,
   });
+
+  final TextEditingController searchController;
+  final String searchQuery;
+  final VoidCallback onReload;
+  final VoidCallback onClearFilters;
+  final VoidCallback onDateRange;
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Container(
-        decoration: _buildDecoration(),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  _buildTerminalIcon(),
-                  const SizedBox(width: 8),
-                  _buildSearchBar(),
-                  if (onFiltersPressed != null || onClearAll != null) ...[
-                    const SizedBox(width: 8),
-                    _buildDropdownButton(),
-                  ],
-                  const SizedBox(width: 8),
-                  _buildReloadButton(),
-                  if (showCloseButton) ...[
-                    const SizedBox(width: 8),
-                    _buildCloseButton(onClose),
-                  ],
-                ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Search logs',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchQuery.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Clear search',
+                        onPressed: searchController.clear,
+                        icon: const Icon(Icons.clear),
+                      ),
+                isDense: true,
+                border: const OutlineInputBorder(),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _buildDecoration() {
-    return BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        stops: const [0.0, 0.3, 0.7, 1.0],
-        colors: [
-          Colors.black.withValues(alpha: 0.9),
-          Colors.black.withValues(alpha: 0.7),
-          Colors.grey.shade800.withValues(alpha: 0.6),
-          Colors.grey.shade900.withValues(alpha: 0.8),
-        ],
-      ),
-      borderRadius: BubbleBorderRadius.bubbleRadiusValue,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.4),
-          blurRadius: 20,
-          offset: const Offset(0, 6),
-          spreadRadius: 2,
-        ),
-        BoxShadow(
-          color: Colors.grey.shade700.withValues(alpha: 0.2),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-        BoxShadow(
-          color: Colors.white.withValues(alpha: 0.05),
-          blurRadius: 3,
-          offset: const Offset(0, -1),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTerminalIcon() {
-    return Container(
-      height: 36,
-      width: 36,
-      padding: ActionIconStyle.paddingSM,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.25),
-            Colors.white.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
           ),
-        ],
-      ),
-      child: Icon(Icons.terminal,
-          size: ActionIconStyle.sizeMD, color: Colors.white),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Expanded(
-      child: Container(
-        height: 36,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.white.withValues(alpha: 0.15),
-              Colors.white.withValues(alpha: 0.05),
+          IconButton(
+            tooltip: 'Choose date range',
+            onPressed: onDateRange,
+            icon: const Icon(Icons.date_range),
+          ),
+          IconButton(
+            tooltip: 'Reload logs',
+            onPressed: onReload,
+            icon: const Icon(Icons.refresh),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'More options',
+            onSelected: (_) => onClearFilters(),
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'clear', child: Text('Clear filters')),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: TextField(
-          controller: searchController,
-          decoration: InputDecoration(
-            hintText: 'Search...',
-            hintStyle: TextStyle(
-              fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.7),
-              fontWeight: FontWeight.w400,
-            ),
-            suffixIcon: searchQuery.isNotEmpty
-                ? Container(
-                    margin: ActionIconStyle.paddingSM,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius:
-                          BorderRadius.circular(ActionIconStyle.radiusSM),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.clear,
-                          color: Colors.white, size: ActionIconStyle.sizeXS),
-                      onPressed: () {
-                        searchController.clear();
-                      },
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(
-                          minWidth: ActionIconStyle.sizeXS * 2,
-                          minHeight: ActionIconStyle.sizeXS * 2),
-                    ),
-                  )
-                : null,
-            border: InputBorder.none,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            isDense: true,
-          ),
-          style: const TextStyle(color: Colors.white, fontSize: 12),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReloadButton() {
-    return Container(
-      height: 36,
-      width: 36,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.green.withValues(alpha: 0.2),
-            Colors.green.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
-        border: Border.all(
-          color: Colors.green.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
-          onTap: onReload,
-          child: Icon(Icons.refresh,
-              size: ActionIconStyle.sizeMD, color: Colors.white),
-        ),
-      ),
     );
   }
-
-  Widget _buildDropdownButton() {
-    return PopupMenuButton(
-      padding: EdgeInsets.zero,
-      icon: Icon(Icons.filter_list,
-          color: Colors.white), // Giữ nguyên icon và màu sắc
-      offset: Offset(0, 40),
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      constraints: BoxConstraints(maxHeight: 150), // Chiều cao khi mở
-      itemBuilder: (context) => [
-        if (onFiltersPressed != null)
-          PopupMenuItem(
-            onTap: onFiltersPressed,
-            child: Row(
-              children: [
-                _buildMenuItemIcon(Icons.filter_alt_outlined,
-                    color: Colors.orange),
-                SizedBox(width: 8),
-                Text('Filters'),
-              ],
-            ),
-          ),
-        if (onClearAll != null)
-          PopupMenuItem(
-            onTap: onClearAll,
-            child: Row(
-              children: [
-                _buildMenuItemIcon(Icons.delete_sweep_outlined,
-                    color: Colors.red),
-                SizedBox(width: 8),
-                Text('Clear All'),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildMenuItemIcon(IconData iconData, {Color? color}) {
-    return Icon(iconData, size: ActionIconStyle.sizeLG, color: color);
-  }
-}
-
-Widget _buildCloseButton(void Function()? onClose) {
-  return Container(
-    height: 36,
-    width: 36,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Colors.red.withValues(alpha: 0.2),
-          Colors.red.withValues(alpha: 0.1),
-        ],
-      ),
-      borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
-      border: Border.all(
-        color: Colors.red.withValues(alpha: 0.4),
-        width: 1.5,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.2),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(ActionIconStyle.radiusMD),
-        onTap: onClose,
-        child: Icon(Icons.close,
-            size: ActionIconStyle.sizeMD, color: Colors.white),
-      ),
-    ),
-  );
 }
