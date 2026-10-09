@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:dio_curl_interceptor/src/core/types.dart';
 import 'package:dio_curl_interceptor/src/data/models/cached_curl_entry.dart';
+import 'package:dio_curl_interceptor/src/data/repositories/cache_repository.dart';
 import 'package:dio_curl_interceptor/src/data/repositories/impl/hive_cache_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
@@ -26,23 +27,28 @@ void main() {
     }
   });
 
-  test('operations before init return safe default empty/null values',
-      () async {
-    expect(repository.loadAll(), isEmpty);
-    expect(
-        await repository.save(CachedCurlEntry(
-          curlCommand: 'curl https://example.com',
-          timestamp: DateTime.now(),
-        )),
-        isNull);
-    expect(repository.countFiltered(), 0);
-    expect(repository.loadFiltered(), isEmpty);
-    final counts = repository.countByStatusGroup();
-    expect(counts[ResponseStatus.success], 0);
-  });
+  test(
+    'operations before init return safe default empty/null values',
+    () async {
+      expect(repository.loadAll(), isEmpty);
+      expect(
+        await repository.save(
+          CachedCurlEntry(
+            curlCommand: 'curl https://example.com',
+            timestamp: DateTime.now(),
+          ),
+        ),
+        isNull,
+      );
+      expect(repository.countFiltered(), 0);
+      expect(repository.loadFiltered(), isEmpty);
+      final counts = repository.countByStatusGroup();
+      expect(counts[ResponseStatus.success], 0);
+    },
+  );
 
   test('init opens box and allows saving and loading entries', () async {
-    await repository.init();
+    expect((await repository.init()).succeeded, isTrue);
 
     final entry1 = CachedCurlEntry(
       curlCommand: 'curl -X GET https://api.example.com/users',
@@ -80,19 +86,23 @@ void main() {
   test('loadFiltered filters by search text', () async {
     await repository.init();
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.example.com/users',
-      url: 'https://api.example.com/users',
-      statusCode: 200,
-      timestamp: DateTime.utc(2026, 1, 1, 10, 0),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.example.com/users',
+        url: 'https://api.example.com/users',
+        statusCode: 200,
+        timestamp: DateTime.utc(2026, 1, 1, 10, 0),
+      ),
+    );
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.example.com/orders',
-      url: 'https://api.example.com/orders',
-      statusCode: 500,
-      timestamp: DateTime.utc(2026, 1, 1, 11, 0),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.example.com/orders',
+        url: 'https://api.example.com/orders',
+        statusCode: 500,
+        timestamp: DateTime.utc(2026, 1, 1, 11, 0),
+      ),
+    );
 
     final users = repository.loadFiltered(search: 'users');
     expect(users, hasLength(1));
@@ -108,26 +118,32 @@ void main() {
   test('loadFiltered filters by date range and statusGroup', () async {
     await repository.init();
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.example.com/jan1',
-      url: 'https://api.example.com/jan1',
-      statusCode: 200,
-      timestamp: DateTime.utc(2026, 1, 1),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.example.com/jan1',
+        url: 'https://api.example.com/jan1',
+        statusCode: 200,
+        timestamp: DateTime.utc(2026, 1, 1),
+      ),
+    );
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.example.com/jan5',
-      url: 'https://api.example.com/jan5',
-      statusCode: 404,
-      timestamp: DateTime.utc(2026, 1, 5),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.example.com/jan5',
+        url: 'https://api.example.com/jan5',
+        statusCode: 404,
+        timestamp: DateTime.utc(2026, 1, 5),
+      ),
+    );
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.example.com/jan10',
-      url: 'https://api.example.com/jan10',
-      statusCode: 502,
-      timestamp: DateTime.utc(2026, 1, 10),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.example.com/jan10',
+        url: 'https://api.example.com/jan10',
+        statusCode: 502,
+        timestamp: DateTime.utc(2026, 1, 10),
+      ),
+    );
 
     final inRange = repository.loadFiltered(
       startDate: DateTime.utc(2026, 1, 2),
@@ -136,13 +152,15 @@ void main() {
     expect(inRange, hasLength(1));
     expect(inRange.first.statusCode, 404);
 
-    final clientErrors =
-        repository.loadFiltered(statusGroup: ResponseStatus.clientError);
+    final clientErrors = repository.loadFiltered(
+      statusGroup: ResponseStatus.clientError,
+    );
     expect(clientErrors, hasLength(1));
     expect(clientErrors.first.statusCode, 404);
 
-    final serverErrors =
-        repository.loadFiltered(statusGroup: ResponseStatus.serverError);
+    final serverErrors = repository.loadFiltered(
+      statusGroup: ResponseStatus.serverError,
+    );
     expect(serverErrors, hasLength(1));
     expect(serverErrors.first.statusCode, 502);
   });
@@ -150,31 +168,41 @@ void main() {
   test('countByStatusGroup counts all status groups accurately', () async {
     await repository.init();
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://example.com/1',
-      statusCode: 101,
-      timestamp: DateTime.now(),
-    ));
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://example.com/2',
-      statusCode: 200,
-      timestamp: DateTime.now(),
-    ));
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://example.com/3',
-      statusCode: 302,
-      timestamp: DateTime.now(),
-    ));
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://example.com/4',
-      statusCode: 403,
-      timestamp: DateTime.now(),
-    ));
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://example.com/5',
-      statusCode: 503,
-      timestamp: DateTime.now(),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://example.com/1',
+        statusCode: 101,
+        timestamp: DateTime.now(),
+      ),
+    );
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://example.com/2',
+        statusCode: 200,
+        timestamp: DateTime.now(),
+      ),
+    );
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://example.com/3',
+        statusCode: 302,
+        timestamp: DateTime.now(),
+      ),
+    );
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://example.com/4',
+        statusCode: 403,
+        timestamp: DateTime.now(),
+      ),
+    );
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://example.com/5',
+        statusCode: 503,
+        timestamp: DateTime.now(),
+      ),
+    );
 
     final counts = repository.countByStatusGroup();
     expect(counts[ResponseStatus.informational], 1);
@@ -187,26 +215,32 @@ void main() {
   test('countByStatusGroup respects search and date range filters', () async {
     await repository.init();
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.com/users',
-      url: 'https://api.com/users',
-      statusCode: 200,
-      timestamp: DateTime.utc(2026, 1, 1),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.com/users',
+        url: 'https://api.com/users',
+        statusCode: 200,
+        timestamp: DateTime.utc(2026, 1, 1),
+      ),
+    );
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.com/users',
-      url: 'https://api.com/users',
-      statusCode: 500,
-      timestamp: DateTime.utc(2026, 1, 5),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.com/users',
+        url: 'https://api.com/users',
+        statusCode: 500,
+        timestamp: DateTime.utc(2026, 1, 5),
+      ),
+    );
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://api.com/orders',
-      url: 'https://api.com/orders',
-      statusCode: 500,
-      timestamp: DateTime.utc(2026, 1, 10),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://api.com/orders',
+        url: 'https://api.com/orders',
+        statusCode: 500,
+        timestamp: DateTime.utc(2026, 1, 10),
+      ),
+    );
 
     final searchFiltered = repository.countByStatusGroup(search: 'users');
     expect(searchFiltered[ResponseStatus.success], 1);
@@ -223,26 +257,30 @@ void main() {
   test('clear empties the cache', () async {
     await repository.init();
 
-    await repository.save(CachedCurlEntry(
-      curlCommand: 'curl https://example.com',
-      timestamp: DateTime.now(),
-    ));
+    await repository.save(
+      CachedCurlEntry(
+        curlCommand: 'curl https://example.com',
+        timestamp: DateTime.now(),
+      ),
+    );
     expect(repository.loadAll(), hasLength(1));
 
     await repository.clear();
     expect(repository.loadAll(), isEmpty);
   });
 
-  test('encryption is opt-in and the plain hive_ce box works by default',
-      () async {
-    await repository.init();
+  test(
+    'encryption is opt-in and the plain hive_ce box works by default',
+    () async {
+      await repository.init();
 
-    final id = await repository.save(_entry('plain cache entry'));
+      final id = await repository.save(_entry('plain cache entry'));
 
-    expect(id, isNotNull);
-    expect(Hive.isBoxOpen('curlCache'), isTrue);
-    expect(repository.loadAll().single.curlCommand, 'plain cache entry');
-  });
+      expect(id, isNotNull);
+      expect(Hive.isBoxOpen('curlCache'), isTrue);
+      expect(repository.loadAll().single.curlCommand, 'plain cache entry');
+    },
+  );
 
   test('encrypted hive_ce cache reopens with the same key', () async {
     final key = Uint8List.fromList(List<int>.generate(32, (index) => index));
@@ -257,22 +295,27 @@ void main() {
     final reopenedRepository = _createRepository(tempDir, encryptionKey: key);
     await reopenedRepository.init();
 
-    expect(reopenedRepository.loadAll().single.curlCommand,
-        'encrypted cache entry');
-  });
-
-  test('invalid encryption key leaves the cache unavailable without throwing',
-      () async {
-    final invalidRepository = _createRepository(
-      tempDir,
-      encryptionKey: Uint8List(31),
+    expect(
+      reopenedRepository.loadAll().single.curlCommand,
+      'encrypted cache entry',
     );
-
-    await expectLater(invalidRepository.init(), completes);
-    expect(await invalidRepository.save(_entry('not saved')), isNull);
-    expect(invalidRepository.loadAll(), isEmpty);
-    await expectLater(invalidRepository.clear(), completes);
   });
+
+  test(
+    'invalid encryption key leaves the cache unavailable without throwing',
+    () async {
+      final invalidRepository = _createRepository(
+        tempDir,
+        encryptionKey: Uint8List(31),
+      );
+
+      final result = await invalidRepository.init();
+      expect(result.failure, CacheInitFailure.invalidEncryptionKey);
+      expect(await invalidRepository.save(_entry('not saved')), isNull);
+      expect(invalidRepository.loadAll(), isEmpty);
+      await expectLater(invalidRepository.clear(), completes);
+    },
+  );
 
   test('wrong encryption key retains the existing box data', () async {
     final storedKey = Uint8List.fromList(List<int>.generate(32, (i) => i));
@@ -300,7 +343,8 @@ void main() {
       encryptionKey: attemptedKey,
     );
 
-    await expectLater(wrongKeyRepository.init(), completes);
+    final result = await wrongKeyRepository.init();
+    expect(result.failure, CacheInitFailure.openFailed);
     expect(await boxFile.readAsBytes(), originalBytes);
     expect(wrongKeyRepository.loadAll(), isEmpty);
     expect(await wrongKeyRepository.save(_entry('do not write')), isNull);
@@ -310,13 +354,12 @@ void main() {
 HiveCacheRepositoryImpl _createRepository(
   Directory directory, {
   Uint8List? encryptionKey,
-}) =>
-    HiveCacheRepositoryImpl(
-      encryptionKey: encryptionKey,
-      documentsDirectoryProvider: () async => directory,
-    );
+}) => HiveCacheRepositoryImpl(
+  encryptionKey: encryptionKey,
+  documentsDirectoryProvider: () async => directory,
+);
 
 CachedCurlEntry _entry(String curlCommand) => CachedCurlEntry(
-      curlCommand: curlCommand,
-      timestamp: DateTime.utc(2026, 10, 9),
-    );
+  curlCommand: curlCommand,
+  timestamp: DateTime.utc(2026, 10, 9),
+);

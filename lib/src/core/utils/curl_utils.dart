@@ -23,19 +23,19 @@ import '../types.dart';
 /// Returns a [String] representing the cURL command.
 String? genCurl(RequestOptions options) {
   try {
-    final curl = CurlHelper.generateCurlFromRequestOptions(
-      options,
-    );
+    final curl = CurlHelper.generateCurlFromRequestOptions(options);
     // Only return null if curl is truly empty or just whitespace
     if (curl.trim().isEmpty) {
       ColoredLogger.warning(
-          '$kPrefix Generated empty cURL for ${options.uri.toString()}');
+        '$kPrefix Generated empty cURL for ${options.uri.toString()}',
+      );
       return null;
     }
     return curl;
   } catch (e) {
     ColoredLogger.error(
-        '$kPrefix Unable to create a cURL representation to ${options.uri.toString()}: $e');
+      '$kPrefix Unable to create a cURL representation to ${options.uri.toString()}: $e',
+    );
     return null;
   }
 }
@@ -74,16 +74,18 @@ class CurlUtils {
       stopwatch: stopwatch,
       xClientTimeHeader: response.requestOptions.headers[kXClientTime],
     );
-    CachedCurlService.save(CachedCurlEntry(
-      curlCommand: curl_,
-      responseBody: response.data.toString(),
-      statusCode: response.statusCode,
-      timestamp: DateTime.now(),
-      url: response.requestOptions.uri.toString(),
-      duration: duration,
-      responseHeaders: response.headers.map,
-      method: response.requestOptions.method,
-    ));
+    CachedCurlService.save(
+      CachedCurlEntry(
+        curlCommand: curl_,
+        responseBody: response.data.toString(),
+        statusCode: response.statusCode,
+        timestamp: DateTime.now(),
+        url: response.requestOptions.uri.toString(),
+        duration: duration,
+        responseHeaders: response.headers.map,
+        method: response.requestOptions.method,
+      ),
+    );
   }
 
   /// Caches an error response with its curl command
@@ -107,16 +109,18 @@ class CurlUtils {
       xClientTimeHeader: err.requestOptions.headers[kXClientTime],
     );
 
-    CachedCurlService.save(CachedCurlEntry(
-      curlCommand: curl_,
-      responseBody: err.response?.data.toString(),
-      statusCode: err.response?.statusCode,
-      timestamp: DateTime.now(),
-      url: err.requestOptions.uri.toString(),
-      duration: duration,
-      responseHeaders: err.response?.headers.map,
-      method: err.requestOptions.method,
-    ));
+    CachedCurlService.save(
+      CachedCurlEntry(
+        curlCommand: curl_,
+        responseBody: err.response?.data.toString(),
+        statusCode: err.response?.statusCode,
+        timestamp: DateTime.now(),
+        url: err.requestOptions.uri.toString(),
+        duration: duration,
+        responseHeaders: err.response?.headers.map,
+        method: err.requestOptions.method,
+      ),
+    );
   }
 
   /// Adds an 'X-Client-Time' header to the [RequestOptions].
@@ -134,8 +138,9 @@ class CurlUtils {
   /// [requestOptions] The [RequestOptions] to modify.
   static void addXClientTime(RequestOptions requestOptions) {
     if (!requestOptions.headers.containsKey(kXClientTime)) {
-      requestOptions.headers[kXClientTime] =
-          DateTime.now().millisecondsSinceEpoch.toString();
+      requestOptions.headers[kXClientTime] = DateTime.now()
+          .millisecondsSinceEpoch
+          .toString();
     }
   }
 
@@ -156,10 +161,8 @@ class CurlUtils {
     Printer? printer,
   }) {
     try {
-      String curl = prefix +
-          CurlHelper.generateCurlFromRequestOptions(
-            requestOptions,
-          );
+      String curl =
+          prefix + CurlHelper.generateCurlFromRequestOptions(requestOptions);
 
       // decorate
       if (ansi != null) {
@@ -215,15 +218,14 @@ class CurlUtils {
     Response response, {
     CurlOptions curlOptions = const CurlOptions(),
     Stopwatch? stopwatch,
-  }) =>
-      _handleOn(
-        requestOptions: response.requestOptions,
-        response: response,
-        err: null,
-        curlOptions: curlOptions,
-        stopwatch: stopwatch,
-        printer: curlOptions.printOnResponse,
-      );
+  }) => _handleOn(
+    requestOptions: response.requestOptions,
+    response: response,
+    err: null,
+    curlOptions: curlOptions,
+    stopwatch: stopwatch,
+    printer: curlOptions.printOnResponse,
+  );
 
   /// Handles the cURL logging for an error response.
   ///
@@ -238,15 +240,14 @@ class CurlUtils {
     DioException err, {
     CurlOptions curlOptions = const CurlOptions(),
     Stopwatch? stopwatch,
-  }) =>
-      _handleOn(
-        requestOptions: err.requestOptions,
-        response: err.response,
-        err: err,
-        curlOptions: curlOptions,
-        stopwatch: stopwatch,
-        printer: curlOptions.printOnError,
-      );
+  }) => _handleOn(
+    requestOptions: err.requestOptions,
+    response: err.response,
+    err: err,
+    curlOptions: curlOptions,
+    stopwatch: stopwatch,
+    printer: curlOptions.printOnError,
+  );
 }
 
 void _handleOn({
@@ -284,8 +285,9 @@ void _handleOn({
   final String responseTimeStr = '${duration ?? kNA}ms';
 
   final String clockEmoji = curlOptions.emojiEnabled ? Emojis.clock : '';
-  final String statusEmoji =
-      !curlOptions.emojiEnabled ? '' : UiHelper.getStatusEmoji(statusCode);
+  final String statusEmoji = !curlOptions.emojiEnabled
+      ? ''
+      : UiHelper.getStatusEmoji(statusCode);
   final String statusName = HttpHelper.getStatusName(statusCode);
   final String summary =
       ' $statusEmoji$errType $methodColored [$statusCode $statusName] [$clockEmoji $responseTimeStr] $uri';
@@ -316,9 +318,11 @@ void _handleOn({
   ap(summary, startLine: true, startTitle: 'Summary');
 
   if (curl != null && curlOptions.behavior == CurlBehavior.simultaneous) {
-    ap(curl,
-        midLineTop: true,
-        midTitleTop: '${curlOptions.emojiEnabled ? Emojis.link : ''} Curl');
+    ap(
+      curl,
+      midLineTop: true,
+      midTitleTop: '${curlOptions.emojiEnabled ? Emojis.link : ''} Curl',
+    );
   }
 
   if (curlOptions.requestHeadersOf(isError) && requestHeaders.isNotEmpty) {

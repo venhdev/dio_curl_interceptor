@@ -18,8 +18,9 @@ void main() async {
   );
 
   try {
-    final response =
-        await dio.get('https://jsonplaceholder.typicode.com/posts/1');
+    final response = await dio.get(
+      'https://jsonplaceholder.typicode.com/posts/1',
+    );
     debugPrint('Response: ${response.data}');
   } catch (e) {
     debugPrint('Error: $e');

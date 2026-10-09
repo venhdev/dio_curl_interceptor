@@ -8,7 +8,7 @@ void main() {
   tearDown(resetViewerTestEntries);
 
   testWidgets('showCurlViewer opens the full-screen log page', (tester) async {
-    useViewerTestEntries();
+    await useViewerTestEntries();
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -27,6 +27,7 @@ void main() {
     await tester.tap(find.text('Open logs'));
     await tester.pumpAndSettle();
     expect(find.text('cURL logs'), findsOneWidget);
+    expect(find.text('No cURL logs found'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Close viewer'));
     await tester.pumpAndSettle();

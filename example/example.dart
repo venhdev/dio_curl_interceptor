@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CachedCurlService.init();
+
   final dio = Dio();
 
   // Example 1: Minimal — relays through the NullSink (no extra output).
@@ -46,9 +49,7 @@ void main() async {
           HiveSink(),
           PrinterSink(printer: print),
         ],
-        relayOptions: const RelayOptions(
-          circuitBreaker: true,
-        ),
+        relayOptions: const RelayOptions(circuitBreaker: true),
       ),
     ),
   );

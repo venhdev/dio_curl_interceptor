@@ -8,7 +8,7 @@ void main() {
   tearDown(resetViewerTestEntries);
 
   testWidgets('root bubble opens and closes the log viewer', (tester) async {
-    useViewerTestEntries();
+    await useViewerTestEntries();
     final navigatorKey = GlobalKey<NavigatorState>();
     await tester.pumpWidget(
       MaterialApp(

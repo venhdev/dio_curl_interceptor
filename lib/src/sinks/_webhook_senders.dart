@@ -24,7 +24,7 @@ class WebhookDeliveryException implements Exception {
 /// Common base for one-endpoint webhook senders.
 abstract class WebhookSenderBase {
   WebhookSenderBase({required this.webhookUrl, Dio? dio})
-      : _innerDio = dio ?? Dio();
+    : _innerDio = dio ?? Dio();
 
   final String webhookUrl;
   final Dio _innerDio;
@@ -278,8 +278,9 @@ class TelegramWebhookSender {
       final max = maxMessageLength - indicator.length;
       // Naive close: drop everything after `max`, then drop any unclosed <pre>.
       final cut = message.substring(0, max);
-      final cleaned =
-          cut.contains('<pre>') && !cut.contains('</pre>') ? '$cut</pre>' : cut;
+      final cleaned = cut.contains('<pre>') && !cut.contains('</pre>')
+          ? '$cut</pre>'
+          : cut;
       return cleaned + indicator;
     } catch (_) {
       if (message.length <= maxMessageLength) return message;

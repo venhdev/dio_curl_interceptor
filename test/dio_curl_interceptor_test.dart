@@ -37,7 +37,7 @@ class _AlwaysOkAdapter implements HttpClientAdapter {
       'ok',
       200,
       headers: const {
-        Headers.contentTypeHeader: ['text/plain']
+        Headers.contentTypeHeader: ['text/plain'],
       },
     );
   }
@@ -56,7 +56,7 @@ class _AlwaysFailAdapter implements HttpClientAdapter {
       'nope',
       404,
       headers: const {
-        Headers.contentTypeHeader: ['text/plain']
+        Headers.contentTypeHeader: ['text/plain'],
       },
     );
   }
@@ -66,17 +66,19 @@ void main() {
   test('relay direct dispatch delivers to CurlSink', () async {
     final spy = _SpySink();
     final relay = CurlRelay(sinks: [spy]);
-    relay.dispatch(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: null,
-        duration: Duration.zero,
+    relay.dispatch(
+      ResponseCurlEvent(
+        id: '1',
+        timestamp: DateTime.utc(2026, 7, 7),
+        request: RequestInfo.fromTest(),
+        response: const ResponseInfo(
+          statusCode: 200,
+          headers: {},
+          body: null,
+          duration: Duration.zero,
+        ),
       ),
-    ));
+    );
     await Future<void>.delayed(const Duration(milliseconds: 200));
     expect(spy.events, hasLength(1));
   });

@@ -1,5 +1,5 @@
 name: dio_curl_interceptor
-description: A Dio interceptor that converts HTTP requests to cURL commands, with pluggable sinks, UI viewer, caching, path filtering, and webhook integration.
+description: A Dio interceptor that converts HTTP requests to cURL commands, with pluggable sinks, an in-app viewer, local caching, and webhook integration.
 version: 4.1.0-beta.1
 homepage: https://github.com/venhdev/dio_curl_interceptor
 repository: https://github.com/venhdev/dio_curl_interceptor
@@ -12,8 +12,8 @@ topics:
   - monitor
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.0.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 dependencies:
   flutter:

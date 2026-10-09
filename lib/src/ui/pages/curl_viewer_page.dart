@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../core/types.dart';
 import '../../data/models/cached_curl_entry.dart';
+import '../../services/cached_curl_service.dart';
 import '../controllers/curl_viewer_controller.dart';
 import '../curl_detail_viewer.dart';
 import '../widgets/curl_entry_item.dart';
@@ -67,63 +68,101 @@ class CurlViewerPage extends StatelessWidget {
               onDateRange: () => _chooseDateRange(context),
             ),
           ),
-          ValueListenableBuilder<Map<ResponseStatus, int>>(
-            valueListenable: controller.statusCounts,
-            builder: (context, counts, _) => ValueListenableBuilder<String?>(
-              valueListenable: controller.selectedStatusChip,
-              builder: (context, selected, _) => StatusSummary(
-                statusCounts: counts,
-                selectedStatusChip: selected,
-                onStatusChipTapped: _toggleStatus,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ValueListenableBuilder<List<CachedCurlEntry>>(
-              valueListenable: controller.entries,
-              builder: (context, entries, _) {
-                return ValueListenableBuilder<bool>(
-                  valueListenable: controller.isLoading,
-                  builder: (context, loading, _) {
-                    if (loading && entries.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (entries.isEmpty) {
-                      return const Center(child: Text('No cURL logs found'));
-                    }
-                    return ListView.builder(
-                      controller: controller.scrollController,
-                      itemCount: entries.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == entries.length) {
-                          return ValueListenableBuilder<bool>(
-                            valueListenable: controller.isLoadingMore,
-                            builder: (context, loadingMore, _) => loadingMore
-                                ? const Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  )
-                                : const SizedBox(height: 12),
-                          );
-                        }
-                        final entry = entries[index];
-                        return CurlEntryItem(
-                          entry: entry,
-                          onOpen: () => CurlDetailViewer.show(context, entry),
-                          onCopy: () => _copy(context, entry.curlCommand),
-                          onShare: () => _share(entry.curlCommand),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+          _buildStatusSummary(),
+          _buildEntryList(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatusSummary() {
+    return ValueListenableBuilder<Map<ResponseStatus, int>>(
+      valueListenable: controller.statusCounts,
+      builder: (context, counts, _) => ValueListenableBuilder<String?>(
+        valueListenable: controller.selectedStatusChip,
+        builder: (context, selected, _) => StatusSummary(
+          statusCounts: counts,
+          selectedStatusChip: selected,
+          onStatusChipTapped: _toggleStatus,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEntryList(BuildContext context) {
+    return Expanded(
+      child: ValueListenableBuilder<List<CachedCurlEntry>>(
+        valueListenable: controller.entries,
+        builder: (context, entries, _) => ValueListenableBuilder<CacheStatus>(
+          valueListenable: controller.cacheStatus,
+          builder: (context, status, _) => ValueListenableBuilder<bool>(
+            valueListenable: controller.isLoading,
+            builder: (context, loading, _) => _buildEntries(
+              context,
+              entries,
+              cacheStatus: status,
+              isLoading: loading,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEntries(
+    BuildContext context,
+    List<CachedCurlEntry> entries, {
+    required CacheStatus cacheStatus,
+    required bool isLoading,
+  }) {
+    if (cacheStatus == CacheStatus.initializing) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (cacheStatus == CacheStatus.uninitialized) {
+      return const Center(
+        child: Text('Cache is not initialized. Call CachedCurlService.init().'),
+      );
+    }
+    if (cacheStatus == CacheStatus.unavailable) {
+      return const Center(
+        child: Text(
+          'Cache unavailable. Check cache initialization and key configuration.',
+        ),
+      );
+    }
+    if (isLoading && entries.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (entries.isEmpty) {
+      return const Center(child: Text('No cURL logs found'));
+    }
+
+    return ListView.builder(
+      controller: controller.scrollController,
+      itemCount: entries.length + 1,
+      itemBuilder: (context, index) {
+        if (index == entries.length) return _buildPaginationFooter();
+
+        final entry = entries[index];
+        return CurlEntryItem(
+          entry: entry,
+          onOpen: () => CurlDetailViewer.show(context, entry),
+          onCopy: () => _copy(context, entry.curlCommand),
+          onShare: () => _share(entry.curlCommand),
+        );
+      },
+    );
+  }
+
+  Widget _buildPaginationFooter() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: controller.isLoadingMore,
+      builder: (context, isLoadingMore, _) => isLoadingMore
+          ? const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : const SizedBox(height: 12),
     );
   }
 

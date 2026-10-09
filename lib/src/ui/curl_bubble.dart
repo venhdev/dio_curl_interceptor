@@ -76,14 +76,8 @@ class _CurlBubbleState extends State<CurlBubble> {
                   onPanUpdate: (details) {
                     setState(() {
                       _position = Offset(
-                        (_position.dx - details.delta.dx).clamp(
-                          0,
-                          maxLeft,
-                        ),
-                        (_position.dy - details.delta.dy).clamp(
-                          0,
-                          maxTop,
-                        ),
+                        (_position.dx - details.delta.dx).clamp(0, maxLeft),
+                        (_position.dy - details.delta.dy).clamp(0, maxTop),
                       );
                     });
                   },

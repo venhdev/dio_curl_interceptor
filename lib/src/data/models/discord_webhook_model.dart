@@ -114,7 +114,9 @@ class DiscordEmbed {
     for (var i = 0; i < curl.length; i += chunkSize) {
       curlChunks.add(
         curl.substring(
-            i, i + chunkSize < curl.length ? i + chunkSize : curl.length),
+          i,
+          i + chunkSize < curl.length ? i + chunkSize : curl.length,
+        ),
       );
     }
 
@@ -140,11 +142,13 @@ class DiscordEmbed {
     }
 
     if (extraInfo != null) {
-      fields.add(DiscordEmbedField(
-        name: 'Extra Info',
-        value: formatEmbedValue(extraInfo, lang: 'json'),
-        inline: false,
-      ));
+      fields.add(
+        DiscordEmbedField(
+          name: 'Extra Info',
+          value: formatEmbedValue(extraInfo, lang: 'json'),
+          inline: false,
+        ),
+      );
     }
 
     return DiscordEmbed(
@@ -152,9 +156,7 @@ class DiscordEmbed {
       description: 'Status Code: $statusCode',
       color: color,
       fields: fields,
-      footer: DiscordEmbedFooter(
-        text: 'Response Time: ${responseTime ?? kNA}',
-      ),
+      footer: DiscordEmbedFooter(text: 'Response Time: ${responseTime ?? kNA}'),
       timestamp: DateTime.now().toUtc().toIso8601String(),
     );
   }
@@ -212,11 +214,7 @@ class DiscordEmbed {
 
 /// A class to represent a Discord embed author object.
 class DiscordEmbedAuthor {
-  const DiscordEmbedAuthor({
-    this.name,
-    this.url,
-    this.iconUrl,
-  });
+  const DiscordEmbedAuthor({this.name, this.url, this.iconUrl});
 
   /// Name of author.
   final String? name;
@@ -258,10 +256,7 @@ class DiscordEmbedField {
 
   /// Converts the field to a JSON map.
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {
-      'name': name,
-      'value': value,
-    };
+    final Map<String, dynamic> json = {'name': name, 'value': value};
 
     if (inline != null) json['inline'] = inline;
 
@@ -271,9 +266,7 @@ class DiscordEmbedField {
 
 /// A class to represent a Discord embed thumbnail object.
 class DiscordEmbedThumbnail {
-  const DiscordEmbedThumbnail({
-    required this.url,
-  });
+  const DiscordEmbedThumbnail({required this.url});
 
   /// URL of thumbnail.
   final String url;
@@ -286,9 +279,7 @@ class DiscordEmbedThumbnail {
 
 /// A class to represent a Discord embed image object.
 class DiscordEmbedImage {
-  const DiscordEmbedImage({
-    required this.url,
-  });
+  const DiscordEmbedImage({required this.url});
 
   /// Image URL.
   final String url;
@@ -301,10 +292,7 @@ class DiscordEmbedImage {
 
 /// A class to represent a Discord embed footer object.
 class DiscordEmbedFooter {
-  const DiscordEmbedFooter({
-    required this.text,
-    this.iconUrl,
-  });
+  const DiscordEmbedFooter({required this.text, this.iconUrl});
 
   /// Footer text, doesn't support Markdown.
   final String text;
@@ -329,12 +317,18 @@ String formatEmbedValue(dynamic rawValue, {int? len = 1000, String? lang}) {
     try {
       formatted = indentJson(rawValue, indent: '  ');
     } catch (_) {
-      formatted =
-          stringify(rawValue, maxLen: len, replacements: const {'```': ''});
+      formatted = stringify(
+        rawValue,
+        maxLen: len,
+        replacements: const {'```': ''},
+      );
     }
   } else {
-    formatted =
-        stringify(rawValue, maxLen: len, replacements: const {'```': ''});
+    formatted = stringify(
+      rawValue,
+      maxLen: len,
+      replacements: const {'```': ''},
+    );
   }
   return _wrapWithBackticks(formatted, lang);
 }

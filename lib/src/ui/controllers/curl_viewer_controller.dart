@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/types.dart';
@@ -34,16 +35,22 @@ class CurlViewerController {
   CurlViewerController() {
     searchController.addListener(_onSearchChanged);
     scrollController.addListener(_onScroll);
+    CachedCurlService.status.addListener(_onCacheStatusChanged);
   }
+
+  ValueListenable<CacheStatus> get cacheStatus => CachedCurlService.status;
 
   Future<void> initialize() async {
     if (_initialized || _disposed) return;
     _initialized = true;
-    await loadEntries(reset: true);
+    if (cacheStatus.value == CacheStatus.ready) {
+      await loadEntries(reset: true);
+    }
   }
 
   Future<void> loadEntries({bool reset = false}) async {
     if (_disposed || isLoading.value || isLoadingMore.value) return;
+    if (cacheStatus.value != CacheStatus.ready) return;
 
     if (reset) {
       isLoading.value = true;
@@ -136,6 +143,21 @@ class CurlViewerController {
     if (_initialized && !_disposed) loadEntries(reset: true);
   }
 
+  void _onCacheStatusChanged() {
+    if (!_initialized || _disposed) return;
+    if (cacheStatus.value == CacheStatus.ready) {
+      loadEntries(reset: true);
+      return;
+    }
+
+    entries.value = [];
+    totalCount.value = 0;
+    loadedCount.value = 0;
+    statusCounts.value = {};
+    isLoading.value = false;
+    isLoadingMore.value = false;
+  }
+
   void _updateStatusCounts() {
     statusCounts.value = CachedCurlService.countByStatusGroup(
       search: searchQuery.value,
@@ -148,6 +170,7 @@ class CurlViewerController {
     if (_disposed) return;
     _disposed = true;
     _searchTimer?.cancel();
+    CachedCurlService.status.removeListener(_onCacheStatusChanged);
 
     searchController.removeListener(_onSearchChanged);
     scrollController.removeListener(_onScroll);

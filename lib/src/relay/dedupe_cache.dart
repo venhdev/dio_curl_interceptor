@@ -14,10 +14,7 @@ class DedupeCache {
   final int maxEntries;
   final LinkedHashMap<String, DateTime> _entries = LinkedHashMap();
 
-  DedupeCache({
-    this.ttl = const Duration(minutes: 1),
-    this.maxEntries = 10000,
-  });
+  DedupeCache({this.ttl = const Duration(minutes: 1), this.maxEntries = 10000});
 
   bool shouldDispatch(String id) {
     _evictExpired();

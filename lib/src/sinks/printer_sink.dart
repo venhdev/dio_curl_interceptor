@@ -16,8 +16,10 @@ class PrinterSink implements CurlSink {
     final req = event.request;
     final buf = StringBuffer('${req.method} ${req.uri}');
     if (event is ResponseCurlEvent) {
-      buf.write(' → ${event.response.statusCode}'
-          ' (${event.response.duration.inMilliseconds}ms)');
+      buf.write(
+        ' → ${event.response.statusCode}'
+        ' (${event.response.duration.inMilliseconds}ms)',
+      );
     } else if (event is ErrorCurlEvent) {
       buf.write(' × ${event.error.type}');
     } else if (event is RequestCurlEvent) {

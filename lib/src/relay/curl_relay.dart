@@ -38,13 +38,11 @@ class CurlRelay {
   final Set<Future<void>> _inFlight = {};
   bool _disposed = false;
 
-  CurlRelay({
-    required this.sinks,
-    this.options = const RelayOptions(),
-  }) : _dedupe = DedupeCache(
-          ttl: options.dedupeTtl,
-          maxEntries: options.dedupeMaxEntries,
-        );
+  CurlRelay({required this.sinks, this.options = const RelayOptions()})
+    : _dedupe = DedupeCache(
+        ttl: options.dedupeTtl,
+        maxEntries: options.dedupeMaxEntries,
+      );
 
   /// Forward a [CurlEvent] to every [CurlSink] with concurrency control and
   /// circuit breaker.
@@ -76,9 +74,9 @@ class CurlRelay {
     List<String>? targetSinks,
   }) async {
     if (_disposed) return;
-    final targets = sinks
-        .whereType<MessageSink>()
-        .where((s) => targetSinks == null || targetSinks.contains(s.name));
+    final targets = sinks.whereType<MessageSink>().where(
+      (s) => targetSinks == null || targetSinks.contains(s.name),
+    );
     for (final sink in targets) {
       unawaited(_runForSend(sink, content, senderInfo));
     }
@@ -89,8 +87,9 @@ class CurlRelay {
     if (_disposed) return;
     _disposed = true;
     if (_inFlight.isNotEmpty) {
-      await Future.wait(_inFlight.toList())
-          .timeout(const Duration(seconds: 5), onTimeout: () => <void>[]);
+      await Future.wait(
+        _inFlight.toList(),
+      ).timeout(const Duration(seconds: 5), onTimeout: () => <void>[]);
     }
     for (final s in sinks.reversed) {
       try {
@@ -113,7 +112,10 @@ class CurlRelay {
   }
 
   Future<void> _runForSend(
-      MessageSink sink, String content, SenderInfo? info) async {
+    MessageSink sink,
+    String content,
+    SenderInfo? info,
+  ) async {
     final f = _fanOutMessage(sink, content, info);
     _inFlight.add(f);
     try {
@@ -134,10 +136,15 @@ class CurlRelay {
   }
 
   Future<void> _fanOutMessage(
-      MessageSink sink, String content, SenderInfo? info) async {
+    MessageSink sink,
+    String content,
+    SenderInfo? info,
+  ) async {
     try {
-      await _guarded(() => sink.sendMessage(content, senderInfo: info),
-          'msg:${sink.name}');
+      await _guarded(
+        () => sink.sendMessage(content, senderInfo: info),
+        'msg:${sink.name}',
+      );
     } catch (e, st) {
       logger.warning('Message sink ${sink.name} failed: $e', e, st);
     }

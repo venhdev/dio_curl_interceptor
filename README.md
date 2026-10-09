@@ -4,273 +4,122 @@
 [![pub points](https://img.shields.io/pub/points/dio_curl_interceptor?logo=dart)](https://pub.dev/packages/dio_curl_interceptor/score)
 [![popularity](https://img.shields.io/pub/popularity/dio_curl_interceptor?logo=dart)](https://pub.dev/packages/dio_curl_interceptor/score)
 
-A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal for debugging. Includes a modern UI to view, filter, and manage logs, plus webhook integration for team collaboration.
+A Flutter package that turns Dio HTTP traffic into cURL logs. Route events to console, local Hive CE storage, Discord, Telegram, or your own sinks. The package also includes a full-screen log viewer, a root-level bubble, and a JSON detail inspector.
 
 ## Features
 
-- 🔍 **Core** – Convert Dio HTTP requests to executable cURL commands; detailed FormData file info
-- 🖥️ **Viewer** – In-app log viewer with search, status/date filtering, copy, clear, share
-- 🌳 **JSON Detail Inspector** – Virtualized 60 FPS tree viewer (`JsonTreeViewer`) with node folding, search match navigation, JSONPath copying, and 4-tab modal (`CurlDetailViewer`)
-- 💾 **Storage** – Local Hive cache with filtering & search (powered by `hive_ce`)
-- 🔔 **Webhooks** – Discord & Telegram sinks; automatic sensitive header redaction
-- 🎯 **Filtering** – Status filtering (forward only client/server errors or custom buckets)
-- 🔁 **Reliability** – Per-sink circuit breaker and dedupe cache
-- 🔌 **Extensibility** – Pluggable sink interfaces; send manual non-HTTP logs (app start, button taps, errors) to any sink
-- 📝 **Utilities** – Standalone helpers for custom interceptors or ad-hoc logging
+- Convert Dio requests into executable cURL commands and structured request, response, and error events.
+- Send events through pluggable sinks, with optional status filtering, deduplication, and per-sink circuit breakers.
+- Send manual messages to message-capable sinks with `interceptor.sendMessage`.
+- Store completed events locally with Hive CE. Cache encryption is opt-in.
+- Open a full-screen viewer with search, status/date filters, copy, share, and clear actions.
+- Inspect a cached record in a detail sheet with Overview, Headers, Response Body, and cURL tabs. JSON bodies can use the virtualized `JsonTreeViewer`.
+- Keep a draggable log button mounted across routes with `CurlBubble`.
+- Send redacted cURL events to Discord or Telegram.
 
-See [Screenshots](#screenshots) for simultaneous vs. chronological logging examples.
+## Requirements
 
-## Migration Guide
+- Dart SDK `>=3.12.0 <4.0.0`
+- Flutter `>=3.44.0`
 
-Upgrading from 3.x? See [doc/breaking-changes/v4.0.0.md](doc/breaking-changes/v4.0.0.md) for the breaking-change mapping and code examples.
+## Add the interceptor
 
-## Usage
-
-### Option 1: Using `DioCurlInterceptor` (4.0+)
-
-Add the interceptor to your Dio instance; one config object drives everything:
+Create a `DioCurlInterceptor` with a `CurlConfig` and the sinks you want to use:
 
 ```dart
 final interceptor = DioCurlInterceptor(
   config: CurlConfig(
-    behavior: CurlBehavior.chronological,
+    sinks: [PrinterSink(printer: (text) => debugPrint(text))],
     onRequest: const RequestDetails(visible: true),
     onResponse: const ResponseDetails(
       visible: true,
-      requestBody: true,
       responseBody: true,
-      limitResponseBody: 4096,
     ),
     onError: const ErrorDetails(visible: true),
-    sinks: [PrinterSink(printer: print)],
   ),
 );
-final dio = Dio()..interceptors.add(interceptor);
 
-// Send a manual message at any time (no HTTP request required):
-await interceptor.sendMessage('App started');
+final dio = Dio()..interceptors.add(interceptor);
 ```
 
-You can customize the relay behaviour with `RelayOptions` inside `CurlConfig` and fan out to multiple sinks:
+For multiple destinations, add one sink per destination:
 
 ```dart
-DioCurlInterceptor(
+final interceptor = DioCurlInterceptor(
   config: CurlConfig(
     sinks: [
+      PrinterSink(printer: debugPrint),
       DiscordSink(
-        name: 'discord-alerts',
-        webhookUrl: 'https://your-webhook',
+        name: 'team-discord',
+        webhookUrl: 'https://discord.com/api/webhooks/…',
       ),
       TelegramSink(
-        name: 'telegram-alerts',
+        name: 'team-telegram',
         botToken: 'YOUR_BOT_TOKEN',
         chatId: '-1003019608685',
       ),
       HiveSink(),
-      PrinterSink(printer: print),
-    ],
-    relayOptions: const RelayOptions(
-      circuitBreaker: true,
-      dedupeTtl: Duration(minutes: 1),
-    ),
-    onRequest: const RequestDetails(
-      visible: true,
-      ansi: Ansi.yellow, // ANSI color for request
-    ),
-    onResponse: const ResponseDetails(
-      visible: true,
-      requestHeaders: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeaders: true,
-      limitResponseBody: null,
-      ansi: Ansi.green, // ANSI color for response
-    ),
-    onError: const ErrorDetails(
-      visible: true,
-      requestHeaders: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeaders: true,
-      limitResponseBody: null,
-      ansi: Ansi.red, // ANSI color for errors
-    ),
-    // Configure pretty printing options
-    prettyConfig: PrettyConfig(
-      blockEnabled: true, // Enable pretty printing
-      colorEnabled: true, // Force enable/disable colored
-      emojiEnabled: true, // Enable/disable emoji
-      lineLength: 100, // Set the length of separator lines
-    ),
-    // Custom printer function to override default logging behavior
-    printer: (String text) {
-      // do whatever you want with the text
-      // ...
-      // Your custom logging implementation
-      print('Custom log: $text'); // remember to print the text
-    },
-  ),
-);
-```
-
-### Option 2: Using `CurlUtils` directly in your own interceptor
-
-If you prefer to use the utility methods in your own custom interceptor, you can use `CurlUtils` directly (sinks belong in `CurlConfig.sinks`; `CurlUtils` only handles log generation and caching):
-
-```dart
-class YourInterceptor extends Interceptor {
-  final StopwatchClock stopwatch = StopwatchClock();
-
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // your request handling logic (adding headers, modifying options, etc.)
-    // for measuring request time, X-Client-Time is added and consumed on response.
-    CurlUtils.addXClientTime(options);
-    CurlUtils.logCurl(options);
-    handler.next(options);
-  }
-
-  @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // your response handling logic
-    CurlUtils.handleOnResponse(response);
-    handler.next(response);
-  }
-
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    // your error handling logic
-    CurlUtils.handleOnError(err);
-    handler.next(err);
-  }
-}
-```
-
-> Note: `CurlUtils.handleOnRequest/handleOnResponse/handleOnError` no longer accept `webhookInspectors`. Configure webhooks via `CurlConfig(sinks: [DiscordSink(...), TelegramSink(...)])` instead.
-
-### Option 3: Using webhook integration
-
-You can use webhook integration to send cURL logs to Discord channels or Telegram chats for remote logging and team collaboration:
-
-#### Setting up Telegram Webhooks
-
-For Telegram integration, you need to:
-
-1. **Create a Telegram Bot:**
-   - Message [@BotFather](https://t.me/botfather) on Telegram
-   - Use `/newbot` command and follow the instructions
-   - Save your bot token
-
-2. **Get your Chat ID:**
-   - Start a conversation with your bot
-   - Send any message to the bot
-   - Visit `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
-   - Find your chat ID in the response (it's a number, can be negative for groups)
-
-3. **Configure the `TelegramSink`:**
-   - Use `name`, `botToken`, and `chatId` parameters directly
-   - Example: `TelegramSink(name: 'alerts', botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: '123456789')`
-
-```dart
-final interceptor = DioCurlInterceptor(
-  config: CurlConfig(
-    sinks: [
-      DiscordSink(
-        name: 'discord-alerts',
-        webhookUrl: 'https://discord.com/api/webhooks/your-webhook-url',
-      ),
-      TelegramSink(
-        name: 'telegram-alerts',
-        botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
-        chatId: '-1003019608685', // get from getUpdates API
-      ),
     ],
   ),
 );
-dio.interceptors.add(interceptor);
-
-// Manual, non-HTTP messages reach every MessageSink (Discord + Telegram).
-await interceptor.sendMessage('Hello from the app!');
-await interceptor.sendMessage(
-  'Only Discord will receive this',
-  targetSinks: ['Discord:https://discord.com/api/webhooks/your-webhook-url'],
-);
 ```
 
-### Option 6: Using utility functions directly
+Each webhook sink sends to one destination. Authorization, Cookie, and Set-Cookie headers are redacted by default. The package shares its webhook Dio when you do not inject one; an injected Dio stays owned by the caller.
 
-If you don't want to add a full interceptor, you can use the utility functions directly in your code:
+Use `StatusFilterSink` to select which response status groups reach a sink:
 
 ```dart
-// Generate a curl command from request options
-final dio = Dio();
-final response = await dio.get('https://example.com');
+StatusFilterSink(
+  DiscordSink(
+    name: 'server-errors',
+    webhookUrl: 'https://discord.com/api/webhooks/…',
+  ),
+  allowedStatuses: const {ResponseStatus.serverError},
+)
+```
 
-// Generate and log a curl command
-CurlUtils.logCurl(response.requestOptions);
+There is no retry policy. The relay dispatches asynchronously and uses a per-sink circuit breaker and deduplication cache.
 
-// Log response details
-CurlUtils.handleOnResponse(response);
+## Local cache and viewer
 
-// Cache a successful response
-CurlUtils.cacheResponse(response);
+Initialize the cache before the app uses `HiveSink` or the log viewer:
 
-// Log error details
-try {
-  await dio.get('https://invalid-url.com');
-} on DioException catch (e) {
-  CurlUtils.handleOnError(e);
-
-  // Cache an error response
-  CurlUtils.cacheError(e);
+```dart
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CachedCurlService.init();
+  runApp(const MyApp());
 }
+```
 
-## Dio Cache Storage
-
-### Public Flutter Widget: cURL Log Viewer
-
-Show pre-built popup cURL log viewer widget with `showCurlViewer(context)`:
+Cache encryption is disabled by default and does not require secure-storage setup. To enable it, pass a stable 32-byte key and store that key in a secure place managed by your app:
 
 ```dart
-ElevatedButton(
+await CachedCurlService.init(encryptionKey: encryptionKey);
+```
+
+The package does not create or persist the key. Restoring the same key is required to open that encrypted cache.
+
+`CachedCurlService.status` reports whether the cache is uninitialized, initializing, ready, or unavailable. The viewer reports an empty log list only after the cache is ready; if initialization fails, check the cache setup and the key supplied by your app.
+
+Open the full-screen log viewer from any button:
+
+```dart
+FilledButton(
   onPressed: () => showCurlViewer(context),
-  child: const Text('View cURL Logs'),
-);
+  child: const Text('View cURL logs'),
+)
 ```
 
-The full-screen log viewer supports:
+Tap a record to open `CurlDetailViewer`. Applications can also present it directly with `CurlDetailViewer.show(context, entry)`. `JsonTreeViewer`, `JsonTreeController`, `JsonTreeTheme`, and `FlatJsonNode` are exported for custom JSON inspection UIs.
 
-- Search and filter by status code, date range, or text
-- Copy cURL command
-- Clear all logs
-- Enhanced sharing functionality with improved system integration
-- Better error handling and UI responsiveness
+The built-in `JsonTreeViewer` debounces search and processes tree updates in bounded batches so large payloads leave time for UI frames. Custom UIs can use the controller's asynchronous search and expansion methods. `ListView.builder` creates row widgets on demand, while the controller still keeps memory proportional to the visible tree projection.
 
-### JSON Detail Inspector & Virtualized Tree (`CurlDetailViewer`)
+## App-root bubble
 
-Tap any entry item in `CurlViewer` to open the full inspection modal, or launch it programmatically:
+Place `CurlBubble` in `MaterialApp.builder` and pass the same navigator key to both widgets:
 
 ```dart
-// Launch the dedicated detail modal directly:
-CurlDetailViewer.show(context, entry);
-```
-
-The inspector includes:
-- **4 Segmented Tabs**: Overview metrics (status code, method, timing, payload size), Headers with live search filtering, Response Body, and executable cURL command.
-- **Virtualized JSON Tree (`JsonTreeViewer`)**: Smooth 60/120 FPS scrolling on large payloads via $O(1)$ memory 1D flattened node projection.
-- **Interactive Node Folding**: Expand All, Collapse All, and animated per-node collapse/expand chevrons.
-- **In-Tree Search**: Live substring search highlighting matching keys and values with match counter and jump-to navigation.
-- **Deep Clipboard Context**: Long-press any JSON node to copy its Value, Key, Subtree JSON, or JSONPath pointer (e.g. `$.data.users[0].id`).
-- **Multiple Body Modes**: Switch between **Tree**, **Pretty** formatted text, and **Raw** network payload.
-
-### Floating Bubble
-
-Mount `CurlBubble` in `MaterialApp.builder` so it stays available across route changes. The navigator key must be shared with `MaterialApp.navigatorKey`:
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-
 final navigatorKey = GlobalKey<NavigatorState>();
 
 MaterialApp(
@@ -281,55 +130,39 @@ MaterialApp(
     enableDebugMode: true,
   ),
   home: const HomePage(),
+)
+```
+
+The bubble opens the viewer as a temporary route while keeping the app page mounted underneath.
+
+## Manual messages and lifecycle
+
+`sendMessage` sends text to all message-capable sinks, or a selected subset by sink name:
+
+```dart
+await interceptor.sendMessage('App started');
+await interceptor.sendMessage(
+  'A diagnostic message',
+  targetSinks: const ['team-discord'],
 );
 ```
 
-Tap the floating terminal button to open the full-screen log viewer. Selecting a log opens the detail modal with Overview, Headers, Response Body, and cURL tabs.
-
-### Cache Storage Initialization
-
-Before using caching or the log viewer, initialize storage in your `main()`:
+Dispose the interceptor when its owning application lifecycle ends:
 
 ```dart
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await CachedCurlService.init();
-  runApp(const MyApp());
-}
+await interceptor.dispose();
 ```
 
-> **Note**: In v3.3.3, `CachedCurlStorage` was renamed to `CachedCurlService`.
+## Migration
 
-## Screenshots
+- For the 3.x to 4.0 API rewrite, see [the 4.0 migration guide](doc/breaking-changes/v4.0.0.md).
+- For the integrated 4.1.0 API and behavior changes, see [the 4.1.0 migration guide](doc/breaking-changes/v4.1.0.md).
+- See [the changelog](CHANGELOG.md) for release history.
 
-### Simultaneous (log the curl and response (error) together)
+## Examples
 
-<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-simultaneous.png" width="300" alt="Simultaneous Screenshot">
-
-### Chronological (log the curl immediately after the request is made)
-
-<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/image-chronological.png" width="300" alt="Chronological Screenshot">
-
-### Cached Viewer
-
-<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-cached-viewer.jpg" width="300" alt="Cached Viewer Screenshot">
-
-### Inspect Bug Discord
-
-<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-inspect-bug-discord.png" width="300" alt="Inspect Bug Discord Screenshot">
-
-### Inspect cURL Discord
-
-<img src="https://raw.githubusercontent.com/venhdev/dio_curl_interceptor/refs/heads/main/screenshots/img-inspect-curl-discord.png" width="300" alt="Inspect cURL Discord Screenshot">
+Runnable package examples and setup notes are in [`example/`](example/USAGE.md).
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-- **Repository**: [GitHub](https://github.com/venhdev/dio_curl_interceptor)
-- **Bug Reports**: Please file issues on the [GitHub repository](https://github.com/venhdev/dio_curl_interceptor/issues)
-- **Feature Requests**: Feel free to suggest new features through GitHub issues
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/venhdev)
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+MIT. See [LICENSE](LICENSE).

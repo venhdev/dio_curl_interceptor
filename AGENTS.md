@@ -10,7 +10,7 @@ This repository contains the `dio_curl_interceptor` library, which is a producti
 
 ## Technical Environment & Command Conventions
 
-This package uses the Flutter SDK `>=3.44.0` and Dart SDK `>=3.12.0 <4.0.0`. Follow these commands for tasks:
+The repository development and CI toolchain is pinned to Flutter `3.47.0` via FVM and GitHub Actions. The package supports Flutter `>=3.44.0` and Dart SDK `>=3.12.0 <4.0.0`. Follow these commands for tasks:
 - **Dependencies**: Run `flutter pub get` to download required packages.
 - **Code Generation**: Run `dart run build_runner build` for code generation.
 - **Tests**: Use `flutter test` to run all unit and integration tests.

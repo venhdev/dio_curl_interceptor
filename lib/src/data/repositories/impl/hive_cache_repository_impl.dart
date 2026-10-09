@@ -17,10 +17,11 @@ class HiveCacheRepositoryImpl implements CacheRepository {
   HiveCacheRepositoryImpl({
     Uint8List? encryptionKey,
     Future<Directory> Function()? documentsDirectoryProvider,
-  })  : _encryptionKey =
-            encryptionKey == null ? null : Uint8List.fromList(encryptionKey),
-        _documentsDirectoryProvider =
-            documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
+  }) : _encryptionKey = encryptionKey == null
+           ? null
+           : Uint8List.fromList(encryptionKey),
+       _documentsDirectoryProvider =
+           documentsDirectoryProvider ?? getApplicationDocumentsDirectory;
 
   final Uint8List? _encryptionKey;
   final Future<Directory> Function() _documentsDirectoryProvider;
@@ -37,7 +38,7 @@ class HiveCacheRepositoryImpl implements CacheRepository {
     return false;
   }
 
-  Future<bool> _openHiveBox(String boxName) async {
+  Future<CacheInitResult> _openHiveBox(String boxName) async {
     try {
       final encryptionKey = _encryptionKey;
       if (encryptionKey == null) {
@@ -49,23 +50,25 @@ class HiveCacheRepositoryImpl implements CacheRepository {
           crashRecovery: false,
         );
       }
-      return true;
+      return const CacheInitResult.success();
     } catch (e) {
       ColoredLogger.warning(
         'Failed to open Hive cache box; existing data was retained: $e',
       );
-      return false;
+      return const CacheInitResult.failure(CacheInitFailure.openFailed);
     }
   }
 
   @override
-  Future<void> init() async {
+  Future<CacheInitResult> init() async {
     try {
       final encryptionKey = _encryptionKey;
       if (encryptionKey != null && encryptionKey.length != 32) {
         ColoredLogger.warning('Hive encryption key must be exactly 32 bytes.');
         _availabilityWarningShown = true;
-        return;
+        return const CacheInitResult.failure(
+          CacheInitFailure.invalidEncryptionKey,
+        );
       }
 
       final boxName = encryptionKey == null
@@ -74,7 +77,7 @@ class HiveCacheRepositoryImpl implements CacheRepository {
       _boxName = boxName;
       if (Hive.isBoxOpen(boxName)) {
         _availabilityWarningShown = false;
-        return;
+        return const CacheInitResult.success();
       }
 
       final dir = await _documentsDirectoryProvider();
@@ -87,12 +90,17 @@ class HiveCacheRepositoryImpl implements CacheRepository {
         Hive.registerAdapter(CachedCurlEntryAdapter());
       }
 
-      if (await _openHiveBox(boxName)) {
+      final result = await _openHiveBox(boxName);
+      if (result.succeeded) {
         _availabilityWarningShown = false;
       }
+      return result;
     } catch (e) {
       ColoredLogger.warning('Failed to initialize Hive cache: $e');
       _availabilityWarningShown = true;
+      return const CacheInitResult.failure(
+        CacheInitFailure.initializationFailed,
+      );
     }
   }
 
@@ -224,21 +232,28 @@ class HiveCacheRepositoryImpl implements CacheRepository {
 
     if (search.isNotEmpty) {
       final lower = search.toLowerCase();
-      entries = entries.where((entry) =>
-          entry.curlCommand.toLowerCase().contains(lower) ||
-          (entry.responseBody ?? '').toLowerCase().contains(lower) ||
-          entry.statusCode.toString().contains(lower) ||
-          (entry.url ?? '').toLowerCase().contains(lower));
+      entries = entries.where(
+        (entry) =>
+            entry.curlCommand.toLowerCase().contains(lower) ||
+            (entry.responseBody ?? '').toLowerCase().contains(lower) ||
+            entry.statusCode.toString().contains(lower) ||
+            (entry.url ?? '').toLowerCase().contains(lower),
+      );
     }
 
     if (startDate != null) {
-      entries = entries.where((entry) => entry.timestamp
-          .isAfter(startDate.subtract(const Duration(seconds: 1))));
+      entries = entries.where(
+        (entry) => entry.timestamp.isAfter(
+          startDate.subtract(const Duration(seconds: 1)),
+        ),
+      );
     }
 
     if (endDate != null) {
-      entries = entries.where((entry) =>
-          entry.timestamp.isBefore(endDate.add(const Duration(days: 1))));
+      entries = entries.where(
+        (entry) =>
+            entry.timestamp.isBefore(endDate.add(const Duration(days: 1))),
+      );
     }
 
     if (statusGroup != null) {

@@ -7,13 +7,25 @@ version: 4.1.0-beta.1
 
 ## 4.1.0-beta.1
 
+### ⚠️ Breaking
+- Request path filtering, retry configuration, viewer filter-rule editing, and persisted viewer preferences are removed.
+- Discord and Telegram sinks now target one endpoint each; create a named sink per destination.
+- Cache encryption is opt-in with a caller-managed 32-byte key. Earlier `cachedCurlBox` data is not migrated automatically.
+- The full-screen viewer and app-root bubble are the supported viewer entry points; the detail inspector and virtualized JSON tree remain available.
+
+### 🔁 Delivery and UI contract
+- `DioCurlInterceptor` sends events through `CurlRelay` to pluggable sinks. `StatusFilterSink` handles status-code filtering at the sink layer.
+- `CurlBubble` opens the full-screen viewer as a temporary route, and selecting a record opens the retained detail inspector.
+- The package barrel exports `CurlDetailViewer` and the JSON tree APIs alongside the viewer and bubble.
+
 ### ✨ New
 - **Dedicated Peak JSON Detail Viewer (`CurlDetailViewer`)**: Full inspection modal with segmented tabs for Overview, Headers, Response Body, and cURL.
-- **High-Performance Virtualized JSON Tree Engine (`JsonTreeViewer`)**: $O(1)$ memory virtualized rendering via `ListView.builder` for seamless 60/120 FPS scrolling even on large payloads.
+- **Virtualized JSON Tree Engine (`JsonTreeViewer`)**: `ListView.builder` creates row widgets on demand. Large JSON strings are parsed in a background isolate, while tree projection, search, and expansion updates run in bounded batches to keep the UI responsive.
 - **Collapsible/Expandable Nodes**: Interactive fold/unfold with animated chevrons, Expand All, and Collapse All controls.
 - **Real-Time In-Body Search**: Live query filtering highlighting matched keys and values with match counter.
 - **Deep Clipboard Context**: One-tap copying of keys, values, subtrees, and JSONPath pointers (`data.items[0].id`).
 - **Theme-Adaptive Monospace Syntax Colors**: Color-coded tokens for keys, strings, numbers, booleans, and nulls with vertical indentation guide lines.
+- **Cache Availability State**: The viewer distinguishes an unavailable or uninitialized cache from a ready cache with no logs, so initialization failures are visible instead of appearing as an empty log list.
 
 ### ♻️ Internal
 - Migrated local cache engine from legacy `hive` to `hive_ce` (`hive_ce: ^2.20.2`, `hive_ce_flutter: ^2.4.0`, `hive_ce_generator: >=1.4.0 <2.0.0`).

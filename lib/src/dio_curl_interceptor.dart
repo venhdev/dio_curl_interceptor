@@ -27,9 +27,12 @@ class DioCurlInterceptor extends Interceptor {
     required this.config,
     CurlRelay? relay,
     Duration stopwatchTtl = const Duration(minutes: 5),
-  })  : relay = relay ??
-            CurlRelay(sinks: config.sinks.cast(), options: config.relayOptions),
-        _stopwatchTtl = stopwatchTtl {
+  }) : relay =
+           relay ??
+           CurlRelay(sinks: config.sinks.cast(), options: config.relayOptions),
+       // The public constructor keeps the idiomatic `stopwatchTtl` name.
+       // ignore: prefer_initializing_formals
+       _stopwatchTtl = stopwatchTtl {
     // Periodically evict orphaned stopwatches — requests cancelled mid-flight
     // never trigger onResponse/onError, so the entry sits in the map forever
     // unless we sweep. Default 5 min TTL matches the prior V2 implementation.
@@ -45,11 +48,13 @@ class DioCurlInterceptor extends Interceptor {
       final id = options.extra['curlEventId']?.toString() ?? _newId();
       options.extra['curlEventId'] = id;
       _stopwatches[id] = Stopwatch()..start();
-      relay.dispatch(RequestCurlEvent(
-        id: id,
-        timestamp: DateTime.now(),
-        request: RequestInfo.fromOptions(options),
-      ));
+      relay.dispatch(
+        RequestCurlEvent(
+          id: id,
+          timestamp: DateTime.now(),
+          request: RequestInfo.fromOptions(options),
+        ),
+      );
     });
     // Always call `handler.next` after the body so the user's request still
     // reaches the wire even if our bookkeeping threw (which InterceptSafe
@@ -68,17 +73,19 @@ class DioCurlInterceptor extends Interceptor {
       final id = response.requestOptions.extra['curlEventId']?.toString() ?? '';
       final sw = _stopwatches.remove(id);
       sw?.stop();
-      relay.dispatch(ResponseCurlEvent(
-        id: id,
-        timestamp: DateTime.now(),
-        request: RequestInfo.fromOptions(response.requestOptions),
-        response: ResponseInfo(
-          statusCode: response.statusCode ?? -1,
-          headers: _stringHeaders(response.headers.map),
-          body: response.data,
-          duration: sw?.elapsed ?? Duration.zero,
+      relay.dispatch(
+        ResponseCurlEvent(
+          id: id,
+          timestamp: DateTime.now(),
+          request: RequestInfo.fromOptions(response.requestOptions),
+          response: ResponseInfo(
+            statusCode: response.statusCode ?? -1,
+            headers: _stringHeaders(response.headers.map),
+            body: response.data,
+            duration: sw?.elapsed ?? Duration.zero,
+          ),
         ),
-      ));
+      );
     });
     handler.next(response);
   }
@@ -89,24 +96,26 @@ class DioCurlInterceptor extends Interceptor {
       final id = err.requestOptions.extra['curlEventId']?.toString() ?? '';
       final sw = _stopwatches.remove(id);
       sw?.stop();
-      relay.dispatch(ErrorCurlEvent(
-        id: id,
-        timestamp: DateTime.now(),
-        request: RequestInfo.fromOptions(err.requestOptions),
-        error: ErrorInfo(
-          type: err.type.name,
-          message: err.message ?? '',
-          statusCode: err.response?.statusCode,
+      relay.dispatch(
+        ErrorCurlEvent(
+          id: id,
+          timestamp: DateTime.now(),
+          request: RequestInfo.fromOptions(err.requestOptions),
+          error: ErrorInfo(
+            type: err.type.name,
+            message: err.message ?? '',
+            statusCode: err.response?.statusCode,
+          ),
+          response: err.response == null
+              ? null
+              : ResponseInfo(
+                  statusCode: err.response!.statusCode ?? -1,
+                  headers: _stringHeaders(err.response!.headers.map),
+                  body: err.response!.data,
+                  duration: sw?.elapsed ?? Duration.zero,
+                ),
         ),
-        response: err.response == null
-            ? null
-            : ResponseInfo(
-                statusCode: err.response!.statusCode ?? -1,
-                headers: _stringHeaders(err.response!.headers.map),
-                body: err.response!.data,
-                duration: sw?.elapsed ?? Duration.zero,
-              ),
-      ));
+      );
     });
     handler.next(err);
   }
@@ -119,8 +128,11 @@ class DioCurlInterceptor extends Interceptor {
     List<String>? targetSinks,
   }) async {
     InterceptSafe.run('sendMessage', () {
-      relay.sendMessage(content,
-          senderInfo: senderInfo, targetSinks: targetSinks);
+      relay.sendMessage(
+        content,
+        senderInfo: senderInfo,
+        targetSinks: targetSinks,
+      );
     });
   }
 

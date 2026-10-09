@@ -1,6 +1,8 @@
 /// Interactive virtualized JSON Tree Viewer widget with search, collapse/expand, and JSONPath extraction.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,6 +34,7 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
 
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _scrollController.dispose();
@@ -48,7 +52,12 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
   }
 
   void _onSearchChanged() {
-    widget.controller.search(_searchController.text);
+    _searchDebounce?.cancel();
+    widget.controller.cancelPendingSearch();
+    if (mounted) setState(() {});
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      unawaited(widget.controller.searchAsync(_searchController.text));
+    });
   }
 
   void _copyToClipboard(String text, String label) {
@@ -91,14 +100,19 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline,
-                      color: Colors.redAccent, size: 36),
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.redAccent,
+                    size: 36,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     widget.controller.parseError!,
                     textAlign: TextAlign.center,
-                    style:
-                        const TextStyle(color: Colors.redAccent, fontSize: 13),
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -122,14 +136,18 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
         return Column(
           children: [
             if (widget.showToolbar) _buildToolbar(theme),
+            if (widget.controller.isProcessing)
+              const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: Scrollbar(
                 controller: _scrollController,
                 thumbVisibility: true,
                 child: ListView.builder(
                   controller: _scrollController,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   itemCount: nodes.length,
                   itemBuilder: (context, index) {
                     final node = nodes[index];
@@ -178,12 +196,15 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
                           padding: EdgeInsets.zero,
                         )
                       : null,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 8,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        BorderSide(color: Theme.of(context).dividerColor),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                    ),
                   ),
                   filled: true,
                   fillColor: Theme.of(context).scaffoldBackgroundColor,
@@ -194,14 +215,23 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
           const SizedBox(width: 6),
           // Search match counter
           if (_searchController.text.isNotEmpty) ...[
-            Text(
-              totalMatches > 0 ? '$currentMatch/$totalMatches' : '0/0',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: totalMatches > 0 ? theme.searchActiveColor : Colors.grey,
+            if (widget.controller.isSearching)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Text(
+                totalMatches > 0 ? '$currentMatch/$totalMatches' : '0/0',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: totalMatches > 0
+                      ? theme.searchActiveColor
+                      : Colors.grey,
+                ),
               ),
-            ),
             IconButton(
               icon: const Icon(Icons.keyboard_arrow_up, size: 18),
               onPressed: totalMatches > 0
@@ -224,7 +254,7 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
           IconButton(
             tooltip: 'Expand All',
             icon: const Icon(Icons.unfold_more, size: 18),
-            onPressed: () => widget.controller.expandAll(),
+            onPressed: () => unawaited(widget.controller.expandAllAsync()),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
           ),
@@ -232,7 +262,7 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
           IconButton(
             tooltip: 'Collapse All',
             icon: const Icon(Icons.unfold_less, size: 18),
-            onPressed: () => widget.controller.collapseAll(),
+            onPressed: () => unawaited(widget.controller.collapseAllAsync()),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
           ),
@@ -243,8 +273,10 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
 
   void _jumpToMatch(int? index) {
     if (index != null && _scrollController.hasClients) {
-      final targetOffset = (index * _kEstimatedRowHeight)
-          .clamp(0.0, _scrollController.position.maxScrollExtent);
+      final targetOffset = (index * _kEstimatedRowHeight).clamp(
+        0.0,
+        _scrollController.position.maxScrollExtent,
+      );
       _scrollController.animateTo(
         targetOffset,
         duration: const Duration(milliseconds: 200),
@@ -259,8 +291,9 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
     final isCurrentMatch = widget.controller.isCurrentMatch(index);
 
     return InkWell(
-      onTap:
-          isContainer ? () => widget.controller.toggleNode(node.nodeId) : null,
+      onTap: isContainer
+          ? () => unawaited(widget.controller.toggleNodeAsync(node))
+          : null,
       onLongPress: () => _showNodeContextMenu(node),
       borderRadius: BorderRadius.circular(4),
       child: Container(
@@ -290,8 +323,10 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
               const SizedBox(
                 width: 18,
                 child: Center(
-                  child: Text('•',
-                      style: TextStyle(color: Colors.grey, fontSize: 11)),
+                  child: Text(
+                    '•',
+                    style: TextStyle(color: Colors.grey, fontSize: 11),
+                  ),
                 ),
               ),
 
@@ -321,24 +356,33 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
 
             // Context action button on hover/row
             PopupMenuButton<String>(
-              icon: Icon(Icons.more_horiz,
-                  size: 14,
-                  color: theme.punctuationColor.withValues(alpha: 0.6)),
+              icon: Icon(
+                Icons.more_horiz,
+                size: 14,
+                color: theme.punctuationColor.withValues(alpha: 0.6),
+              ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
               onSelected: (action) => _handleContextAction(action, node),
               itemBuilder: (context) => [
                 const PopupMenuItem(
-                    value: 'copy_path', child: Text('Copy JSONPath')),
+                  value: 'copy_path',
+                  child: Text('Copy JSONPath'),
+                ),
                 const PopupMenuItem(
-                    value: 'copy_val', child: Text('Copy Value')),
+                  value: 'copy_val',
+                  child: Text('Copy Value'),
+                ),
                 if (node.key != null)
                   const PopupMenuItem(
-                      value: 'copy_key', child: Text('Copy Key')),
+                    value: 'copy_key',
+                    child: Text('Copy Key'),
+                  ),
                 if (isContainer)
                   const PopupMenuItem(
-                      value: 'copy_subtree',
-                      child: Text('Copy Subtree (JSON)')),
+                    value: 'copy_subtree',
+                    child: Text('Copy Subtree (JSON)'),
+                  ),
               ],
             ),
           ],
@@ -416,8 +460,12 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
     bool isCurrentMatch = false,
   }) {
     if (query.isEmpty || !text.toLowerCase().contains(query)) {
-      return Text(text,
-          style: baseStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
+      return Text(
+        text,
+        style: baseStyle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
     }
 
     final spans = <TextSpan>[];
@@ -433,19 +481,22 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
 
       if (index > start) {
         spans.add(
-            TextSpan(text: text.substring(start, index), style: baseStyle));
+          TextSpan(text: text.substring(start, index), style: baseStyle),
+        );
       }
 
       final matchedText = text.substring(index, index + query.length);
-      spans.add(TextSpan(
-        text: matchedText,
-        style: baseStyle.copyWith(
-          backgroundColor: isCurrentMatch
-              ? theme.searchActiveColor
-              : theme.searchHighlightColor,
-          fontWeight: FontWeight.bold,
+      spans.add(
+        TextSpan(
+          text: matchedText,
+          style: baseStyle.copyWith(
+            backgroundColor: isCurrentMatch
+                ? theme.searchActiveColor
+                : theme.searchHighlightColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ));
+      );
 
       start = index + query.length;
     }
@@ -467,8 +518,10 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
             ListTile(
               leading: const Icon(Icons.route, size: 20),
               title: const Text('Copy JSONPath'),
-              subtitle:
-                  Text(node.jsonPath, style: const TextStyle(fontSize: 11)),
+              subtitle: Text(
+                node.jsonPath,
+                style: const TextStyle(fontSize: 11),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _copyToClipboard(node.jsonPath, 'JSONPath');
@@ -477,10 +530,12 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
             ListTile(
               leading: const Icon(Icons.content_copy, size: 20),
               title: const Text('Copy Value'),
-              subtitle: Text('${node.value}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11)),
+              subtitle: Text(
+                '${node.value}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _copyToClipboard('${node.value}', 'Value');
@@ -503,7 +558,9 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
                 onTap: () {
                   Navigator.pop(ctx);
                   _copyToClipboard(
-                      widget.controller.serializeSubtree(node), 'Subtree JSON');
+                    widget.controller.serializeSubtree(node),
+                    'Subtree JSON',
+                  );
                 },
               ),
           ],
@@ -525,7 +582,9 @@ class _JsonTreeViewerState extends State<JsonTreeViewer> {
         break;
       case 'copy_subtree':
         _copyToClipboard(
-            widget.controller.serializeSubtree(node), 'Subtree JSON');
+          widget.controller.serializeSubtree(node),
+          'Subtree JSON',
+        );
         break;
     }
   }
