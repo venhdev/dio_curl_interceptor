@@ -6,7 +6,7 @@ status: active
 
 # Agent Instructions: dio_curl_interceptor
 
-This repository contains the `dio_curl_interceptor` library, which is a production-ready package for Flutter and Dart. It intercepts Dio HTTP traffic, converts requests into executable cURL commands, and logs them. The library also features an in-app viewer, local logs caching via Hive, path filtering, and webhook logging integrations (such as Discord and Telegram).
+This repository contains the `dio_curl_interceptor` library, which is a production-ready package for Flutter and Dart. It intercepts Dio HTTP traffic, converts requests into executable cURL commands, and logs them. The library also features an in-app viewer, local logs caching via Hive, and webhook logging integrations (such as Discord and Telegram).
 
 ## Technical Environment & Command Conventions
 
@@ -39,7 +39,7 @@ The library is organized inside the `lib/src/` folder:
 - **Relay**: `CurlRelay` orchestrates fan-out to sinks with per-sink circuit breaker and LRU dedupe cache. Built on `CircuitBreaker` and `DedupeCache` in `relay/`.
 - **Sinks**: Pluggable terminal handlers — `DiscordSink`, `TelegramSink`, `HiveSink`, `PrinterSink`, `NullSink`, `StatusFilterSink` (decorator) — implementing `CurlSink` (and `MessageSink` for message-capable sinks).
 - **Events**: Immutable data layer — `CurlEvent` (sealed: `Request`/`Response`/`Error`) plus `RequestInfo`, `ResponseInfo`, `ErrorInfo`.
-- **Services**: Manages caching operations (`CachedCurlService`) and filters (`FilterManagementService`).
+- **Services**: Manages cache operations (`CachedCurlService`).
 - **UI Screens**: Built-in overlays (`BubbleOverlay`) and log viewers (`CurlViewer`) for developer debugging.
 
 ## Engineering Rules

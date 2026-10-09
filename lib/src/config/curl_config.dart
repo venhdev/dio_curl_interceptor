@@ -1,11 +1,10 @@
 import '../core/types.dart';
 import '../options/curl_options.dart';
-import '../options/filter_options.dart';
 import '../relay/curl_relay.dart';
 import '../sinks/curl_sink.dart';
 
 /// Single immutable configuration object for [DioCurlInterceptor]. All
-/// existing options classes (`CurlOptions`, `FilterOptions`, `RelayOptions`,
+/// existing options classes (`CurlOptions`, `RelayOptions`,
 /// the `RequestDetails`/`ResponseDetails`/`ErrorDetails`/`PrettyConfig` type
 /// hierarchy) are reused — no duplication.
 class CurlConfig {
@@ -14,7 +13,6 @@ class CurlConfig {
   final ResponseDetails onResponse;
   final ErrorDetails onError;
   final PrettyConfig prettyConfig;
-  final FilterOptions filterOptions;
   final RelayOptions relayOptions;
   final Printer printer;
   final List<CurlSink> sinks;
@@ -34,7 +32,6 @@ class CurlConfig {
       responseBody: true,
     ),
     this.prettyConfig = const PrettyConfig(blockEnabled: true),
-    this.filterOptions = const FilterOptions.disabled(),
     this.relayOptions = const RelayOptions(),
     this.printer = _defaultPrinter,
     this.sinks = const <CurlSink>[],

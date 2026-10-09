@@ -13,7 +13,7 @@ A Flutter package with a Dio interceptor that logs HTTP requests as cURL—ideal
 - 🌳 **JSON Detail Inspector** – Virtualized 60 FPS tree viewer (`JsonTreeViewer`) with node folding, search match navigation, JSONPath copying, and 4-tab modal (`CurlDetailViewer`)
 - 💾 **Storage** – Local Hive cache with filtering & search (powered by `hive_ce`)
 - 🔔 **Webhooks** – Discord & Telegram sinks; automatic sensitive header redaction
-- 🎯 **Filtering** – Status filtering (forward only client/server errors or custom buckets); Path filtering (block/mock endpoints via exact/regex/glob; live editor in viewer)
+- 🎯 **Filtering** – Status filtering (forward only client/server errors or custom buckets)
 - 🔁 **Reliability** – Per-sink circuit breaker and dedupe cache
 - 🔌 **Extensibility** – Pluggable sink interfaces; send manual non-HTTP logs (app start, button taps, errors) to any sink
 - 📝 **Utilities** – Standalone helpers for custom interceptors or ad-hoc logging
@@ -148,70 +148,7 @@ class YourInterceptor extends Interceptor {
 
 > Note: `CurlUtils.handleOnRequest/handleOnResponse/handleOnError` no longer accept `webhookInspectors`. Configure webhooks via `CurlConfig(sinks: [DiscordSink(...), TelegramSink(...)])` instead.
 
-### Option 3: Using path filtering
-
-You can use path filtering to stop specific API calls and return custom responses:
-
-```dart
-final dio = Dio();
-
-// Create filter options
-final filterOptions = FilterOptions(
-  rules: [
-    // Block access to a specific endpoint
-    FilterRule.exact('/api/sensitive-data'),
-
-    // Mock a response for a specific endpoint
-    FilterRule.exact(
-      '/api/users/profile',
-      responseData: {
-        'id': 'mock-user-123',
-        'name': 'Mock User',
-        'email': 'mock@example.com',
-      },
-    ),
-
-    // Use regex pattern to match multiple endpoints
-    FilterRule.regex(
-      r'/api/v1/.*',
-      responseData: {'message': 'API v1 is deprecated'},
-      statusCode: 410,
-    ),
-  ],
-  // Never filter these paths
-  exclusions: ['/api/health', '/api/version'],
-);
-
-// Add the interceptor with filtering
-dio.interceptors.add(DioCurlInterceptor(
-  config: CurlConfig(filterOptions: filterOptions),
-));
-```
-
-### Option 4: Real-time filter editing with CurlViewer
-
-You can now edit filter rules directly in the CurlViewer interface:
-
-```dart
-import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
-
-// Show CurlViewer with filter editing capabilities
-showDialog(
-  context: context,
-  builder: (context) => CurlViewer(
-    displayType: CurlViewerDisplayType.dialog,
-    enablePersistence: true, // Enable filter persistence
-  ),
-);
-
-// Users can now:
-// 1. Click the filters button (🔍) in the CurlViewer header
-// 2. Add, edit, and delete filter rules in real-time
-// 3. Test filter rules against sample requests
-// 4. See immediate effects on API blocking
-```
-
-### Option 5: Using webhook integration
+### Option 3: Using webhook integration
 
 You can use webhook integration to send cURL logs to Discord channels or Telegram chats for remote logging and team collaboration:
 

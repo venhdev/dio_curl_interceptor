@@ -5,7 +5,6 @@ export 'package:colored_logger/colored_logger.dart' show Ansi;
 export 'src/core/types.dart';
 export 'src/core/constants.dart';
 export 'src/core/utils/curl_utils.dart';
-export 'src/core/utils/filter_utils.dart';
 
 // Data models
 export 'src/data/models/cached_curl_entry.dart';
@@ -43,7 +42,6 @@ export 'src/util/log.dart';
 // Options and configuration
 export 'src/options/cache_options.dart';
 export 'src/options/curl_options.dart';
-export 'src/options/filter_options.dart';
 
 // UI components
 export 'src/ui/curl_viewer.dart';

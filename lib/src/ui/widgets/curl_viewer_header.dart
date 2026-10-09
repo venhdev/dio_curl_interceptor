@@ -9,7 +9,6 @@ class CurlViewerHeader extends StatelessWidget {
   final VoidCallback onReload;
   final VoidCallback? onClose;
   final bool showCloseButton;
-  final VoidCallback? onFiltersPressed;
   final VoidCallback? onClearAll;
 
   const CurlViewerHeader({
@@ -19,7 +18,6 @@ class CurlViewerHeader extends StatelessWidget {
     required this.onReload,
     this.onClose,
     this.showCloseButton = false,
-    this.onFiltersPressed,
     this.onClearAll,
   });
 
@@ -37,7 +35,7 @@ class CurlViewerHeader extends StatelessWidget {
                   _buildTerminalIcon(),
                   const SizedBox(width: 8),
                   _buildSearchBar(),
-                  if (onFiltersPressed != null || onClearAll != null) ...[
+                  if (onClearAll != null) ...[
                     const SizedBox(width: 8),
                     _buildDropdownButton(),
                   ],
@@ -231,7 +229,7 @@ class CurlViewerHeader extends StatelessWidget {
   Widget _buildDropdownButton() {
     return PopupMenuButton(
       padding: EdgeInsets.zero,
-      icon: Icon(Icons.filter_list,
+      icon: Icon(Icons.more_vert,
           color: Colors.white), // Giữ nguyên icon và màu sắc
       offset: Offset(0, 40),
       elevation: 8,
@@ -240,18 +238,6 @@ class CurlViewerHeader extends StatelessWidget {
       ),
       constraints: BoxConstraints(maxHeight: 150), // Chiều cao khi mở
       itemBuilder: (context) => [
-        if (onFiltersPressed != null)
-          PopupMenuItem(
-            onTap: onFiltersPressed,
-            child: Row(
-              children: [
-                _buildMenuItemIcon(Icons.filter_alt_outlined,
-                    color: Colors.orange),
-                SizedBox(width: 8),
-                Text('Filters'),
-              ],
-            ),
-          ),
         if (onClearAll != null)
           PopupMenuItem(
             onTap: onClearAll,
