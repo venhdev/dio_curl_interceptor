@@ -11,7 +11,7 @@ import '../data/repositories/impl/impl.dart';
 /// over the repository pattern. It maintains backward compatibility while
 /// providing a clean service layer interface.
 class CachedCurlService {
-  static final CacheRepository _defaultRepository = HiveCacheRepositoryImpl();
+  static CacheRepository _defaultRepository = HiveCacheRepositoryImpl();
   static CacheRepository? _customRepository;
 
   static CacheRepository get _repository =>
@@ -29,9 +29,20 @@ class CachedCurlService {
     _customRepository = null;
   }
 
-  /// Initialize the cache service
-  static Future<void> init() async {
-    await _repository.init();
+  /// Initialize the cache service without encryption by default.
+  ///
+  /// Pass a stable 32-byte [encryptionKey] to use an encrypted cache. The
+  /// caller is responsible for storing and restoring the key.
+  static Future<void> init({Uint8List? encryptionKey}) async {
+    final customRepository = _customRepository;
+    if (customRepository != null) {
+      await customRepository.init();
+      return;
+    }
+
+    final repository = HiveCacheRepositoryImpl(encryptionKey: encryptionKey);
+    _defaultRepository = repository;
+    await repository.init();
   }
 
   /// Save a cached cURL entry

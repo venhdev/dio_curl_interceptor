@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:crypto/crypto.dart';
 import 'package:dio_curl_interceptor/src/core/types.dart';
 import 'package:dio_curl_interceptor/src/data/models/cached_curl_entry.dart';
 import 'package:dio_curl_interceptor/src/data/repositories/impl/hive_cache_repository_impl.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 
@@ -14,34 +15,11 @@ void main() {
   late HiveCacheRepositoryImpl repository;
 
   setUp(() async {
-    FlutterSecureStorage.setMockInitialValues({});
     tempDir = await Directory.systemTemp.createTemp('hive_cache_repo_test_');
-
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getApplicationDocumentsDirectory') {
-          return tempDir.path;
-        }
-        return null;
-      },
-    );
-
-    repository = HiveCacheRepositoryImpl();
+    repository = _createRepository(tempDir);
   });
 
   tearDown(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      null,
-    );
-
-    if (Hive.isBoxOpen('cachedCurlBox')) {
-      final box = Hive.box<CachedCurlEntry>('cachedCurlBox');
-      await box.close();
-    }
     await Hive.close();
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
@@ -254,4 +232,91 @@ void main() {
     await repository.clear();
     expect(repository.loadAll(), isEmpty);
   });
+
+  test('encryption is opt-in and the plain hive_ce box works by default',
+      () async {
+    await repository.init();
+
+    final id = await repository.save(_entry('plain cache entry'));
+
+    expect(id, isNotNull);
+    expect(Hive.isBoxOpen('curlCache'), isTrue);
+    expect(repository.loadAll().single.curlCommand, 'plain cache entry');
+  });
+
+  test('encrypted hive_ce cache reopens with the same key', () async {
+    final key = Uint8List.fromList(List<int>.generate(32, (index) => index));
+    final boxName = 'curlCache_${sha256.convert(key)}';
+    final encryptedRepository = _createRepository(tempDir, encryptionKey: key);
+
+    await encryptedRepository.init();
+    expect(Hive.isBoxOpen(boxName), isTrue);
+    await encryptedRepository.save(_entry('encrypted cache entry'));
+    await Hive.close();
+
+    final reopenedRepository = _createRepository(tempDir, encryptionKey: key);
+    await reopenedRepository.init();
+
+    expect(reopenedRepository.loadAll().single.curlCommand,
+        'encrypted cache entry');
+  });
+
+  test('invalid encryption key leaves the cache unavailable without throwing',
+      () async {
+    final invalidRepository = _createRepository(
+      tempDir,
+      encryptionKey: Uint8List(31),
+    );
+
+    await expectLater(invalidRepository.init(), completes);
+    expect(await invalidRepository.save(_entry('not saved')), isNull);
+    expect(invalidRepository.loadAll(), isEmpty);
+    await expectLater(invalidRepository.clear(), completes);
+  });
+
+  test('wrong encryption key retains the existing box data', () async {
+    final storedKey = Uint8List.fromList(List<int>.generate(32, (i) => i));
+    final attemptedKey = Uint8List.fromList(
+      List<int>.generate(32, (i) => i + 1),
+    );
+    final boxName = 'curlCache_${sha256.convert(attemptedKey)}';
+
+    Hive.init(tempDir.path);
+    if (!Hive.isAdapterRegistered(CachedCurlEntryAdapter().typeId)) {
+      Hive.registerAdapter(CachedCurlEntryAdapter());
+    }
+    final box = await Hive.openBox<CachedCurlEntry>(
+      boxName,
+      encryptionCipher: HiveAesCipher(storedKey),
+      crashRecovery: false,
+    );
+    await box.add(_entry('keep this encrypted entry'));
+    final boxFile = File(box.path!);
+    await Hive.close();
+
+    final originalBytes = await boxFile.readAsBytes();
+    final wrongKeyRepository = _createRepository(
+      tempDir,
+      encryptionKey: attemptedKey,
+    );
+
+    await expectLater(wrongKeyRepository.init(), completes);
+    expect(await boxFile.readAsBytes(), originalBytes);
+    expect(wrongKeyRepository.loadAll(), isEmpty);
+    expect(await wrongKeyRepository.save(_entry('do not write')), isNull);
+  });
 }
+
+HiveCacheRepositoryImpl _createRepository(
+  Directory directory, {
+  Uint8List? encryptionKey,
+}) =>
+    HiveCacheRepositoryImpl(
+      encryptionKey: encryptionKey,
+      documentsDirectoryProvider: () async => directory,
+    );
+
+CachedCurlEntry _entry(String curlCommand) => CachedCurlEntry(
+      curlCommand: curlCommand,
+      timestamp: DateTime.utc(2026, 10, 9),
+    );

@@ -22,9 +22,8 @@ dependencies:
   colored_logger: ^2.1.1
   hive_ce: ^2.20.2
   hive_ce_flutter: ^2.4.0
+  crypto: ^3.0.7
   path_provider: ^2.1.6
-
-  flutter_secure_storage: ">=8.0.0 <12.0.0"
   share_plus: ^13.0.0
   shared_preferences: ^2.5.3
   type_caster: ^0.1.4
