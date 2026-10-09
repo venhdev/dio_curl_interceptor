@@ -13,13 +13,13 @@ void main() async {
     config: CurlConfig(
       sinks: [
         DiscordSink(
-          webhookUrls: const [
-            'https://discord.com/api/webhooks/YOUR_WEBHOOK_URL',
-          ],
+          name: 'discord-alerts',
+          webhookUrl: 'https://discord.com/api/webhooks/YOUR_WEBHOOK_URL',
         ),
         TelegramSink(
+          name: 'telegram-alerts',
           botToken: 'YOUR_BOT_TOKEN',
-          chatIds: const ['-1003019608685', '123456789'],
+          chatId: '-1003019608685',
         ),
         PrinterSink(printer: print),
       ],

@@ -3,7 +3,6 @@
 // extracted package later if extraction-readiness is acted on.
 
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:type_caster/type_caster.dart';
@@ -12,59 +11,59 @@ import '../core/constants.dart';
 import '../data/models/discord_webhook_model.dart';
 import '../data/models/sender_info.dart';
 
-/// Common base for webhook senders. Iterates [hookUrls], catches per-URL
-/// errors so one failure does not block the rest.
-abstract class WebhookSenderBase {
-  WebhookSenderBase({
-    required this.hookUrls,
-    Dio? dio,
-  }) : _innerDio = dio ?? Dio();
+/// Delivery failure intentionally omits the remote URL and Dio exception,
+/// which can contain webhook credentials.
+class WebhookDeliveryException implements Exception {
+  const WebhookDeliveryException(this.sinkName);
+  final String sinkName;
 
-  final List<String> hookUrls;
+  @override
+  String toString() => '$sinkName delivery failed';
+}
+
+/// Common base for one-endpoint webhook senders.
+abstract class WebhookSenderBase {
+  WebhookSenderBase({required this.webhookUrl, Dio? dio})
+      : _innerDio = dio ?? Dio();
+
+  final String webhookUrl;
   final Dio _innerDio;
 
-  Future<List<Response>> sendToAll({
+  Future<void> postPayload({
     required dynamic payload,
     Map<String, dynamic>? headers,
     String? contentType,
   }) async {
-    final List<Response> responses = [];
-    for (final String hookUrl in hookUrls) {
-      try {
-        final response = await _innerDio.post(
-          hookUrl,
-          data: payload,
-          options: Options(
-            headers:
-                headers ?? {'Content-Type': contentType ?? 'application/json'},
-          ),
-        );
-        responses.add(response);
-      } catch (e) {
-        log('Error sending webhook to $hookUrl: $e', name: 'WebhookSenderBase');
-      }
+    try {
+      await _innerDio.post(
+        webhookUrl,
+        data: payload,
+        options: Options(
+          headers:
+              headers ?? {'Content-Type': contentType ?? 'application/json'},
+        ),
+      );
+      return;
+    } catch (_) {
+      throw const WebhookDeliveryException('Discord');
     }
-    return responses;
   }
 }
 
 // ─── Discord ────────────────────────────────────────────────────────────────
 
 class DiscordWebhookSender extends WebhookSenderBase {
-  DiscordWebhookSender({
-    required super.hookUrls,
-    super.dio,
-  });
+  DiscordWebhookSender({required super.webhookUrl, super.dio});
 
-  Future<List<Response>> send(DiscordWebhookMessage message) async {
+  Future<void> send(DiscordWebhookMessage message) async {
     final String jsonPayload = jsonEncode(message.toJson());
-    return sendToAll(
+    await postPayload(
       payload: jsonPayload,
       headers: {'Content-Type': 'application/json'},
     );
   }
 
-  Future<List<Response>> sendCurlLog({
+  Future<void> sendCurlLog({
     required String? curl,
     required String method,
     required String uri,
@@ -88,10 +87,10 @@ class DiscordWebhookSender extends WebhookSenderBase {
       avatarUrl: senderInfo?.avatarUrl,
       embeds: [embed],
     );
-    return send(message);
+    await send(message);
   }
 
-  Future<List<Response>> sendBugReport({
+  Future<void> sendBugReport({
     required Object error,
     StackTrace? stackTrace,
     String? message,
@@ -106,18 +105,22 @@ class DiscordWebhookSender extends WebhookSenderBase {
       ),
     ];
     if (stackTrace != null) {
-      fields.add(DiscordEmbedField(
-        name: 'Stack Trace',
-        value: formatEmbedValue(stackTrace),
-        inline: false,
-      ));
+      fields.add(
+        DiscordEmbedField(
+          name: 'Stack Trace',
+          value: formatEmbedValue(stackTrace),
+          inline: false,
+        ),
+      );
     }
     if (extraInfo != null) {
-      fields.add(DiscordEmbedField(
-        name: 'Extra Info',
-        value: formatEmbedValue(extraInfo, lang: 'json'),
-        inline: false,
-      ));
+      fields.add(
+        DiscordEmbedField(
+          name: 'Extra Info',
+          value: formatEmbedValue(extraInfo, lang: 'json'),
+          inline: false,
+        ),
+      );
     }
     final embed = DiscordEmbed(
       title: 'Bug Report / Exception',
@@ -131,10 +134,10 @@ class DiscordWebhookSender extends WebhookSenderBase {
       avatarUrl: senderInfo?.avatarUrl,
       embeds: [embed],
     );
-    return send(discordMessage);
+    await send(discordMessage);
   }
 
-  Future<List<Response>> sendMessage({
+  Future<void> sendMessage({
     required String content,
     SenderInfo? senderInfo,
   }) async {
@@ -143,7 +146,7 @@ class DiscordWebhookSender extends WebhookSenderBase {
       username: senderInfo?.username ?? kDefaultUsername,
       avatarUrl: senderInfo?.avatarUrl,
     );
-    return send(message);
+    await send(message);
   }
 }
 
@@ -152,16 +155,16 @@ class DiscordWebhookSender extends WebhookSenderBase {
 class TelegramWebhookSender {
   TelegramWebhookSender({
     required this.botToken,
-    required this.chatIds,
+    required this.chatId,
     Dio? dio,
   }) : _dio = dio ?? Dio();
 
   final String botToken;
-  final List<dynamic> chatIds;
+  final String chatId;
   final Dio _dio;
   static const int maxMessageLength = 4096;
 
-  Future<List<Response>> sendCurlLog({
+  Future<void> sendCurlLog({
     required String? curl,
     required String method,
     required String uri,
@@ -180,10 +183,10 @@ class TelegramWebhookSender {
       responseTime: responseTime,
       extraInfo: extraInfo,
     );
-    return await _sendMessage(message);
+    await _sendMessage(message);
   }
 
-  Future<List<Response>> sendBugReport({
+  Future<void> sendBugReport({
     required Object error,
     StackTrace? stackTrace,
     String? message,
@@ -196,92 +199,56 @@ class TelegramWebhookSender {
       message: message,
       extraInfo: extraInfo,
     );
-    return await _sendMessage(content);
+    await _sendMessage(content);
   }
 
-  Future<List<Response>> sendMessage({
+  Future<void> sendMessage({
     required String content,
     SenderInfo? senderInfo,
   }) async {
-    return await _sendMessage(content);
+    await _sendMessage(content);
   }
 
-  Future<List<Response>> _sendMessage(String message) async {
-    final List<Response> responses = [];
+  Future<void> _sendMessage(String message) async {
     try {
       final truncatedMessage = _truncateMessage(message);
-      responses.addAll(await _sendHtmlMessage(truncatedMessage));
-    } catch (e) {
-      log('HTML message sending failed, trying plain text fallback: $e',
-          name: 'TelegramWebhookSender');
+      await _sendHtmlMessage(truncatedMessage);
+    } catch (_) {
       try {
         final plainTextMessage = _convertToPlainText(message);
-        responses.addAll(await _sendPlainTextMessage(plainTextMessage));
-      } catch (fallbackError) {
-        log('Plain text fallback also failed: $fallbackError',
-            name: 'TelegramWebhookSender');
+        await _sendPlainTextMessage(plainTextMessage);
+      } catch (_) {
+        throw const WebhookDeliveryException('Telegram');
       }
     }
-    return responses;
   }
 
-  Future<List<Response>> _sendHtmlMessage(String message) async {
-    final List<Response> responses = [];
-    for (final dynamic chatId in chatIds) {
-      try {
-        final telegramMessage = {
-          'chat_id': chatId,
-          'text': message,
-          'parse_mode': 'HTML',
-        };
-        final response = await _dio.post(
-          'https://api.telegram.org/bot$botToken/sendMessage',
-          data: telegramMessage,
-          options: Options(headers: {'Content-Type': 'application/json'}),
-        );
-        final responseData = response.data;
-        if (responseData is Map<String, dynamic> &&
-            responseData['ok'] == true) {
-          responses.add(response);
-        } else {
-          throw Exception('Telegram API error: $responseData');
-        }
-      } catch (e) {
-        log('Error sending HTML message to Telegram chat $chatId: $e',
-            name: 'TelegramWebhookSender');
-        rethrow;
-      }
+  Future<void> _sendHtmlMessage(String message) async {
+    final response = await _dio.post(
+      'https://api.telegram.org/bot$botToken/sendMessage',
+      data: {'chat_id': chatId, 'text': message, 'parse_mode': 'HTML'},
+      options: Options(headers: {'Content-Type': 'application/json'}),
+    );
+    final responseData = response.data;
+    if (responseData is Map<String, dynamic> && responseData['ok'] == true) {
+      return;
+    } else {
+      throw const WebhookDeliveryException('Telegram');
     }
-    return responses;
   }
 
-  Future<List<Response>> _sendPlainTextMessage(String message) async {
-    final List<Response> responses = [];
-    for (final dynamic chatId in chatIds) {
-      try {
-        final telegramMessage = {
-          'chat_id': chatId,
-          'text': message,
-        };
-        final response = await _dio.post(
-          'https://api.telegram.org/bot$botToken/sendMessage',
-          data: telegramMessage,
-          options: Options(headers: {'Content-Type': 'application/json'}),
-        );
-        final responseData = response.data;
-        if (responseData is Map<String, dynamic> &&
-            responseData['ok'] == true) {
-          responses.add(response);
-        } else {
-          log('Telegram API returned error for plain text: $responseData',
-              name: 'TelegramWebhookSender');
-        }
-      } catch (e) {
-        log('Error sending message to Telegram chat $chatId: $e',
-            name: 'TelegramWebhookSender');
-      }
+  Future<void> _sendPlainTextMessage(String message) async {
+    final response = await _dio.post(
+      'https://api.telegram.org/bot$botToken/sendMessage',
+      data: {'chat_id': chatId, 'text': message},
+      options: Options(headers: {'Content-Type': 'application/json'}),
+    );
+    final responseData = response.data;
+    if (responseData is Map<String, dynamic> && responseData['ok'] == true) {
+      return;
+    } else {
+      throw const WebhookDeliveryException('Telegram');
     }
-    return responses;
   }
 
   String _convertToPlainText(String htmlContent) {
@@ -336,8 +303,11 @@ class TelegramWebhookSender {
       try {
         return indentJson(rawValue, indent: '  ');
       } catch (_) {
-        return stringify(rawValue,
-            maxLen: 1000, replacements: const {'```': ''});
+        return stringify(
+          rawValue,
+          maxLen: 1000,
+          replacements: const {'```': ''},
+        );
       }
     }
     return stringify(rawValue, maxLen: 1000, replacements: const {'```': ''});
@@ -381,7 +351,8 @@ class TelegramWebhookSender {
     }
     buffer.writeln();
     buffer.writeln(
-        '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>');
+      '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>',
+    );
     return buffer.toString();
   }
 
@@ -400,12 +371,14 @@ class TelegramWebhookSender {
     }
     buffer.writeln('<b>Error:</b>');
     buffer.writeln(
-        '<pre><code>${_escapeHtml(_formatForTelegram(error))}</code></pre>');
+      '<pre><code>${_escapeHtml(_formatForTelegram(error))}</code></pre>',
+    );
     if (stackTrace != null) {
       buffer.writeln();
       buffer.writeln('<b>Stack Trace:</b>');
       buffer.writeln(
-          '<pre><code>${_escapeHtml(_formatForTelegram(stackTrace))}</code></pre>');
+        '<pre><code>${_escapeHtml(_formatForTelegram(stackTrace))}</code></pre>',
+      );
     }
     if (extraInfo != null && extraInfo.isNotEmpty) {
       buffer.writeln();
@@ -415,7 +388,8 @@ class TelegramWebhookSender {
     }
     buffer.writeln();
     buffer.writeln(
-        '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>');
+      '<i>Timestamp: ${_escapeHtml(DateTime.now().toUtc().toIso8601String())}</i>',
+    );
     return buffer.toString();
   }
 

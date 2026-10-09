@@ -57,10 +57,14 @@ You can customize the relay behaviour with `RelayOptions` inside `CurlConfig` an
 DioCurlInterceptor(
   config: CurlConfig(
     sinks: [
-      DiscordSink(webhookUrls: ['https://your-webhook']),
+      DiscordSink(
+        name: 'discord-alerts',
+        webhookUrl: 'https://your-webhook',
+      ),
       TelegramSink(
+        name: 'telegram-alerts',
         botToken: 'YOUR_BOT_TOKEN',
-        chatIds: ['-1003019608685'], // note: chatIds is List<String>
+        chatId: '-1003019608685',
       ),
       HiveSink(),
       PrinterSink(printer: print),
@@ -227,19 +231,21 @@ For Telegram integration, you need to:
    - Find your chat ID in the response (it's a number, can be negative for groups)
 
 3. **Configure the `TelegramSink`:**
-   - Use `botToken` and `chatIds` parameters directly
-   - Example: `TelegramSink(botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatIds: ['123456789'])`
+   - Use `name`, `botToken`, and `chatId` parameters directly
+   - Example: `TelegramSink(name: 'alerts', botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: '123456789')`
 
 ```dart
 final interceptor = DioCurlInterceptor(
   config: CurlConfig(
     sinks: [
       DiscordSink(
-        webhookUrls: ['https://discord.com/api/webhooks/your-webhook-url'],
+        name: 'discord-alerts',
+        webhookUrl: 'https://discord.com/api/webhooks/your-webhook-url',
       ),
       TelegramSink(
+        name: 'telegram-alerts',
         botToken: 'YOUR_BOT_TOKEN', // Get from @BotFather
-        chatIds: ['-1003019608685'], // List<String>; get from getUpdates API
+        chatId: '-1003019608685', // get from getUpdates API
       ),
     ],
   ),

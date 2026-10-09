@@ -5,17 +5,20 @@ import '../events/curl_event.dart';
 import 'curl_sink.dart';
 import 'message_sink.dart';
 import '_webhook_senders.dart';
+import 'webhook_dio_pool.dart';
 
 /// Sends cURL events (and arbitrary messages) to Discord webhooks.
 ///
-/// The sink owns its own [DiscordWebhookSender] / Dio instance so the user's
-/// app Dio is not reused — that avoids re-entering this interceptor from
-/// outbound webhook calls. Authorization and Cookie headers are stripped from
-/// the cURL payload before the call by default; pass
+/// The package shares one Dio across its webhook sinks when no Dio is injected.
+/// An injected Dio remains owned by the caller. Authorization and Cookie
+/// headers are stripped from the cURL payload before the call by default; pass
 /// `redactAuthHeaders: false` to opt out (useful when sharing debug
 /// webhooks in development).
 class DiscordSink implements CurlSink, MessageSink {
-  final List<String> webhookUrls;
+  /// Safe caller-defined alias used by `targetSinks` and relay logs.
+  @override
+  final String name;
+  final String webhookUrl;
   final SenderInfo? senderInfo;
 
   /// Whether to strip `Authorization`, `Cookie`, and `Set-Cookie` from the
@@ -24,26 +27,25 @@ class DiscordSink implements CurlSink, MessageSink {
   /// do this for trusted debug webhook URLs.
   final bool redactAuthHeaders;
   DiscordWebhookSender? _ownedSender;
-  Dio? _ownedDio;
+  DioLease? _dioLease;
   bool _disposed = false;
 
   /// Test seam: pass a pre-built sender to capture calls. Production code
-  /// omits this and a fresh sender + Dio is created.
+  /// omits this and uses the package-shared Dio unless [dio] is provided.
   DiscordSink({
-    required this.webhookUrls,
+    required this.name,
+    required this.webhookUrl,
     Dio? dio,
     this.senderInfo,
     DiscordWebhookSender? sender,
     this.redactAuthHeaders = true,
   }) {
+    assert(name.trim().isNotEmpty, 'Sink name cannot be empty');
     if (sender != null) {
       _ownedSender = sender;
     } else {
-      _ownedDio = dio ?? Dio();
-      _ownedSender = DiscordWebhookSender(
-        hookUrls: webhookUrls,
-        dio: _ownedDio,
-      );
+      final sinkDio = dio ?? (_dioLease = WebhookDioPool.acquire()).dio;
+      _ownedSender = DiscordWebhookSender(webhookUrl: webhookUrl, dio: sinkDio);
     }
   }
 
@@ -54,9 +56,6 @@ class DiscordSink implements CurlSink, MessageSink {
   }
 
   @override
-  String get name =>
-      'Discord:${webhookUrls.isNotEmpty ? webhookUrls.first : "none"}';
-
   @override
   Future<void> handle(CurlEvent event) async {
     // When redactAuthHeaders is false, skip the redaction so the original
@@ -98,9 +97,9 @@ class DiscordSink implements CurlSink, MessageSink {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
-    final dio = _ownedDio;
-    _ownedDio = null;
+    final lease = _dioLease;
+    _dioLease = null;
     _ownedSender = null;
-    dio?.close(force: true);
+    lease?.release();
   }
 }

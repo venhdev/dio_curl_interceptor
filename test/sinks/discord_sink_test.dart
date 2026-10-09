@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Records the last arguments passed to sendCurlLog and sendMessage without
 /// involving mockito (avoids Dart-3 / mockito matcher issues).
 class _CapturingSender extends DiscordWebhookSender {
-  _CapturingSender() : super(hookUrls: const ['https://unused.example/test']);
+  _CapturingSender() : super(webhookUrl: 'https://unused.example/test');
   String? capturedCurl;
   int capturedStatus = 0;
   String? capturedContent;
@@ -18,7 +18,7 @@ class _CapturingSender extends DiscordWebhookSender {
   bool sentMessageCalled = false;
 
   @override
-  Future<List<Response>> sendCurlLog({
+  Future<void> sendCurlLog({
     required String? curl,
     required String method,
     required String uri,
@@ -31,100 +31,109 @@ class _CapturingSender extends DiscordWebhookSender {
     capturedCurl = curl;
     capturedStatus = statusCode;
     sentCurlCalled = true;
-    return <Response>[];
   }
 
   @override
-  Future<List<Response>> sendMessage({
+  Future<void> sendMessage({
     required String content,
     SenderInfo? senderInfo,
   }) async {
     capturedContent = content;
     sentMessageCalled = true;
-    return <Response>[];
   }
 }
 
 void main() {
-  test('handle redacts Authorization and Cookie before calling sender',
-      () async {
-    final sender = _CapturingSender();
-    final sink = DiscordSink(
-      webhookUrls: const ['https://hook.example/test'],
-      sender: sender,
-    );
+  test(
+    'handle redacts Authorization and Cookie before calling sender',
+    () async {
+      final sender = _CapturingSender();
+      final sink = DiscordSink(
+        name: 'discord-test',
+        webhookUrl: 'https://hook.example/test',
+        sender: sender,
+      );
 
-    await sink.handle(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(
-        method: 'POST',
-        uri: Uri.parse('https://api.example.test/login'),
-        headers: const {
-          'Authorization': 'Bearer SECRET_TOKEN',
-          'Content-Type': 'application/json',
-        },
-        curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
-      ),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: 'ok',
-        duration: Duration(milliseconds: 1),
-      ),
-    ));
+      await sink.handle(
+        ResponseCurlEvent(
+          id: '1',
+          timestamp: DateTime.utc(2026, 7, 7),
+          request: RequestInfo.fromTest(
+            method: 'POST',
+            uri: Uri.parse('https://api.example.test/login'),
+            headers: const {
+              'Authorization': 'Bearer SECRET_TOKEN',
+              'Content-Type': 'application/json',
+            },
+            curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+          ),
+          response: const ResponseInfo(
+            statusCode: 200,
+            headers: {},
+            body: 'ok',
+            duration: Duration(milliseconds: 1),
+          ),
+        ),
+      );
 
-    expect(sender.sentCurlCalled, isTrue);
-    expect(sender.capturedStatus, 200);
-    expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isFalse);
-    expect(sender.capturedCurl!.contains('Authorization'), isFalse);
-  });
+      expect(sender.sentCurlCalled, isTrue);
+      expect(sender.capturedStatus, 200);
+      expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isFalse);
+      expect(sender.capturedCurl!.contains('Authorization'), isFalse);
+    },
+  );
 
   test(
-      'handle forwards Authorization when redactAuthHeaders is false (opt-out)',
-      () async {
-    final sender = _CapturingSender();
-    final sink = DiscordSink(
-      webhookUrls: const ['https://hook.example/test'],
-      sender: sender,
-      redactAuthHeaders: false,
-    );
+    'handle forwards Authorization when redactAuthHeaders is false (opt-out)',
+    () async {
+      final sender = _CapturingSender();
+      final sink = DiscordSink(
+        name: 'discord-test',
+        webhookUrl: 'https://hook.example/test',
+        sender: sender,
+        redactAuthHeaders: false,
+      );
 
-    await sink.handle(ResponseCurlEvent(
-      id: '1',
-      timestamp: DateTime.utc(2026, 7, 7),
-      request: RequestInfo.fromTest(
-        method: 'POST',
-        uri: Uri.parse('https://api.example.test/login'),
-        headers: const {
-          'Authorization': 'Bearer SECRET_TOKEN',
-          'Content-Type': 'application/json',
-        },
-        curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
-      ),
-      response: const ResponseInfo(
-        statusCode: 200,
-        headers: {},
-        body: 'ok',
-        duration: Duration(milliseconds: 1),
-      ),
-    ));
+      await sink.handle(
+        ResponseCurlEvent(
+          id: '1',
+          timestamp: DateTime.utc(2026, 7, 7),
+          request: RequestInfo.fromTest(
+            method: 'POST',
+            uri: Uri.parse('https://api.example.test/login'),
+            headers: const {
+              'Authorization': 'Bearer SECRET_TOKEN',
+              'Content-Type': 'application/json',
+            },
+            curl: "curl -H 'Authorization: Bearer SECRET_TOKEN' -d '{}'",
+          ),
+          response: const ResponseInfo(
+            statusCode: 200,
+            headers: {},
+            body: 'ok',
+            duration: Duration(milliseconds: 1),
+          ),
+        ),
+      );
 
-    expect(sender.sentCurlCalled, isTrue);
-    // With redactAuthHeaders: false, the original curl (with Authorization)
-    // is passed through unchanged so the developer can debug via the
-    // webhook without pulling the header out of the request log.
-    expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isTrue);
-    expect(sender.capturedCurl!.contains('Authorization'), isTrue);
-  });
+      expect(sender.sentCurlCalled, isTrue);
+      // With redactAuthHeaders: false, the original curl (with Authorization)
+      // is passed through unchanged so the developer can debug via the
+      // webhook without pulling the header out of the request log.
+      expect(sender.capturedCurl!.contains('SECRET_TOKEN'), isTrue);
+      expect(sender.capturedCurl!.contains('Authorization'), isTrue);
+    },
+  );
 
-  test('name is unique per webhook URL', () {
+  test('name is an explicit safe sink alias', () {
     final a = DiscordSink(
-      webhookUrls: const ['https://hook.example/A'],
+      name: 'alerts',
+      webhookUrl: 'https://hook.example/A',
       sender: _CapturingSender(),
     );
     final b = DiscordSink(
-      webhookUrls: const ['https://hook.example/B'],
+      name: 'errors',
+      webhookUrl: 'https://hook.example/B',
       sender: _CapturingSender(),
     );
     expect(a.name, isNot(b.name));
@@ -133,11 +142,34 @@ void main() {
   test('sendMessage posts raw content via the sender', () async {
     final sender = _CapturingSender();
     final sink = DiscordSink(
-      webhookUrls: const ['https://hook.example/A'],
+      name: 'discord-test',
+      webhookUrl: 'https://hook.example/A',
       sender: sender,
     );
     await sink.sendMessage('App started');
     expect(sender.sentMessageCalled, isTrue);
     expect(sender.capturedContent, 'App started');
+  });
+
+  test('does not close caller-injected Dio on dispose', () async {
+    final externalDio = Dio()
+      ..interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) => handler.resolve(
+            Response(requestOptions: options, data: 'still open'),
+          ),
+        ),
+      );
+    final sink = DiscordSink(
+      name: 'external',
+      webhookUrl: 'https://hook.example/test',
+      dio: externalDio,
+    );
+
+    await sink.dispose();
+    final response = await externalDio.get<String>('https://example.test');
+
+    expect(response.data, 'still open');
+    externalDio.close(force: true);
   });
 }
