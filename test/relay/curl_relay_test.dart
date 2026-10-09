@@ -43,6 +43,22 @@ class _NamedSink implements CurlSink, MessageSink {
   Future<void> dispose() async {}
 }
 
+class _FailingSink implements CurlSink {
+  int attempts = 0;
+
+  @override
+  String get name => 'failing';
+
+  @override
+  Future<void> handle(CurlEvent event) async {
+    attempts++;
+    throw StateError('sink failed');
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
 void main() {
   test('dispatch invokes every sink exactly once', () async {
     final rec = _RecSink();
@@ -60,6 +76,29 @@ void main() {
     ));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(rec.handled, hasLength(1));
+  });
+
+  test('dispatch does not retry a failed sink', () async {
+    final failing = _FailingSink();
+    final relay = CurlRelay(
+      sinks: [failing],
+      options: const RelayOptions(circuitBreaker: false),
+    );
+    relay.dispatch(ResponseCurlEvent(
+      id: 'failed-once',
+      timestamp: DateTime.utc(2026, 7, 7),
+      request: RequestInfo.fromTest(),
+      response: const ResponseInfo(
+        statusCode: 200,
+        headers: {},
+        body: null,
+        duration: Duration.zero,
+      ),
+    ));
+
+    await relay.dispose();
+
+    expect(failing.attempts, 1);
   });
 
   test('dispatch deduplicates same id within TTL', () async {

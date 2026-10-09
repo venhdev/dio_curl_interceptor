@@ -8,31 +8,18 @@ import '../sinks/sink.dart';
 import '../util/log.dart';
 import 'circuit_breaker.dart';
 import 'dedupe_cache.dart';
-import 'retry_policy.dart';
 
 /// Tunables for [CurlRelay]. All options are opt-in; defaults match the spec.
 class RelayOptions {
-  final bool retry;
   final bool circuitBreaker;
   final Duration dedupeTtl;
-  final int retryMaxRetries;
-  final Duration retryInitialDelay;
-  final double retryBackoffMultiplier;
-  final double retryJitterFraction;
-  final Duration retryMaxDelay;
   final int circuitFailureThreshold;
   final Duration circuitResetTimeout;
   final int dedupeMaxEntries;
 
   const RelayOptions({
-    this.retry = true,
     this.circuitBreaker = true,
     this.dedupeTtl = const Duration(minutes: 1),
-    this.retryMaxRetries = 3,
-    this.retryInitialDelay = const Duration(seconds: 1),
-    this.retryBackoffMultiplier = 2.0,
-    this.retryJitterFraction = 0.2,
-    this.retryMaxDelay = const Duration(seconds: 30),
     this.circuitFailureThreshold = 5,
     this.circuitResetTimeout = const Duration(minutes: 1),
     this.dedupeMaxEntries = 10000,
@@ -40,14 +27,13 @@ class RelayOptions {
 }
 
 /// Orchestrates dispatch from one [DioCurlInterceptor] (or any caller) to a
-/// fan-out of sinks, with per-sink circuit-breaker, retry-with-jitter, and a
-/// shared dedupe cache keyed by `CurlEvent.id`. Fire-and-forget by design —
+/// fan-out of sinks, with per-sink circuit-breaker and a shared dedupe cache
+/// keyed by `CurlEvent.id`. Fire-and-forget by design —
 /// the dispatcher never blocks the Dio hot path.
 class CurlRelay {
   final List<Sink> sinks;
   final RelayOptions options;
   final DedupeCache _dedupe;
-  final RetryPolicy? _retry;
   final Map<String, CircuitBreaker> _breakers = {};
   final Set<Future<void>> _inFlight = {};
   bool _disposed = false;
@@ -55,22 +41,13 @@ class CurlRelay {
   CurlRelay({
     required this.sinks,
     this.options = const RelayOptions(),
-  })  : _dedupe = DedupeCache(
+  }) : _dedupe = DedupeCache(
           ttl: options.dedupeTtl,
           maxEntries: options.dedupeMaxEntries,
-        ),
-        _retry = options.retry
-            ? RetryPolicy(
-                maxRetries: options.retryMaxRetries,
-                initialDelay: options.retryInitialDelay,
-                backoffMultiplier: options.retryBackoffMultiplier,
-                jitterFraction: options.retryJitterFraction,
-                maxDelay: options.retryMaxDelay,
-              )
-            : null;
+        );
 
-  /// Forward a [CurlEvent] to every [CurlSink] with concurrency control,
-  /// retry, and circuit breaker.
+  /// Forward a [CurlEvent] to every [CurlSink] with concurrency control and
+  /// circuit breaker.
   ///
   /// Dedupe is keyed by [CurlEvent.id] (assigned once per logical request in
   /// [DioCurlInterceptor], then shared by Request/Response/Error variants).
@@ -175,14 +152,8 @@ class CurlRelay {
           resetTimeout: options.circuitResetTimeout,
         ),
       );
-      return cb.call(() => _withRetry(op, name));
+      return cb.call(op);
     }
-    return _withRetry(op, name);
-  }
-
-  Future<T> _withRetry<T>(Future<T> Function() op, String name) async {
-    final r = _retry;
-    if (r == null) return op();
-    return r.execute(op, operationName: name);
+    return op();
   }
 }

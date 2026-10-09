@@ -36,7 +36,7 @@ golden rules:
 
 The library is organized inside the `lib/src/` folder:
 - **Interceptors**: `DioCurlInterceptor` — single public interceptor (4.0+), driven by `CurlConfig`.
-- **Relay**: `CurlRelay` orchestrates fan-out to sinks with per-sink circuit breaker, retry with jitter, and LRU dedupe cache. Built on three primitives in `relay/`: `CircuitBreaker`, `RetryPolicy`, `DedupeCache`.
+- **Relay**: `CurlRelay` orchestrates fan-out to sinks with per-sink circuit breaker and LRU dedupe cache. Built on `CircuitBreaker` and `DedupeCache` in `relay/`.
 - **Sinks**: Pluggable terminal handlers — `DiscordSink`, `TelegramSink`, `HiveSink`, `PrinterSink`, `NullSink`, `StatusFilterSink` (decorator) — implementing `CurlSink` (and `MessageSink` for message-capable sinks).
 - **Events**: Immutable data layer — `CurlEvent` (sealed: `Request`/`Response`/`Error`) plus `RequestInfo`, `ResponseInfo`, `ErrorInfo`.
 - **Services**: Manages caching operations (`CachedCurlService`) and filters (`FilterManagementService`).

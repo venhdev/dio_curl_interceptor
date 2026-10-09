@@ -35,8 +35,8 @@ export 'src/relay/curl_relay.dart';
 export 'src/util/log.dart';
 
 // (4.0.0) Removed legacy `src/patterns/patterns.dart` re-export — the
-// CircuitBreaker / RetryPolicy / FireAndForget / WebhookCache helpers there
-// are superseded by `src/relay/{circuit_breaker,retry_policy,dedupe_cache}.dart`.
+// CircuitBreaker / FireAndForget / WebhookCache helpers there are superseded
+// by `src/relay/{circuit_breaker,dedupe_cache}.dart`.
 // External code that pulled them in via `package:dio_curl_interceptor`
 // should import directly from `src/relay/*` going forward.
 
