@@ -40,7 +40,7 @@ The library is organized inside the `lib/src/` folder:
 - **Sinks**: Pluggable terminal handlers — `DiscordSink`, `TelegramSink`, `HiveSink`, `PrinterSink`, `NullSink`, `StatusFilterSink` (decorator) — implementing `CurlSink` (and `MessageSink` for message-capable sinks).
 - **Events**: Immutable data layer — `CurlEvent` (sealed: `Request`/`Response`/`Error`) plus `RequestInfo`, `ResponseInfo`, `ErrorInfo`.
 - **Services**: Manages cache operations (`CachedCurlService`).
-- **UI Screens**: Built-in overlays (`BubbleOverlay`) and log viewers (`CurlViewer`) for developer debugging.
+- **UI Screens**: A root-mounted `CurlBubble` and full-screen `CurlViewer` for developer debugging, with `CurlDetailViewer` for request inspection.
 
 ## Engineering Rules
 

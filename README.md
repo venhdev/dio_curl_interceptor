@@ -238,7 +238,7 @@ ElevatedButton(
 );
 ```
 
-The log viewer supports:
+The full-screen log viewer supports:
 
 - Search and filter by status code, date range, or text
 - Copy cURL command
@@ -263,44 +263,28 @@ The inspector includes:
 - **Deep Clipboard Context**: Long-press any JSON node to copy its Value, Key, Subtree JSON, or JSONPath pointer (e.g. `$.data.users[0].id`).
 - **Multiple Body Modes**: Switch between **Tree**, **Pretty** formatted text, and **Raw** network payload.
 
-### Floating Bubble Overlay
+### Floating Bubble
 
-For a non-intrusive debugging experience, use the floating bubble overlay that wraps your main app content:
+Mount `CurlBubble` in `MaterialApp.builder` so it stays available across route changes. The navigator key must be shared with `MaterialApp.navigatorKey`:
 
 ```dart
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: CurlBubble(
-          // Wrap your main app content
-          body: YourMainContent(),
-          controller: BubbleOverlayController(),
-          style: BubbleStyle(
-            initialPosition: const Offset(50, 200),
-            snapToEdges: false, // Stays where you drag it
-          ),
-          onExpanded: () => debugPrint('Bubble expanded'),
-          onMinimized: () => debugPrint('Bubble minimized'),
-        ),
-      ),
-    );
-  }
-}
+import 'package:flutter/material.dart';
+import 'package:dio_curl_interceptor/dio_curl_interceptor.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
+
+MaterialApp(
+  navigatorKey: navigatorKey,
+  builder: (context, child) => CurlBubble(
+    navigatorKey: navigatorKey,
+    child: child ?? const SizedBox.shrink(),
+    enableDebugMode: true,
+  ),
+  home: const HomePage(),
+);
 ```
 
-#### Bubble Features
-
-- **Draggable**: Drag the bubble around the screen
-- **Free Positioning**: Stays where you drag it (no auto-snapping by default)
-- **Expandable**: Tap to expand and view cURL logs
-- **Non-intrusive**: Stays on top without blocking your app
-- **Controller-based**: Full programmatic control via `BubbleOverlayController`
-- **Resizable**: Expand and resize the bubble content
-- **Customizable**: Use custom widgets for minimized and expanded states
-
-> **Note**: File export functionality has been removed in v3.3.3. Use copy/share features instead.
+Tap the floating terminal button to open the full-screen log viewer. Selecting a log opens the detail modal with Overview, Headers, Response Body, and cURL tabs.
 
 ### Cache Storage Initialization
 

@@ -191,28 +191,21 @@ try {
 
 ## Bubble Integration
 
-For a non-intrusive debugging experience, you can integrate a floating bubble overlay into your app. This allows you to view cURL logs without interrupting your app flow.
-
-### Quick Bubble Setup
+Mount `CurlBubble` in `MaterialApp.builder` so the floating button stays available across route changes. Reuse the same navigator key for both widgets:
 
 ```dart
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: CurlBubble(
-          body: YourMainContent(),
-          // No controller needed - internal controller will be created automatically
-          style: BubbleStyle(
-            initialPosition: const Offset(50, 200),
-            snapToEdges: false,
-          ),
-        ),
-      ),
-    );
-  }
-}
+final navigatorKey = GlobalKey<NavigatorState>();
+
+MaterialApp(
+  navigatorKey: navigatorKey,
+  builder: (context, child) => CurlBubble(
+    navigatorKey: navigatorKey,
+    child: child ?? const SizedBox.shrink(),
+    enableDebugMode: true,
+  ),
+  home: const HomePage(),
+);
+```
 
 ## Available Utility Methods
 
